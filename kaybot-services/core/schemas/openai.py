@@ -1,5 +1,11 @@
+# Standard Library
 from enum import Enum
-from pydantic import BaseModel, Field
+
+# Third Party
+from pydantic import Field
+
+# Local Folder
+from .base import BaseModel
 
 
 class ChatCompletionRoleEnum(str, Enum):

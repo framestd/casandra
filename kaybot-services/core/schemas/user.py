@@ -1,10 +1,8 @@
-from typing import TYPE_CHECKING, Optional
-from pydantic import UUID4, BaseModel, ConfigDict
+# Third Party
+from pydantic import UUID4
 
-from .base import SchemaBase
-
-if TYPE_CHECKING:
-    from .account import Account
+# Local Folder
+from .base import BaseModel, SchemaBase
 
 
 class UserBase(BaseModel):
@@ -18,8 +16,4 @@ class UserCreate(UserBase):
 
 
 class User(UserBase, SchemaBase):
-    model_config = ConfigDict(from_attributes=True)
-
     account_id: UUID4
-
-    # account: Optional["Account"]
