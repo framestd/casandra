@@ -1,15 +1,21 @@
+# Standard Library
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, DateTime, Index
+# Third Party
+from sqlalchemy import DateTime, Index, String
 from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+# First Party
 from core.utils import get_utc_time
 
+# Local Folder
 from .base import Base
 
+
 if TYPE_CHECKING:
+    # Local Folder
     from .user import User
 
 
@@ -50,6 +56,6 @@ class Account(Base):
             "IDX_Account_email_UNIQUE",
             email,
             unique=True,
-            postgresql_where=Base.deleted_at.is_(None),
+            postgresql_where=Base.deleted_at.is_(None),  # type: ignore
         ),
     )

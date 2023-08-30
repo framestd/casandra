@@ -1,14 +1,14 @@
+# Standard Library
 from datetime import datetime
 from uuid import UUID, uuid4
 
+# Third Party
 from sqlalchemy import DateTime
 
 # from sqlalchemy import UUID
-from sqlalchemy.orm import mapped_column
-from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy.orm import Mapped
-from sqlalchemy.orm import MappedAsDataclass
+from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
+# First Party
 from core.utils import get_utc_time
 
 

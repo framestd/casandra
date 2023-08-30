@@ -1,15 +1,20 @@
+# Standard Library
 from typing import TYPE_CHECKING
 from uuid import UUID
 
-from sqlalchemy import ForeignKey, String, Index
+# Third Party
+from sqlalchemy import ForeignKey, Index, String
 from sqlalchemy.dialects.postgresql import CITEXT
-from sqlalchemy.orm import mapped_column, relationship
-from sqlalchemy.orm import Mapped
+from sqlalchemy.orm import Mapped, mapped_column
 
+# Local Folder
 from .base import Base
 
+
 if TYPE_CHECKING:
-    from .account import Account
+    # Local Folder
+    # from .account import Account
+    pass
 
 
 class User(Base):
@@ -38,6 +43,6 @@ class User(Base):
             "IDX_User_username_UNIQUE",
             username,
             unique=True,
-            postgresql_where=Base.deleted_at.is_(None),
+            postgresql_where=Base.deleted_at.is_(None),  # type: ignore
         ),
     )
