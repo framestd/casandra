@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
+# Standard Library
 from os.path import abspath
 from subprocess import run
 
+# Third Party
 from dotenv import dotenv_values
+
 
 JWT_RS256_PUB_KEY = "JWT_RS256_PUB_KEY"
 JWT_RS256_KEY = "JWT_RS256_KEY"
