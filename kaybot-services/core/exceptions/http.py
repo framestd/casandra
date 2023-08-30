@@ -1,15 +1,24 @@
-from typing import Literal
+# Standard Library
+from typing import Any, Literal, TypedDict, Unpack
+
+# Third Party
 from fastapi import HTTPException, status
 
+# First Party
 from core.utils import create_error
 
+# Local Folder
 from .code import ErrorCode
 
 
-class AppHTTPException(HTTPException):
+class ErrorAttributesDict(TypedDict):
+    context: dict[str, Any] | None
+    path: tuple[str, ...]
+    value: Any
     message: str
-    code: ErrorCode
 
+
+class AppHTTPException(HTTPException):
     def __init__(
         self,
         message: str,
@@ -26,13 +35,17 @@ class AppHTTPException(HTTPException):
 
         self.message = message
         self.code = code
+        self.errors: list[ErrorAttributesDict] = []
+
+    def add_attributes(self, **kwargs: Unpack[ErrorAttributesDict]):
+        self.errors.append(kwargs)
+        return self
 
 
 class BadRequestException(AppHTTPException):
-    message: str
-    code: Literal[ErrorCode.INVALID_REQUEST]
+    code: Literal[ErrorCode.INVALID_REQUEST] = ErrorCode.INVALID_REQUEST
 
-    def __init__(self, *, message: str, headers: dict[str, str] | None = None):
+    def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -41,24 +54,10 @@ class BadRequestException(AppHTTPException):
         )
 
 
-class UnauthenticatedException(AppHTTPException):
-    message: str
-    code: Literal[ErrorCode.UNAUTHENTICATED]
-
-    def __init__(self, *, message: str, headers: dict[str, str] | None = None):
-        super().__init__(
-            message,
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            code=ErrorCode.UNAUTHENTICATED,
-            headers=headers,
-        )
-
-
 class UnauthorizedException(AppHTTPException):
-    message: str
-    code: Literal[ErrorCode.UNAUTHORIZED]
+    code: Literal[ErrorCode.UNAUTHORIZED] = ErrorCode.UNAUTHORIZED
 
-    def __init__(self, *, message: str, headers: dict[str, str] | None = None):
+    def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -68,10 +67,9 @@ class UnauthorizedException(AppHTTPException):
 
 
 class ForbiddenRequestException(AppHTTPException):
-    message: str
-    code: Literal[ErrorCode.FORBIDDEN_REQUEST]
+    code: Literal[ErrorCode.FORBIDDEN_REQUEST] = ErrorCode.FORBIDDEN_REQUEST
 
-    def __init__(self, *, message: str, headers: dict[str, str] | None = None):
+    def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
             status_code=status.HTTP_403_FORBIDDEN,
@@ -80,24 +78,34 @@ class ForbiddenRequestException(AppHTTPException):
         )
 
 
-class NotFoundException(AppHTTPException):
-    message: str
-    code: Literal[ErrorCode.NOT_FOUND]
+class ConflictException(AppHTTPException):
+    code: Literal[ErrorCode.CONFLICT] = ErrorCode.CONFLICT
 
-    def __init__(self, *, message: str, headers: dict[str, str] | None = None):
+    def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
-            status_code=status.HTTP_404_NOT_FOUND,
-            code=ErrorCode.NOT_FOUND,
+            status_code=status.HTTP_409_CONFLICT,
+            code=ErrorCode.CONFLICT,
+            headers=headers,
+        )
+
+
+class UnprocessableEntityException(AppHTTPException):
+    code: Literal[ErrorCode.UNPROCESSABLE_ENTITY] = ErrorCode.UNPROCESSABLE_ENTITY
+
+    def __init__(self, message: str, *, headers: dict[str, str] | None = None):
+        super().__init__(
+            message,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            code=ErrorCode.UNPROCESSABLE_ENTITY,
             headers=headers,
         )
 
 
 class ServiceUnavailableException(AppHTTPException):
-    message: str
-    code: Literal[ErrorCode.SERVICE_UNAVAILABLE]
+    code: Literal[ErrorCode.SERVICE_UNAVAILABLE] = ErrorCode.SERVICE_UNAVAILABLE
 
-    def __init__(self, *, message: str, headers: dict[str, str] | None = None):
+    def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
