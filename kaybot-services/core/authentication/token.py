@@ -1,12 +1,15 @@
+# Standard Library
 from datetime import datetime, timedelta
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar, cast
 
+# Third Party
 from jose import jwt
 from pydantic import BaseModel, model_serializer
 
+# First Party
 from core.settings import settings
 
-T = TypeVar("T")
+T = TypeVar("T", dict[str, Any], dict[str, Any])
 
 
 def prefix_sub(sub: str, prefix: str = "account_id"):
@@ -54,8 +57,6 @@ class JWTRS256Token(Generic[T], BaseModel):
     the wrapped token.
     """
 
-    _token: str
-
     def __init__(self, token: str) -> None:
         super().__init__()
         self._token = token
@@ -77,7 +78,7 @@ class JWTRS256Token(Generic[T], BaseModel):
             considered expired
         """
 
-        to_encode = data.copy() if type(data) is dict else data
+        to_encode = data.copy() if type(data) is dict[str, Any] else data
 
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
@@ -103,7 +104,7 @@ class JWTRS256Token(Generic[T], BaseModel):
             algorithms=[settings.JWT_ALGORITHM],
         )
 
-        return decoded
+        return cast(T, decoded)
 
     @model_serializer
     def serialize_model(self):

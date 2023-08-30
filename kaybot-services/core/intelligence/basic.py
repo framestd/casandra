@@ -1,10 +1,15 @@
-import openai
-
+# Standard Library
 from enum import Enum
 
-from core.schemas.openai import ChatCompletionResponse
+# Third Party
+import openai
 
+# First Party
+from core.schemas.openai import ChatCompletionResponseBody
+
+# Local Folder
 from .personality import ADVANCED_BACKGROUND, PERSONALITY, SIMPLE_BACKGROUND
+
 
 class PersonalityBackground(Enum):
     """A simple enum used to award background information to a personality
@@ -30,13 +35,15 @@ class Prompt(object):
 
 
 def generate_prompt(
-    question: str, background_type: PersonalityBackground = PersonalityBackground.SIMPLE
+    question: str,
+    background_type: PersonalityBackground = PersonalityBackground.SIMPLE,
 ) -> Prompt:
     """Generate a prompt from a give question or message,
     a background information for the personality which is predefined
     and set by an enum of `PersonalityBackground`
 
     """
+
     is_simple = background_type is PersonalityBackground.SIMPLE
     background = SIMPLE_BACKGROUND if is_simple else ADVANCED_BACKGROUND
 
@@ -46,8 +53,10 @@ def generate_prompt(
 
 
 def generate_response(
-    prompt: Prompt, max_tokens=500, temperature=0.5
-) -> ChatCompletionResponse:
+    prompt: Prompt,
+    max_tokens: int = 500,
+    temperature: float = 0.5,
+) -> ChatCompletionResponseBody:
     """Generate a response to an given prompt.
     The prompt is programmed such that the GPT is given a
     personality of its own.
@@ -56,7 +65,8 @@ def generate_response(
     message follows it.
 
     """
-    response = openai.ChatCompletion.create(
+
+    response = openai.ChatCompletion.create(  # type: ignore
         model="gpt-3.5-turbo",
         temperature=temperature,
         max_tokens=max_tokens,
@@ -66,4 +76,4 @@ def generate_response(
         ],
     )
 
-    return response
+    return response  # type: ignore

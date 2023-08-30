@@ -1,3 +1,4 @@
+# Third Party
 from passlib.context import CryptContext
 
 
@@ -10,7 +11,6 @@ class Password(object):
     """
 
     _context: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    _plain_password: str
 
     def __init__(self, plain_password: str) -> None:
         """Constructs a new password object

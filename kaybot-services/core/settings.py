@@ -1,5 +1,9 @@
+# type: ignore
+
+# Standard Library
 from typing import Literal
 
+# Third Party
 from decouple import config
 from pydantic_settings import BaseSettings
 

@@ -1,5 +1,7 @@
+# Standard Library
 from typing import Annotated, Union
 
+# Third Party
 from fastapi import Form
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
