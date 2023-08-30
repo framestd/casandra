@@ -2,16 +2,16 @@ import './globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AppProvider } from '@/core/components/Providers';
+import { getApplicationInfo_Cached } from '@/core/services/build-props';
+import { CONFIG_SCRIPT_NAME } from '@/core/utils';
 
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans } from 'next/font/google';
-import { getApplicationInfo } from '@/core/services/_app';
-import { CONFIG_SCRIPT_NAME } from '@/core/utils';
 
 const pjs = Plus_Jakarta_Sans({ subsets: ['latin'] });
 
 export const generateMetadata = async (): Promise<Metadata> => {
-  const res = await getApplicationInfo();
+  const res = await getApplicationInfo_Cached();
   const data = res.data;
 
   return {
@@ -22,7 +22,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const res = await getApplicationInfo();
+  const res = await getApplicationInfo_Cached();
 
   const data = res.data;
 
