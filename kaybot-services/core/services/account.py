@@ -1,18 +1,23 @@
+# Third Party
 from jose import JWTError
 from pydantic import UUID4, EmailStr
 from sqlalchemy.orm import Session
 
-from core.authentication.token import JWTRS256Token, split_prefix_from_sub
+# First Party
 from core.authentication.password import Password
-from core.exceptions.http import (
-    BadRequestException,
-    NotFoundException,
-    UnauthorizedException,
-)
-from core.models import account as model, user as user_model
+from core.authentication.token import JWTRS256Token, split_prefix_from_sub
+from core.exceptions.application import CredentialsException, MissingResourceException
+from core.exceptions.http import ConflictException, UnauthorizedException
+from core.logging.logger import get_app_logger
+from core.models.account import Account as AccountModel
+from core.models.user import User as UserModel
 from core.schemas import account as schema
 
+# Local Folder
 from .user import get_user_by_username
+
+
+logger = get_app_logger(__name__)
 
 
 def create_user_account_service(session: Session, credentials: schema.AccountCreate):
@@ -23,23 +28,22 @@ def create_user_account_service(session: Session, credentials: schema.AccountCre
 
     :param credentials: the credentials or data to use to create a new account
 
-    :raises BadRequestException:
+    :raises ConflictException:
         - if account with email already exists or,
         - if user with username already exists
     """
 
-    password = Password(credentials.password)
-    hashed_password = password.get_hash()
+    hashed_password = Password(credentials.password).get_hash()
 
-    user = user_model.User(**credentials.user.model_dump())
-    account = model.Account(
+    user = UserModel(**credentials.user.model_dump())
+    account = AccountModel(
         email=credentials.email,
         password=hashed_password,
         user=user,
     )
 
-    existing_account: model.Account | None = None
-    existing_user: user_model.User | None = None
+    existing_account: AccountModel | None = None
+    existing_user: UserModel | None = None
 
     try:
         existing_account = get_account_by_email(
@@ -51,18 +55,33 @@ def create_user_account_service(session: Session, credentials: schema.AccountCre
             session,
             username=credentials.user.username,
         )
-    except NotFoundException:
+    except MissingResourceException:
         pass
 
-    if not existing_account is None:
-        raise BadRequestException(
-            message=f"email address [{credentials.email}] is already in use"
-        )
+    if not existing_account is None or not existing_user is None:
+        exception = ConflictException("Some of the details provied are already in use")
 
-    if not existing_user is None:
-        raise BadRequestException(
-            message=f"username [{credentials.user.username}] is already in use"
-        )
+        if not existing_account is None:
+            logger.debug(f'Email address "{credentials.email}" is already taken')
+
+            exception.add_attributes(
+                context=None,
+                message="Email address already in use",
+                path=("body", "email"),
+                value=credentials.email,
+            )
+
+        if not existing_user is None:
+            logger.debug(f'Username "{credentials.user.username}" is already taken')
+
+            exception.add_attributes(
+                context=None,
+                message="Username is already taken",
+                path=("body", "user", "username"),
+                value=credentials.user.username,
+            )
+
+        raise exception
 
     session.add(account)
     session.commit()
@@ -81,10 +100,10 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
 
     :param password: the plain text user account password used to confirm access integrity
 
-    :raises NotFoundException:
+    :raises MissingResourceException:
         when an account with the identifier or email couldn't be found
 
-    :raises BadRequestException:
+    :raises CredentialsException:
         when the plain password supplied doesn't match the hashed password stored.
     """
 
@@ -92,7 +111,21 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
     password_object = Password(plain_password=password)
 
     if not password_object.compare(hashed_password=account.password):
-        raise BadRequestException(message=f"an incorrect password was supplied")
+        # debug log
+        logger.debug(
+            f"Access to account with email {identifier} was tried with a wrong password"
+        )
+
+        exception = CredentialsException("Incorrect password")
+
+        exception.add_attributes(
+            context=None,
+            path=("body", "password"),
+            value="",
+            message=exception.message,
+        )
+
+        raise exception
 
     return account
 
@@ -123,13 +156,13 @@ def reauthenticate_user_account_service(session: Session, refresh_token: str):
 
         _, account_id = split_prefix_from_sub(sub)
 
-        token_data = schema.TokenData(account_id=account_id)
+        token_data = schema.TokenData(account_id=account_id)  # type: ignore
     except JWTError:
         raise credentials_exception
 
     try:
-        account = get_account_by_id(session, id=token_data.account_id)
-    except NotFoundException:
+        account = get_account_by_id(session, id=token_data.account_id)  # type: ignore
+    except MissingResourceException:
         raise credentials_exception
 
     return account
@@ -142,14 +175,26 @@ def get_account_by_id(session: Session, id: UUID4):
 
     :param id: the user account id to use to retrieve the account
 
-    :raises NotFoundException:
+    :raises MissingResourceException:
         if account with the specified id couldn't be found
     """
 
-    account = session.query(model.Account).filter(model.Account.id == id).one_or_none()
+    account = session.query(AccountModel).filter(AccountModel.id == id).one_or_none()
 
     if account is None:
-        raise NotFoundException(message=f"account with id [{id}] not found")
+        # debug log:
+        logger.debug(f"Account with id {id} does not exist")
+
+        exception = MissingResourceException(f"Account with id **{id}** not found")
+
+        exception.add_attributes(
+            context=None,
+            path=("*", "id"),
+            value=id,
+            message=exception.message,
+        )
+
+        raise exception
 
     return account
 
@@ -161,17 +206,29 @@ def get_account_by_email(session: Session, email: EmailStr):
 
     :param email: the user account email address to use to retrieve the account
 
-    :raises NotFoundException:
+    :raises MissingResourceException:
         if account with the specified email address couldn't be found
     """
 
     account = (
-        session.query(model.Account).filter(model.Account.email == email).one_or_none()
+        session.query(AccountModel).filter(AccountModel.email == email).one_or_none()
     )
 
     if account is None:
-        raise NotFoundException(
-            message=f"account with email address [{email}] not found"
+        # debug log:
+        logger.debug(f"Account with email address {email} does not exist")
+
+        exception = MissingResourceException(
+            f"Account with email address **{email}** not found"
         )
+
+        exception.add_attributes(
+            context=None,
+            path=("*", "email"),
+            value=email,
+            message=exception.message,
+        )
+
+        raise exception
 
     return account
