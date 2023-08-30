@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * KayBot
- * KayBot is a chatbot that can be utilized for lead generation in the field of digital marketing.
+ * Kaybot
+ * Kaybot is a chatbot that can be utilized for lead generation in the field of digital marketing.
  *
  * The version of the OpenAPI document: 1.0
  *
@@ -62,7 +62,7 @@ export interface Account {
    * @type {any}
    * @memberof Account
    */
-  deleted_at: any;
+  deleted_at: any | null;
   /**
    *
    * @type {any}
@@ -80,13 +80,13 @@ export interface Account {
    * @type {any}
    * @memberof Account
    */
-  verified_at: any;
+  verified_at: any | null;
   /**
    *
-   * @type {any}
+   * @type {User}
    * @memberof Account
    */
-  user: any;
+  user: User | null;
 }
 /**
  *
@@ -273,15 +273,189 @@ export interface ChatCompletionUsage {
 /**
  *
  * @export
- * @interface HTTPValidationError
+ * @interface ErrorAttributes
  */
-export interface HTTPValidationError {
+export interface ErrorAttributes {
   /**
    *
    * @type {any}
-   * @memberof HTTPValidationError
+   * @memberof ErrorAttributes
    */
-  detail?: any;
+  type: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorAttributes
+   */
+  context: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorAttributes
+   */
+  path: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorAttributes
+   */
+  message: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorAttributes
+   */
+  value: any;
+}
+/**
+ *
+ * @export
+ * @interface ErrorCode
+ */
+export interface ErrorCode {}
+/**
+ *
+ * @export
+ * @interface ErrorInfo
+ */
+export interface ErrorInfo {
+  /**
+   *
+   * @type {ErrorCode}
+   * @memberof ErrorInfo
+   */
+  code: ErrorCode;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorInfo
+   */
+  errors: any;
+}
+
+/**
+ *
+ * @export
+ * @interface ErrorResponseMissingResourceException
+ */
+export interface ErrorResponseMissingResourceException {
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseMissingResourceException
+   */
+  data?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseMissingResourceException
+   */
+  message?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseMissingResourceException
+   */
+  success?: any;
+  /**
+   *
+   * @type {ErrorInfo}
+   * @memberof ErrorResponseMissingResourceException
+   */
+  info: ErrorInfo;
+}
+/**
+ *
+ * @export
+ * @interface ErrorResponseServiceUnavailableException
+ */
+export interface ErrorResponseServiceUnavailableException {
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseServiceUnavailableException
+   */
+  data?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseServiceUnavailableException
+   */
+  message?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseServiceUnavailableException
+   */
+  success?: any;
+  /**
+   *
+   * @type {ErrorInfo}
+   * @memberof ErrorResponseServiceUnavailableException
+   */
+  info: ErrorInfo;
+}
+/**
+ *
+ * @export
+ * @interface ErrorResponseUnauthorizedException
+ */
+export interface ErrorResponseUnauthorizedException {
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseUnauthorizedException
+   */
+  data?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseUnauthorizedException
+   */
+  message?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseUnauthorizedException
+   */
+  success?: any;
+  /**
+   *
+   * @type {ErrorInfo}
+   * @memberof ErrorResponseUnauthorizedException
+   */
+  info: ErrorInfo;
+}
+/**
+ *
+ * @export
+ * @interface ErrorResponseUnprocessableEntityException
+ */
+export interface ErrorResponseUnprocessableEntityException {
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseUnprocessableEntityException
+   */
+  data?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseUnprocessableEntityException
+   */
+  message?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseUnprocessableEntityException
+   */
+  success?: any;
+  /**
+   *
+   * @type {ErrorInfo}
+   * @memberof ErrorResponseUnprocessableEntityException
+   */
+  info: ErrorInfo;
 }
 /**
  *
@@ -295,6 +469,106 @@ export interface MessageCreate {
    * @memberof MessageCreate
    */
   message_body: any;
+}
+/**
+ *
+ * @export
+ * @interface StandardResponseAccount
+ */
+export interface StandardResponseAccount {
+  /**
+   *
+   * @type {Account}
+   * @memberof StandardResponseAccount
+   */
+  data: Account;
+  /**
+   *
+   * @type {any}
+   * @memberof StandardResponseAccount
+   */
+  typename: any;
+}
+/**
+ *
+ * @export
+ * @interface StandardResponseUser
+ */
+export interface StandardResponseUser {
+  /**
+   *
+   * @type {User}
+   * @memberof StandardResponseUser
+   */
+  data: User;
+  /**
+   *
+   * @type {any}
+   * @memberof StandardResponseUser
+   */
+  typename: any;
+}
+/**
+ *
+ * @export
+ * @interface StatusResponseAccount
+ */
+export interface StatusResponseAccount {
+  /**
+   *
+   * @type {Account}
+   * @memberof StatusResponseAccount
+   */
+  data: Account;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseAccount
+   */
+  message: any;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseAccount
+   */
+  success: any;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseAccount
+   */
+  typename: any;
+}
+/**
+ *
+ * @export
+ * @interface StatusResponseChatCompletionResponse
+ */
+export interface StatusResponseChatCompletionResponse {
+  /**
+   *
+   * @type {ChatCompletionResponse}
+   * @memberof StatusResponseChatCompletionResponse
+   */
+  data: ChatCompletionResponse;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseChatCompletionResponse
+   */
+  message: any;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseChatCompletionResponse
+   */
+  success: any;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseChatCompletionResponse
+   */
+  typename: any;
 }
 /**
  *
@@ -350,7 +624,7 @@ export interface User {
    * @type {any}
    * @memberof User
    */
-  deleted_at: any;
+  deleted_at: any | null;
   /**
    *
    * @type {any}
@@ -401,31 +675,6 @@ export interface UserCreate {
    */
   username: any;
 }
-/**
- *
- * @export
- * @interface ValidationError
- */
-export interface ValidationError {
-  /**
-   *
-   * @type {any}
-   * @memberof ValidationError
-   */
-  loc: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ValidationError
-   */
-  msg: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ValidationError
-   */
-  type: any;
-}
 
 /**
  * AccountApi - axios parameter creator
@@ -437,23 +686,23 @@ export const AccountApiAxiosParamCreator = function (configuration?: Configurati
      *
      * @summary Authenticate User Account
      * @param {any} username
-     * @param {any} [grantType]
+     * @param {any | null} [grantType]
      * @param {any} [password]
      * @param {any} [refreshToken]
      * @param {any} [scope]
-     * @param {any} [clientId]
-     * @param {any} [clientSecret]
+     * @param {any | null} [clientId]
+     * @param {any | null} [clientSecret]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     authenticateUserAccountAccountsAuthenticatePost: async (
       username: any,
-      grantType?: any,
+      grantType?: any | null,
       password?: any,
       refreshToken?: any,
       scope?: any,
-      clientId?: any,
-      clientSecret?: any,
+      clientId?: any | null,
+      clientSecret?: any | null,
       options: AxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       // verify required parameter 'username' is not null or undefined
@@ -594,23 +843,23 @@ export const AccountApiFp = function (configuration?: Configuration) {
      *
      * @summary Authenticate User Account
      * @param {any} username
-     * @param {any} [grantType]
+     * @param {any | null} [grantType]
      * @param {any} [password]
      * @param {any} [refreshToken]
      * @param {any} [scope]
-     * @param {any} [clientId]
-     * @param {any} [clientSecret]
+     * @param {any | null} [clientId]
+     * @param {any | null} [clientSecret]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async authenticateUserAccountAccountsAuthenticatePost(
       username: any,
-      grantType?: any,
+      grantType?: any | null,
       password?: any,
       refreshToken?: any,
       scope?: any,
-      clientId?: any,
-      clientSecret?: any,
+      clientId?: any | null,
+      clientSecret?: any | null,
       options?: AxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Token>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.authenticateUserAccountAccountsAuthenticatePost(
@@ -635,7 +884,7 @@ export const AccountApiFp = function (configuration?: Configuration) {
     async createUserAccountAccountsCreatePost(
       accountCreate: AccountCreate,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Account>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseAccount>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createUserAccountAccountsCreatePost(
         accountCreate,
         options,
@@ -650,7 +899,7 @@ export const AccountApiFp = function (configuration?: Configuration) {
      */
     async identifyUserAccountAccountsMeGet(
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Account>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseAccount>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.identifyUserAccountAccountsMeGet(options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
@@ -698,7 +947,7 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
     createUserAccountAccountsCreatePost(
       requestParameters: AccountApiCreateUserAccountAccountsCreatePostRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<Account> {
+    ): AxiosPromise<StatusResponseAccount> {
       return localVarFp
         .createUserAccountAccountsCreatePost(requestParameters.accountCreate, options)
         .then((request) => request(axios, basePath));
@@ -709,7 +958,7 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    identifyUserAccountAccountsMeGet(options?: AxiosRequestConfig): AxiosPromise<Account> {
+    identifyUserAccountAccountsMeGet(options?: AxiosRequestConfig): AxiosPromise<StandardResponseAccount> {
       return localVarFp.identifyUserAccountAccountsMeGet(options).then((request) => request(axios, basePath));
     },
   };
@@ -733,7 +982,7 @@ export interface AccountApiAuthenticateUserAccountAccountsAuthenticatePostReques
    * @type {any}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly grantType?: any;
+  readonly grantType?: any | null;
 
   /**
    *
@@ -761,14 +1010,14 @@ export interface AccountApiAuthenticateUserAccountAccountsAuthenticatePostReques
    * @type {any}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly clientId?: any;
+  readonly clientId?: any | null;
 
   /**
    *
    * @type {any}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly clientSecret?: any;
+  readonly clientSecret?: any | null;
 }
 
 /**
@@ -916,7 +1165,7 @@ export const ChatApiFp = function (configuration?: Configuration) {
     async createMessageChatsMessagePost(
       messageCreate: MessageCreate,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatCompletionResponse>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseChatCompletionResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createMessageChatsMessagePost(messageCreate, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
@@ -940,7 +1189,7 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
     createMessageChatsMessagePost(
       requestParameters: ChatApiCreateMessageChatsMessagePostRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<ChatCompletionResponse> {
+    ): AxiosPromise<StatusResponseChatCompletionResponse> {
       return localVarFp
         .createMessageChatsMessagePost(requestParameters.messageCreate, options)
         .then((request) => request(axios, basePath));
@@ -1093,7 +1342,7 @@ export class RootApi extends BaseAPI {
 export const UserApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * Find a user by ID  :param session: the database session to use :param id: the unique user identifier to use to retrieve the user  :raises NotFoundException:     if no user with the specified identifier or ID is found
+     *
      * @summary Find User By Id
      * @param {any} id
      * @param {*} [options] Override http request option.
@@ -1124,7 +1373,7 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
       };
     },
     /**
-     * Find a user by username  :param session: the database session to use :param username: the unique username to use to retrieve the user  :raises NotFoundException:     if no user that goes by a username is found
+     *
      * @summary Find User By Username
      * @param {any} username
      * @param {*} [options] Override http request option.
@@ -1172,7 +1421,7 @@ export const UserApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = UserApiAxiosParamCreator(configuration);
   return {
     /**
-     * Find a user by ID  :param session: the database session to use :param id: the unique user identifier to use to retrieve the user  :raises NotFoundException:     if no user with the specified identifier or ID is found
+     *
      * @summary Find User By Id
      * @param {any} id
      * @param {*} [options] Override http request option.
@@ -1181,12 +1430,12 @@ export const UserApiFp = function (configuration?: Configuration) {
     async findUserByIdUsersIdGet(
       id: any,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<User>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseUser>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.findUserByIdUsersIdGet(id, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
-     * Find a user by username  :param session: the database session to use :param username: the unique username to use to retrieve the user  :raises NotFoundException:     if no user that goes by a username is found
+     *
      * @summary Find User By Username
      * @param {any} username
      * @param {*} [options] Override http request option.
@@ -1195,7 +1444,7 @@ export const UserApiFp = function (configuration?: Configuration) {
     async findUserByUsernameUsersByUsernameGet(
       username: any,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<User>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseUser>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.findUserByUsernameUsersByUsernameGet(username, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
@@ -1210,7 +1459,7 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
   const localVarFp = UserApiFp(configuration);
   return {
     /**
-     * Find a user by ID  :param session: the database session to use :param id: the unique user identifier to use to retrieve the user  :raises NotFoundException:     if no user with the specified identifier or ID is found
+     *
      * @summary Find User By Id
      * @param {UserApiFindUserByIdUsersIdGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1219,13 +1468,13 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
     findUserByIdUsersIdGet(
       requestParameters: UserApiFindUserByIdUsersIdGetRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<User> {
+    ): AxiosPromise<StandardResponseUser> {
       return localVarFp
         .findUserByIdUsersIdGet(requestParameters.id, options)
         .then((request) => request(axios, basePath));
     },
     /**
-     * Find a user by username  :param session: the database session to use :param username: the unique username to use to retrieve the user  :raises NotFoundException:     if no user that goes by a username is found
+     *
      * @summary Find User By Username
      * @param {UserApiFindUserByUsernameUsersByUsernameGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1234,7 +1483,7 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
     findUserByUsernameUsersByUsernameGet(
       requestParameters: UserApiFindUserByUsernameUsersByUsernameGetRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<User> {
+    ): AxiosPromise<StandardResponseUser> {
       return localVarFp
         .findUserByUsernameUsersByUsernameGet(requestParameters.username, options)
         .then((request) => request(axios, basePath));
@@ -1278,7 +1527,7 @@ export interface UserApiFindUserByUsernameUsersByUsernameGetRequest {
  */
 export class UserApi extends BaseAPI {
   /**
-   * Find a user by ID  :param session: the database session to use :param id: the unique user identifier to use to retrieve the user  :raises NotFoundException:     if no user with the specified identifier or ID is found
+   *
    * @summary Find User By Id
    * @param {UserApiFindUserByIdUsersIdGetRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1292,7 +1541,7 @@ export class UserApi extends BaseAPI {
   }
 
   /**
-   * Find a user by username  :param session: the database session to use :param username: the unique username to use to retrieve the user  :raises NotFoundException:     if no user that goes by a username is found
+   *
    * @summary Find User By Username
    * @param {UserApiFindUserByUsernameUsersByUsernameGetRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.

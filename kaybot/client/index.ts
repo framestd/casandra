@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * KayBot
- * KayBot is a chatbot that can be utilized for lead generation in the field of digital marketing.
+ * Kaybot
+ * Kaybot is a chatbot that can be utilized for lead generation in the field of digital marketing.
  *
  * The version of the OpenAPI document: 1.0
  *
