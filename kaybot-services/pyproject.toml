@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "kaybot-services"
+name = "casandra"
 version = "0.1.0"
-description = "KayBot is a chatbot that can be utilized for lead generation in the field of digital marketing"
+description = "Casandra is a chatbot that assits in consuming documents for study, to propose and answer questions based on the provided study documents"
 authors = ["Caleb Adepitan <adepitancaleb@gmail.com>"]
 readme = "README.md"
 packages = [{include = "."}]
