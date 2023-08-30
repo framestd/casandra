@@ -1,18 +1,18 @@
 build:
-	docker compose --build
+	docker compose build
 
-up_build:
+up-build:
 	docker compose up --build
 
 start:
 	docker compose up
 
-clean:
+next-clean:
 	rm -rf ./.next
 	rm -rf ./kaybot/.next
 
-clean_migrations:
+migrations-clean:
 	rm ./kaybot-services/alembic/versions/*
 
-clean_python:
+python-clean:
 	find . -type d -name "__pycache__" ! -path "./venv/*" -exec rm -rf {} +

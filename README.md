@@ -1,7 +1,8 @@
-# KayBot Application
+# Casandra Application
 
-KayBot is a chatbot that can be utilized for lead generation in the field of digital marketing.
-We make use of OpenAI's ability to understand natural language and generate content based on a provided prompt.
+Casandra is a chatbot that assists in consuming study documents, to propose and answer questions based on the provided study documents.
+
+We make use of OpenAI's ability to process and understand natural language and generate content based on a provided prompt.
 
 ## How to run
 
