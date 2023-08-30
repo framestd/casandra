@@ -40,7 +40,7 @@ export const SignupForm = () => {
     storeToken(response.data.refresh_token, REFRESH_TOKEN_KEY);
 
     updateConfig(actions.createHasActiveSessionUpdateAction(true));
-    updateConfig(actions.createUserAccountUpdateAction(account));
+    updateConfig(actions.createUserAccountUpdateAction(account.data));
 
     toast.success({ title: 'Account Created', message: `You just successfully created an account!` });
 

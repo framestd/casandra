@@ -13,12 +13,12 @@ Note: The JWT asymmetric keys are auto-generated and there's a Python script pro
 
 - There are a couple of `.env` files that need to be created from the `.env.template` files.
 - There's a `.env` file required at the project root. These are essential for running the compose file, while some are passed by the compose file to individual applications.
-- There's also a `.env` file required at the `./kaybot-services` root. You may ignore the ones that are annotated with "`# SET IN docker-compose.yml`" when running locally.
+- There's also a `.env` file required at the `./web_services` root. You may ignore the ones that are annotated with "`# SET IN docker-compose.yml`" when running locally.
 
 After providing the values for these variables in their respective `.env` files you may go ahead to generate the JWT asymmetric signing key pairs:
 
 ```sh
-cd ./kaybot-services
+cd ./web_services
 
 chmod +x ./export_keys.py # once through the lifetime of the file
 
@@ -28,7 +28,7 @@ chmod +x ./export_keys.py # once through the lifetime of the file
 or simply:
 
 ```batch
-cd ./kaybot-services
+cd ./web_services
 
 python3 ./export_keys.py
 ```

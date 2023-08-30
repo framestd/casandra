@@ -9,9 +9,9 @@ networks:
 services:
   web_client:
     build:
-      context: ./kaybot
+      context: ./web_client
       dockerfile: Dockerfile.development
-    container_name: kaybot_client
+    container_name: casandra_client
     expose:
       - ${CLIENT_PORT}
       - 9339 # debug
@@ -26,8 +26,8 @@ services:
     networks:
       - server
     volumes:
-      - "./kaybot:${CLIENT_WORKDIR}"
-      - "./kaybot/node_modules:${CLIENT_WORKDIR}/node_modules"
+      - "./web_client:${CLIENT_WORKDIR}"
+      - "./web_client/node_modules:${CLIENT_WORKDIR}/node_modules"
     environment:
       - APP_NAME=${APP_NAME} # the application name
       - PORT=${CLIENT_PORT} # Assign $CLIENT_PORT to $PORT env var in web_client
@@ -36,23 +36,27 @@ services:
       - SERVER_BASE_URL=http://localhost:${PORT} # $PORT here is web_server container port
 
       # HTTP requests between client and server containers will be done on this address
-      - SERVER_INTERNAL_ADDRESS=http://kaybot_server:${PORT}
+      - SERVER_INTERNAL_ADDRESS=http://casandra_server:${PORT}
     restart: unless-stopped
 
   web_server:
     build:
-      context: ./kaybot-services
+      context: ./web_services
       dockerfile: Dockerfile
-    container_name: kaybot_server
+    container_name: casandra_server
+    expose:
+      - 8000
+      - ${PORT}
     ports:
-      - ${PORT}:${PORT}
-    command: "uvicorn main:app --host='0.0.0.0' --port=${PORT} --reload"
+      - ${PORT}:8000
+    command: "uvicorn app.main:app --host='0.0.0.0' --port=8000 --reload"
     networks:
       - server
       - cache
       - database
     volumes:
-      - "./kaybot-services:${SERVER_WORKDIR}"
+      - "./web_services:${SERVER_WORKDIR}"
+      - "virtual_env:${SERVER_WORKDIR}/.venv"
     depends_on:
       - redis
       - postgres
@@ -60,16 +64,16 @@ services:
       - APP_NAME=${APP_NAME} # the application name
       - APP_DESC=${APP_DESC} # a short description of the application
       - CLIENT_ADDRESSES=${CLIENT_ADDRESSES} # CSV list of hosts to whitelist for CORS
-      - POSTGRES_HOST=kaybot_services_postgres # the container name of the database container
+      - POSTGRES_HOST=casandra_services_postgres # the container name of the database container
       - POSTGRES_PORT=${POSTGRES_PORT} # the port on which to communicate with the database
       - POSTGRES_USER=${POSTGRES_USER} # the database user
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # the database password
-      - REDIS_URL=redis://kaybot_services_cache:6380 # the name of the redis container as hostname
+      - REDIS_URL=redis://casandra_services_cache:6380 # the name of the redis container as hostname
     restart: unless-stopped
 
   redis:
     image: "redis:alpine"
-    container_name: kaybot_services_cache
+    container_name: casandra_services_cache
     expose:
       - 6379
     ports:
@@ -79,7 +83,7 @@ services:
     restart: unless-stopped
 
   postgres:
-    container_name: kaybot_services_postgres
+    container_name: casandra_services_postgres
     image: postgres:15.4-alpine
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
@@ -95,7 +99,7 @@ services:
     restart: unless-stopped
 
   pgadmin:
-    container_name: kaybot_services_pgadmin
+    container_name: casandra_services_pgadmin
     image: dpage/pgadmin4
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL:-pgadmin4@pgadmin.org}
@@ -110,6 +114,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  node_modules:
+  # node_modules:
   postgres:
   pgadmin:
+  virtual_env:

@@ -13,7 +13,7 @@ def get_default_description(app_name: str) -> str:
 
 
 class Settings(BaseSettings):
-    """Base configurations for the kaybot-services application"""
+    """Base configurations for the Casandra web services application"""
 
     APP_NAME: str = config("APP_NAME", cast=str)
     APP_CODE_NAME: str = config("APP_CODE_NAME", cast=str)

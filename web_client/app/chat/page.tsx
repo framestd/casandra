@@ -64,7 +64,7 @@ const Chat = () => {
 
     const response = await chatMessageHandler.mutateAsync({ message_body: outbound_message });
 
-    const choices = response.data.response.choices;
+    const choices = response.data.data.response.choices;
 
     const newConversationsWithResponse = newConversations.slice(0, newConversations.length - 1);
 

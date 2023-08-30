@@ -9,10 +9,10 @@ start:
 
 next-clean:
 	rm -rf ./.next
-	rm -rf ./kaybot/.next
+	rm -rf ./web_client/.next
 
 migrations-clean:
-	rm ./kaybot-services/alembic/versions/*
+	rm ./web_services/alembic/versions/*
 
 python-clean:
 	find . -type d -name "__pycache__" ! -path "./venv/*" -exec rm -rf {} +

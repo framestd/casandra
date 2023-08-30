@@ -1,16 +1,16 @@
 {
   "folders": [
     {
-      "name": "KayBot",
+      "name": "Casandra",
       "path": "../"
     },
     {
       "name": "Client",
-      "path": "../kaybot"
+      "path": "../web_client"
     },
     {
       "name": "Server",
-      "path": "../kaybot-services"
+      "path": "../web_services"
     }
   ],
   "settings": {}

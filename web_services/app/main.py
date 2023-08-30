@@ -1,3 +1,8 @@
+# Standard Library
+import sys
+
+sys.path.append("app")
+
 # Third Party
 import uvicorn
 from fastapi import FastAPI, Request, status
@@ -14,7 +19,6 @@ from core.schemas.base import ApplicationInfo
 from core.schemas.response import ErrorAttributes, ErrorInfo, ErrorResponse
 from core.settings import settings
 from user.handlers import router as user_router
-
 
 app = FastAPI(
     title=settings.APP_NAME,

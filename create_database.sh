@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-databases=("kaybot" "kaybot_test")
+databases=("casandra" "casandra_test")
 
 # https://stackoverflow.com/a/70976611/8124214
 for db in $databases; do
