@@ -1,19 +1,24 @@
+# Standard Library
 from typing import Annotated
 
+# Third Party
 from fastapi import Depends
 from jose import JWTError
 from sqlalchemy.orm import Session
 
+# First Party
 from core.authentication.oauth2 import oauth2_scheme
-from core.exceptions.http import NotFoundException, UnauthorizedException
-from core.services.account import get_account_by_id
+from core.exceptions.application import MissingResourceException
+from core.exceptions.http import UnauthorizedException
 from core.schemas.account import TokenData
+from core.services.account import get_account_by_id
 
+# Local Folder
 from .authentication.token import JWTRS256Token, split_prefix_from_sub
 from .database.engine import SessionLocal
 
 
-def get_db():
+async def get_db():
     db = SessionLocal()
     try:
         yield db
@@ -44,14 +49,14 @@ def get_current_account(
 
         _, account_id = split_prefix_from_sub(sub)
 
-        token_data = TokenData(account_id=account_id)
+        token_data = TokenData(account_id=account_id)  # type: ignore
 
     except JWTError:
         raise credentials_exception
 
     try:
-        account = get_account_by_id(db, id=token_data.account_id)
-    except NotFoundException:
+        account = get_account_by_id(db, id=token_data.account_id)  # type: ignore
+    except MissingResourceException:
         raise credentials_exception
 
     return account
