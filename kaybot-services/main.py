@@ -1,18 +1,20 @@
+# Third Party
 import uvicorn
-
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from core.exceptions.http import AppHTTPException, ErrorCode
-from core.schemas.base import ApplicationInfo
-from core.settings import settings
-
-# import routers and handlers
+# First Party
 from account.handlers import router as account_router
 from chat.handlers import router as chat_router
+from core.exceptions.http import AppHTTPException, ErrorCode
+from core.exceptions.http import UnprocessableEntityException
+from core.schemas.base import ApplicationInfo
+from core.schemas.response import ErrorAttributes, ErrorInfo, ErrorResponse
+from core.settings import settings
 from user.handlers import router as user_router
+
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -36,31 +38,42 @@ app.include_router(user_router, prefix="/users", tags=["User"])
 
 @app.exception_handler(AppHTTPException)
 def app_http_exception_handler(request: Request, exc: AppHTTPException):
+    error_attrs = [ErrorAttributes(**error) for error in exc.errors]
+    error_info = ErrorInfo(code=exc.code, errors=error_attrs)
+
+    error_response = ErrorResponse[type(exc)](
+        message=exc.message,
+        success=False,
+        info=error_info,
+    )
+
     return JSONResponse(
         status_code=exc.status_code,
-        content={"message": exc.message, "success": False, "info": {"code": exc.code}},
+        content=error_response.model_dump(),
     )
 
 
 @app.exception_handler(RequestValidationError)
 def request_validation_exception_handler(request: Request, exc: RequestValidationError):
-    content = {
-        "message": "The input could not be processed as it is invalid",
-        "success": False,
-        "info": {
-            "code": ErrorCode.UNPROCESSABLE_ENTITY,
-            "errors": [
-                {
-                    "type": error["type"],
-                    "context": error["ctx"],
-                    "path": error["loc"],
-                    "message": error["msg"],
-                    "value": error["input"],
-                }
-                for error in exc.errors()
-            ],
-        },
-    }
+    error_attrs: list[ErrorAttributes] = [
+        ErrorAttributes(
+            context={"type": error.get("type"), **error.get("ctx")},
+            path=error.get("loc"),
+            message=error.get("msg"),
+            value=error.get("input"),
+        )
+        for error in exc.errors()
+    ]
+
+    error_info = ErrorInfo(code=ErrorCode.UNPROCESSABLE_ENTITY, errors=error_attrs)
+
+    error_response = ErrorResponse[UnprocessableEntityException](
+        message=error_attrs[0].message,
+        success=False,
+        info=error_info,
+    )
+
+    content = error_response.model_dump()
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -80,4 +93,4 @@ async def root():
 
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="127.0.0.1", port=settings.PORT, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=settings.PORT, reload=True)  # type: ignore
