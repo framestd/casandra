@@ -1,3 +1,6 @@
+# Standard Library
+from typing import Any, Callable
+
 # Third Party
 import uvicorn
 from fastapi import FastAPI, Request, status
@@ -10,16 +13,41 @@ from app.account.handlers import router as account_router
 from app.chat.handlers import router as chat_router
 from app.core.exceptions.http import AppHTTPException, ErrorCode
 from app.core.exceptions.http import UnprocessableEntityException
+from app.core.logging.logger import get_app_logger
 from app.core.schemas.base import ApplicationInfo
-from app.core.schemas.response import ErrorAttributes, ErrorInfo, ErrorResponse
+from app.core.schemas.response import ErrorAttributes, ErrorResponse, ErrorSpec
 from app.core.settings import settings
 from app.user.handlers import router as user_router
+
+logger = get_app_logger(__name__)
 
 app = FastAPI(
     title=settings.APP_NAME,
     description=settings.DESCRIPTION,
     version=settings.VERSION,
 )
+
+
+@app.middleware("http")
+async def standard_exception_handler(
+    request: Request, call_next: Callable[[Request], Any]
+):
+    try:
+        return await call_next(request)
+    except Exception as exc:
+        logger.error(f"Unknown error occured: {str(exc)}", exc_info=True)
+
+        error_response = ErrorResponse[AppHTTPException](
+            message="Oops, an unknown error occured",
+            success=False,
+            error=ErrorSpec(code=ErrorCode.INTERNAL_SERVER_ERROR, errors=[]),
+        )
+
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content=error_response.model_dump(),
+    )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -38,12 +66,12 @@ app.include_router(user_router, prefix="/users", tags=["User"])
 @app.exception_handler(AppHTTPException)
 def app_http_exception_handler(request: Request, exc: AppHTTPException):
     error_attrs = [ErrorAttributes(**error) for error in exc.errors]
-    error_info = ErrorInfo(code=exc.code, errors=error_attrs)
+    error_spec = ErrorSpec(code=exc.code, errors=error_attrs)
 
     error_response = ErrorResponse[type(exc)](
         message=exc.message,
         success=False,
-        info=error_info,
+        error=error_spec,
     )
 
     return JSONResponse(
@@ -64,12 +92,12 @@ def request_validation_exception_handler(request: Request, exc: RequestValidatio
         for error in exc.errors()
     ]
 
-    error_info = ErrorInfo(code=ErrorCode.UNPROCESSABLE_ENTITY, errors=error_attrs)
+    error_spec = ErrorSpec(code=ErrorCode.UNPROCESSABLE_ENTITY, errors=error_attrs)
 
     error_response = ErrorResponse[UnprocessableEntityException](
         message=error_attrs[0].message,
         success=False,
-        info=error_info,
+        error=error_spec,
     )
 
     content = error_response.model_dump()
