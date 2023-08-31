@@ -25,8 +25,6 @@ RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY ./pyproject.toml ./poetry.lock* /code/
-RUN poetry env info --path
-RUN poetry config --list
 RUN bash -c "source ${VIRTUAL_ENV}/bin/activate && poetry install --no-root $(test "$install_dev" == false && echo "--no-dev") --no-interaction --no-ansi"
 
 COPY ./alembic /code/
@@ -35,6 +33,5 @@ COPY ./run_migrations.sh /code/
 RUN chmod +x ./run_migrations.sh
 
 COPY ./app /code/app
-# ENV PYTHONPATH=/code
 
 EXPOSE 8000
