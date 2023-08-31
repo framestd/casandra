@@ -12,21 +12,21 @@ class Password(object):
 
     _context: CryptContext = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-    def __init__(self, plain_password: str) -> None:
+    def __init__(self, plain: str) -> None:
         """Constructs a new password object
 
         :param plain_password: the plain text password to wrap in a Password object
         """
-        self._plain_password = plain_password
+        self._plain = plain
 
     def get_hash(self):
         """Compute the hash of the plain password wrapped with this object"""
-        return self._context.hash(self._plain_password)
+        return self._context.hash(self._plain)
 
-    def compare(self, hashed_password: str):
+    def compare(self, hashed: str):
         """Compare the wrapped plain password with the hashed password supplied
         as an argument to this method.
 
         :param hashed_password: this is a bcrypt hashed password
         """
-        return self._context.verify(self._plain_password, hashed_password)
+        return self._context.verify(self._plain, hashed)
