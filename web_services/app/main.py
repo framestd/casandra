@@ -40,7 +40,7 @@ async def standard_exception_handler(
         error_response = ErrorResponse[AppHTTPException](
             message="Oops, an unknown error occured",
             success=False,
-            error=ErrorSpec(code=ErrorCode.INTERNAL_SERVER_ERROR, errors=[]),
+            error=ErrorSpec(code=ErrorCode.UNKNOWN, errors=[]),
         )
 
     return JSONResponse(
