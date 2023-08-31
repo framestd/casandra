@@ -36,7 +36,7 @@ services:
       - SERVER_BASE_URL=http://localhost:${PORT} # $PORT here is web_server container port
 
       # HTTP requests between client and server containers will be done on this address
-      - SERVER_INTERNAL_ADDRESS=http://casandra_server:${PORT}
+      - SERVER_INTERNAL_ADDRESS=http://casandra_server:8000
     restart: unless-stopped
 
   web_server:
@@ -46,7 +46,6 @@ services:
     container_name: casandra_server
     expose:
       - 8000
-      - ${PORT}
     ports:
       - ${PORT}:8000
     command: "uvicorn app.main:app --host='0.0.0.0' --port=8000 --reload"
