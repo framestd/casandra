@@ -26,7 +26,7 @@ def get_user_by_id(session: Session, id: UUID4):
         # info log:
         logger.info(f"User with id {id} does not exist")
 
-        exception = MissingResourceException(f"User with ID **{id}** not found")
+        exception = MissingResourceException(f"User with ID {id} not found")
 
         exception.add_attributes(
             context=None,
@@ -57,7 +57,7 @@ def get_user_by_username(session: Session, username: str):
         logger.info(f"User with username {username} does not exist")
 
         exception = MissingResourceException(
-            f"User with username **{username}** not found"
+            f"User with username {username} not found"
         )
 
         exception.add_attributes(

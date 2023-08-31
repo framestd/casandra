@@ -238,7 +238,7 @@ def get_account_by_email(session: Session, email: str):
         logger.info(f"Account with email address {email} does not exist")
 
         exception = MissingResourceException(
-            f"Account with email address **{email}** not found"
+            f"Account with email address {email} not found"
         )
 
         exception.add_attributes(
