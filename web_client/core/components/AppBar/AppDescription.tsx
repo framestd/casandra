@@ -10,7 +10,7 @@ export interface AppDescriptionProps extends BoxProps {
 export const AppDescription = ({ description, ...props }: AppDescriptionProps) => {
   return (
     <Box
-      textStyle="h5"
+      textStyle="h6"
       maxWidth={{ base: '75%', sm: '80%', md: '100%' }}
       width={480}
       color={useColorModeValue('blackAlpha.800', 'whiteAlpha.800')}
