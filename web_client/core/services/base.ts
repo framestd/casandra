@@ -19,11 +19,11 @@ const responseErrorInteceptor = createResponseErrorInterceptor(api);
 interceptedRequest.use(undefined, requestErrorInterceptor);
 interceptedResponse.use(responseInterceptor, responseErrorInteceptor);
 
-export function isErrorResponse(error: unknown): error is ErrorPayload {
-  if (!error) return false;
+export function isErrorResponse(value: unknown): value is ErrorPayload {
+  if (!value) return false;
 
-  if (typeof error === 'object' && 'message' in error && 'info' in error && 'success' in error) {
-    const err = error as ErrorPayload;
+  if (typeof value === 'object' && 'message' in value && 'error' in value && 'success' in value) {
+    const err = value as ErrorPayload;
 
     return err.success === false;
   }

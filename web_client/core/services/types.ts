@@ -9,18 +9,24 @@ import { AxiosError, AxiosResponse } from 'axios';
 type Require<T, K extends keyof T> = { [P in K]-?: T[P] } & Pick<T, Exclude<keyof T, K>>;
 
 export enum ErrorCodeEnum {
-  INVALID_REQUEST = 'INVALID_REQUEST',
-  UNAUTHENTICATED = 'UNAUTHENTICATED',
-  UNAUTHORIZED = 'UNAUTHORIZED',
+  // APP
+  CHALLENGE_FAILED = 'CHALLENGE_FAILED',
+  MISSING_RESOURCE = 'MISSING_RESOURCE',
+
+  // HTTP
+  CONFLICT = 'CONFLICT',
   FORBIDDEN_REQUEST = 'FORBIDDEN_REQUEST',
-  NOT_FOUND = 'NOT_FOUND',
+  INVALID_REQUEST = 'INVALID_REQUEST',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  UNKNOWN = 'UNKNOWN',
+  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
 }
 
 export interface ErrorPayload {
   message: string;
   success: false;
-  info: { code: ErrorCodeEnum; [x: string]: any };
+  error: { code: ErrorCodeEnum; [x: string]: any };
 }
 
 export type WithId<T> = T & { id: string };

@@ -38,8 +38,8 @@ const queryClient = new QueryClient({
       const meta = mutation.meta;
       if (meta === undefined || meta.report_error === false || !isErrorResponse(error)) return;
 
-      if (Array.isArray(error.info.errors)) {
-        return error.info.errors.forEach((e, i) => {
+      if (Array.isArray(error.error.errors)) {
+        return error.error.errors.forEach((e, i) => {
           toast.error({ title: i === 0 ? (meta.title as string) : undefined, message: e.message });
         });
       }
