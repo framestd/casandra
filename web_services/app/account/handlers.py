@@ -7,16 +7,16 @@ from fastapi import Depends
 from sqlalchemy.orm import Session
 
 # First Party
-from core.authentication.oauth2 import OAuth2PasswordAndRefreshRequestForm
-from core.authentication.token import JWTRS256Token, prefix_sub
-from core.deps import get_current_account, get_db
-from core.logging.logger import get_app_logger
-from core.schemas.account import Account, AccountCreate, Token, TokenTypeEnum
-from core.schemas.response import StandardResponse, StatusResponse
-from core.services.account import authenticate_user_account_service
-from core.services.account import create_user_account_service
-from core.services.account import reauthenticate_user_account_service
-from core.specs.additional_responses import responses
+from app.core.authentication.oauth2 import OAuth2PasswordAndRefreshRequestForm
+from app.core.authentication.token import JWTRS256Token, prefix_sub
+from app.core.deps import get_current_account, get_db
+from app.core.logging.logger import get_app_logger
+from app.core.schemas.account import Account, AccountCreate, Token, TokenTypeEnum
+from app.core.schemas.response import StandardResponse, StatusResponse
+from app.core.services.account import authenticate_user_account_service
+from app.core.services.account import create_user_account_service
+from app.core.services.account import reauthenticate_user_account_service
+from app.core.specs.additional_responses import responses
 
 # Local Folder
 from .router import router
@@ -49,20 +49,19 @@ def authenticate_user_account(
     form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()],
     db: Session = Depends(get_db),
 ) -> Token:
-    if form_data.grant_type == "refresh_token":
-        # info log:
-        logger.info(f"Authenticating client with grant_type={form_data.grant_type}")
+    grant_type = form_data.grant_type
+    identifier = form_data.username
+    password = form_data.password
+    refresh_token = form_data.refresh_token
 
-        refresh_token = form_data.refresh_token
+    # info log:
+    logger.info(f"Authenticating client with grant_type={grant_type}")
+
+    if grant_type == "refresh_token":
         account = reauthenticate_user_account_service(db, refresh_token)
     else:
-        # info log:
-        logger.info(f"Authenticating client with grant_type={form_data.grant_type}")
-
         account = authenticate_user_account_service(
-            db,
-            identifier=form_data.username,
-            password=form_data.password,
+            db, identifier=identifier, password=password
         )
 
     access_token = JWTRS256Token.from_data(data={"sub": prefix_sub(account.id.hex)})

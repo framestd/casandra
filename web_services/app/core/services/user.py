@@ -3,10 +3,9 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session
 
 # First Party
-from core.exceptions.application import MissingResourceException
-from core.logging.logger import get_app_logger
-from core.models.user import User as UserModel
-
+from app.core.exceptions.application import MissingResourceException
+from app.core.logging.logger import get_app_logger
+from app.core.models.user import User as UserModel
 
 logger = get_app_logger(__name__)
 
@@ -24,14 +23,14 @@ def get_user_by_id(session: Session, id: UUID4):
     user = session.query(UserModel).filter(UserModel.id == id).one_or_none()
 
     if not user:
-        # debug log:
-        logger.debug(f"User with id {id} does not exist")
+        # info log:
+        logger.info(f"User with id {id} does not exist")
 
         exception = MissingResourceException(f"User with ID **{id}** not found")
 
         exception.add_attributes(
             context=None,
-            path=("query", "id"),
+            path=("*", "id"),
             value=id,
             message=exception.message,
         )
@@ -54,8 +53,8 @@ def get_user_by_username(session: Session, username: str):
     user = session.query(UserModel).filter(UserModel.username == username).one_or_none()
 
     if not user:
-        # debug log:
-        logger.debug(f"User with username {username} does not exist")
+        # info log:
+        logger.info(f"User with username {username} does not exist")
 
         exception = MissingResourceException(
             f"User with username **{username}** not found"
@@ -63,7 +62,7 @@ def get_user_by_username(session: Session, username: str):
 
         exception.add_attributes(
             context=None,
-            path=("query", "username"),
+            path=("*", "username"),
             value=username,
             message=exception.message,
         )

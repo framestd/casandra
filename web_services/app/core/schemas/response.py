@@ -6,8 +6,8 @@ from typing import Any, Generic, Tuple, Type, TypeVar
 from pydantic import BaseModel, computed_field
 
 # First Party
-from core.exceptions.code import ErrorCode
-from core.exceptions.http import AppHTTPException
+from app.core.exceptions.code import ErrorCode
+from app.core.exceptions.http import AppHTTPException
 
 DataT = TypeVar("DataT", bound=BaseModel)
 ErrorT = TypeVar("ErrorT", bound=AppHTTPException)

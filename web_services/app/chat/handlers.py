@@ -6,16 +6,16 @@ import openai
 from fastapi import Depends
 
 # First Party
-from core.deps import get_current_account
-from core.exceptions.http import ServiceUnavailableException
-from core.intelligence.basic import PersonalityBackground, generate_prompt
-from core.intelligence.basic import generate_response
-from core.logging.logger import get_app_logger
-from core.models.account import Account
-from core.schemas.chat import MessageCreate
-from core.schemas.openai import ChatCompletionResponse
-from core.schemas.response import StatusResponse
-from core.specs.additional_responses import responses
+from app.core.deps import get_current_account
+from app.core.exceptions.http import ServiceUnavailableException
+from app.core.intelligence.basic import PersonalityBackground, generate_prompt
+from app.core.intelligence.basic import generate_response
+from app.core.logging.logger import get_app_logger
+from app.core.models.account import Account
+from app.core.schemas.chat import MessageCreate
+from app.core.schemas.openai import ChatCompletionResponse
+from app.core.schemas.response import StatusResponse
+from app.core.specs.additional_responses import responses
 
 # Local Folder
 from .router import router

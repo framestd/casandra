@@ -1,8 +1,3 @@
-# Standard Library
-import sys
-
-sys.path.append("app")
-
 # Third Party
 import uvicorn
 from fastapi import FastAPI, Request, status
@@ -11,14 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 # First Party
-from account.handlers import router as account_router
-from chat.handlers import router as chat_router
-from core.exceptions.http import AppHTTPException, ErrorCode
-from core.exceptions.http import UnprocessableEntityException
-from core.schemas.base import ApplicationInfo
-from core.schemas.response import ErrorAttributes, ErrorInfo, ErrorResponse
-from core.settings import settings
-from user.handlers import router as user_router
+from app.account.handlers import router as account_router
+from app.chat.handlers import router as chat_router
+from app.core.exceptions.http import AppHTTPException, ErrorCode
+from app.core.exceptions.http import UnprocessableEntityException
+from app.core.schemas.base import ApplicationInfo
+from app.core.schemas.response import ErrorAttributes, ErrorInfo, ErrorResponse
+from app.core.settings import settings
+from app.user.handlers import router as user_router
 
 app = FastAPI(
     title=settings.APP_NAME,

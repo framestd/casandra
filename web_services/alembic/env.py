@@ -1,9 +1,10 @@
+# Standard Library
 from logging.config import fileConfig
 
+# First Party
 from alembic import context
-
-from core.models import Base
-from core.database.engine import DATABASE_URL, engine
+from app.core.database.engine import DATABASE_URL, engine
+from app.core.models import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

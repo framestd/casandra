@@ -9,7 +9,7 @@ from sqlalchemy import DateTime
 from sqlalchemy.orm import DeclarativeBase, Mapped, MappedAsDataclass, mapped_column
 
 # First Party
-from core.utils import get_utc_time
+from app.core.utils import get_utc_time
 
 
 class Base(DeclarativeBase, MappedAsDataclass):

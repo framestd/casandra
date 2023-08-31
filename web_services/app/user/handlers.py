@@ -4,11 +4,11 @@ from pydantic import UUID4
 from sqlalchemy.orm import Session
 
 # First Party
-from core.deps import get_db
-from core.schemas.response import StandardResponse
-from core.schemas.user import User
-from core.services.user import get_user_by_id, get_user_by_username
-from core.specs.additional_responses import responses
+from app.core.deps import get_db
+from app.core.schemas.response import StandardResponse
+from app.core.schemas.user import User
+from app.core.services.user import get_user_by_id, get_user_by_username
+from app.core.specs.additional_responses import responses
 
 # Local Folder
 from .router import router

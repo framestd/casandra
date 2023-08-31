@@ -2,10 +2,11 @@
 from typing import Any, Generic, TypedDict, TypeVar
 
 # First Party
-from core.exceptions.application import MissingResourceException
-from core.exceptions.http import ConflictException, ServiceUnavailableException
-from core.exceptions.http import UnauthorizedException, UnprocessableEntityException
-from core.schemas.response import ErrorResponse
+from app.core.exceptions.application import MissingResourceException
+from app.core.exceptions.http import ConflictException, ServiceUnavailableException
+from app.core.exceptions.http import UnauthorizedException
+from app.core.exceptions.http import UnprocessableEntityException
+from app.core.schemas.response import ErrorResponse
 
 Model = TypeVar("Model", bound=type[ErrorResponse[Any]])
 

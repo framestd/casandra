@@ -5,7 +5,7 @@ from enum import Enum
 import openai
 
 # First Party
-from core.schemas.openai import ChatCompletionResponseBody
+from app.core.schemas.openai import ChatCompletionResponseBody
 
 # Local Folder
 from .personality import ADVANCED_BACKGROUND, PERSONALITY, SIMPLE_BACKGROUND

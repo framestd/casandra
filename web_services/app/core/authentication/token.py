@@ -7,7 +7,7 @@ from jose import jwt
 from pydantic import BaseModel, model_serializer
 
 # First Party
-from core.settings import settings
+from app.core.settings import settings
 
 T = TypeVar("T", dict[str, Any], dict[str, Any])
 

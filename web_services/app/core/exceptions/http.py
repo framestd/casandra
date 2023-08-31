@@ -5,7 +5,7 @@ from typing import Any, Literal, TypedDict, Unpack
 from fastapi import HTTPException, status
 
 # First Party
-from core.utils import create_error
+from app.core.utils import create_error
 
 # Local Folder
 from .code import ErrorCode

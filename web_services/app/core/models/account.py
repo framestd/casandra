@@ -8,11 +8,10 @@ from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 # First Party
-from core.utils import get_utc_time
+from app.core.utils import get_utc_time
 
 # Local Folder
 from .base import Base
-
 
 if TYPE_CHECKING:
     # Local Folder

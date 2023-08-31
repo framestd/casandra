@@ -7,11 +7,11 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 # First Party
-from core.authentication.oauth2 import oauth2_scheme
-from core.exceptions.application import MissingResourceException
-from core.exceptions.http import UnauthorizedException
-from core.schemas.account import TokenData
-from core.services.account import get_account_by_id
+from app.core.authentication.oauth2 import oauth2_scheme
+from app.core.exceptions.application import MissingResourceException
+from app.core.exceptions.http import UnauthorizedException
+from app.core.schemas.account import TokenData
+from app.core.services.account import get_account_by_id
 
 # Local Folder
 from .authentication.token import JWTRS256Token, split_prefix_from_sub

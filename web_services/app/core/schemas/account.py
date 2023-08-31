@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Optional
 from pydantic import UUID4, EmailStr, Field
 
 # First Party
-from core.authentication.token import JWTRS256Token
+from app.core.authentication.token import JWTRS256Token
 
 # Local Folder
 from .base import BaseModel, SchemaBase
