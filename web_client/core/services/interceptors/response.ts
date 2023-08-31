@@ -2,6 +2,7 @@ import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, getToken, removeToken, storeToken 
 import { AxiosError, AxiosResponse, AxiosInstance } from 'axios';
 
 import { reauthenticateAccountService } from '../account/authenticate.service';
+import { isErrorResponse } from '../base';
 import { ErrorCodeEnum, ErrorPayload } from '../types';
 
 type RemoteResponse = AxiosResponse<any>;
@@ -12,7 +13,7 @@ type ResponseErrorInterceptor = <E extends RemoteError = RemoteError>(e: E) => P
 
 export const createResponseInterceptor = () => {
   const interceptor: ResponseInterceptor = async (res) => {
-    if (!res.data.data && !res.data.success) {
+    if (isErrorResponse(res.data)) {
       return Promise.reject(res.data);
     }
 
