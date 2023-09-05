@@ -3,13 +3,13 @@ import re
 from typing import Any, Generic, Tuple, Type, TypeVar
 
 # Third Party
-from pydantic import BaseModel, computed_field
+from pydantic import BaseModel, Field, computed_field
 
 # First Party
 from app.core.exceptions.code import ErrorCode
 from app.core.exceptions.http import AppHTTPException
 
-DataT = TypeVar("DataT", bound=BaseModel)
+DataT = TypeVar("DataT")
 ErrorT = TypeVar("ErrorT", bound=AppHTTPException)
 
 
@@ -39,7 +39,7 @@ class StandardResponse(ResponseBase[DataT], Generic[DataT]):
 
 class ErrorAttributes(BaseModel):
     context: dict[str, Any] | None
-    path: tuple[str, ...]
+    path: tuple[str | int, ...]
     message: str
     value: Any
 
@@ -50,7 +50,7 @@ class ErrorSpec(BaseModel):
 
 
 class ErrorResponse(StatusResponse[Any], Generic[ErrorT]):
-    data: None = None
+    data: None = Field(default=None)
     success: bool = False
     message: str = "Oops, failed to complete request 😔"
     error: ErrorSpec
