@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING
 
 # Third Party
-from sqlalchemy import DateTime, Index, String
+from sqlalchemy import DateTime, Index
 from sqlalchemy.dialects.postgresql import CITEXT
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -24,28 +24,26 @@ class Account(Base):
     user account related stuff
     """
 
-    __tablename__ = "account"
+    email: Mapped[str] = mapped_column(CITEXT, nullable=False)
+    password: Mapped[str] = mapped_column(nullable=False)
 
-    email: Mapped[str] = mapped_column(CITEXT, name="email", nullable=False)
-    password: Mapped[str] = mapped_column(String, name="password", nullable=False)
+    user: Mapped["User"] = relationship(
+        "User",
+        back_populates="account",
+        cascade="all, delete-orphan",
+    )
 
     active_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         name="active_at",
         default=get_utc_time(),
+        nullable=False,
     )
 
     verified_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         name="verified_at",
         nullable=True,
-        default=None,
-    )
-
-    user: Mapped["User"] = relationship(
-        "User",
-        # back_populates="account",
-        cascade="all",
         default=None,
     )
 
