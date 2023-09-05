@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Kaybot
- * Kaybot is a chatbot that can be utilized for lead generation in the field of digital marketing.
+ * Casandra
+ * Casandra is a study assistant that consumes study materials, proposes and answers questions based on the provided materials.
  *
  * The version of the OpenAPI document: 1.0
  *

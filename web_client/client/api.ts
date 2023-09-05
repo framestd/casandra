@@ -1,8 +1,8 @@
 /* tslint:disable */
 /* eslint-disable */
 /**
- * Kaybot
- * Kaybot is a chatbot that can be utilized for lead generation in the field of digital marketing.
+ * Casandra
+ * Casandra is a study assistant that consumes study materials, proposes and answers questions based on the provided materials.
  *
  * The version of the OpenAPI document: 1.0
  *
@@ -141,134 +141,144 @@ export interface ApplicationInfo {
 /**
  *
  * @export
- * @interface ChatCompletionChoice
+ * @interface ChatMessage
  */
-export interface ChatCompletionChoice {
+export interface ChatMessage {
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionChoice
-   */
-  index: any;
-  /**
-   *
-   * @type {ChatCompletionChoiceMessage}
-   * @memberof ChatCompletionChoice
-   */
-  message: ChatCompletionChoiceMessage;
-  /**
-   *
-   * @type {any}
-   * @memberof ChatCompletionChoice
-   */
-  finish_reason: any;
-}
-/**
- *
- * @export
- * @interface ChatCompletionChoiceMessage
- */
-export interface ChatCompletionChoiceMessage {
-  /**
-   *
-   * @type {ChatCompletionRoleEnum}
-   * @memberof ChatCompletionChoiceMessage
-   */
-  role: ChatCompletionRoleEnum;
-  /**
-   *
-   * @type {any}
-   * @memberof ChatCompletionChoiceMessage
-   */
-  content: any;
-}
-
-/**
- *
- * @export
- * @interface ChatCompletionResponse
- */
-export interface ChatCompletionResponse {
-  /**
-   *
-   * @type {ChatCompletionResponseBody}
-   * @memberof ChatCompletionResponse
-   */
-  response: ChatCompletionResponseBody;
-}
-/**
- *
- * @export
- * @interface ChatCompletionResponseBody
- */
-export interface ChatCompletionResponseBody {
-  /**
-   *
-   * @type {any}
-   * @memberof ChatCompletionResponseBody
+   * @memberof ChatMessage
    */
   id: any;
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionResponseBody
+   * @memberof ChatMessage
    */
-  object: any;
+  created_at: any;
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionResponseBody
+   * @memberof ChatMessage
    */
-  created: any;
+  updated_at: any;
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionResponseBody
+   * @memberof ChatMessage
    */
-  model: any;
+  deleted_at: any | null;
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionResponseBody
+   * @memberof ChatMessage
    */
-  choices: any;
+  body: any;
   /**
    *
-   * @type {ChatCompletionUsage}
-   * @memberof ChatCompletionResponseBody
+   * @type {any}
+   * @memberof ChatMessage
    */
-  usage: ChatCompletionUsage;
+  conversation_id: any;
+  /**
+   *
+   * @type {Conversation}
+   * @memberof ChatMessage
+   */
+  conversation: Conversation;
+  /**
+   *
+   * @type {ChatMessageRoleEnum}
+   * @memberof ChatMessage
+   */
+  role: ChatMessageRoleEnum;
+  /**
+   *
+   * @type {any}
+   * @memberof ChatMessage
+   */
+  response_from_id: any | null;
+  /**
+   *
+   * @type {any}
+   * @memberof ChatMessage
+   */
+  response_to_id: any | null;
+}
+
+/**
+ *
+ * @export
+ * @interface ChatMessageCreate
+ */
+export interface ChatMessageCreate {
+  /**
+   *
+   * @type {any}
+   * @memberof ChatMessageCreate
+   */
+  body: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ChatMessageCreate
+   */
+  conversation_id?: any | null;
 }
 /**
  *
  * @export
- * @interface ChatCompletionRoleEnum
+ * @interface ChatMessageRoleEnum
  */
-export interface ChatCompletionRoleEnum {}
+export interface ChatMessageRoleEnum {}
 /**
  *
  * @export
- * @interface ChatCompletionUsage
+ * @interface Conversation
  */
-export interface ChatCompletionUsage {
+export interface Conversation {
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionUsage
+   * @memberof Conversation
    */
-  prompt_tokens: any;
+  id: any;
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionUsage
+   * @memberof Conversation
    */
-  completion_tokens: any;
+  created_at: any;
   /**
    *
    * @type {any}
-   * @memberof ChatCompletionUsage
+   * @memberof Conversation
    */
-  total_tokens: any;
+  updated_at: any;
+  /**
+   *
+   * @type {any}
+   * @memberof Conversation
+   */
+  deleted_at: any | null;
+  /**
+   *
+   * @type {any}
+   * @memberof Conversation
+   */
+  subject: any;
+  /**
+   *
+   * @type {any}
+   * @memberof Conversation
+   */
+  started_by_id: any;
+  /**
+   *
+   * @type {User}
+   * @memberof Conversation
+   */
+  started_by: User;
 }
 /**
  *
@@ -281,13 +291,7 @@ export interface ErrorAttributes {
    * @type {any}
    * @memberof ErrorAttributes
    */
-  type: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorAttributes
-   */
-  context: any;
+  context: any | null;
   /**
    *
    * @type {any}
@@ -316,53 +320,64 @@ export interface ErrorCode {}
 /**
  *
  * @export
- * @interface ErrorInfo
+ * @interface ErrorResponseConflictException
  */
-export interface ErrorInfo {
-  /**
-   *
-   * @type {ErrorCode}
-   * @memberof ErrorInfo
-   */
-  code: ErrorCode;
+export interface ErrorResponseConflictException {
   /**
    *
    * @type {any}
-   * @memberof ErrorInfo
-   */
-  errors: any;
-}
-
-/**
- *
- * @export
- * @interface ErrorResponseMissingResourceException
- */
-export interface ErrorResponseMissingResourceException {
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseMissingResourceException
+   * @memberof ErrorResponseConflictException
    */
   data?: any;
   /**
    *
    * @type {any}
-   * @memberof ErrorResponseMissingResourceException
+   * @memberof ErrorResponseConflictException
    */
   message?: any;
   /**
    *
    * @type {any}
-   * @memberof ErrorResponseMissingResourceException
+   * @memberof ErrorResponseConflictException
    */
   success?: any;
   /**
    *
-   * @type {ErrorInfo}
-   * @memberof ErrorResponseMissingResourceException
+   * @type {ErrorSpec}
+   * @memberof ErrorResponseConflictException
    */
-  info: ErrorInfo;
+  error: ErrorSpec;
+}
+/**
+ *
+ * @export
+ * @interface ErrorResponseForbiddenRequestException
+ */
+export interface ErrorResponseForbiddenRequestException {
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseForbiddenRequestException
+   */
+  data?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseForbiddenRequestException
+   */
+  message?: any;
+  /**
+   *
+   * @type {any}
+   * @memberof ErrorResponseForbiddenRequestException
+   */
+  success?: any;
+  /**
+   *
+   * @type {ErrorSpec}
+   * @memberof ErrorResponseForbiddenRequestException
+   */
+  error: ErrorSpec;
 }
 /**
  *
@@ -390,10 +405,10 @@ export interface ErrorResponseServiceUnavailableException {
   success?: any;
   /**
    *
-   * @type {ErrorInfo}
+   * @type {ErrorSpec}
    * @memberof ErrorResponseServiceUnavailableException
    */
-  info: ErrorInfo;
+  error: ErrorSpec;
 }
 /**
  *
@@ -421,10 +436,10 @@ export interface ErrorResponseUnauthorizedException {
   success?: any;
   /**
    *
-   * @type {ErrorInfo}
+   * @type {ErrorSpec}
    * @memberof ErrorResponseUnauthorizedException
    */
-  info: ErrorInfo;
+  error: ErrorSpec;
 }
 /**
  *
@@ -452,24 +467,31 @@ export interface ErrorResponseUnprocessableEntityException {
   success?: any;
   /**
    *
-   * @type {ErrorInfo}
+   * @type {ErrorSpec}
    * @memberof ErrorResponseUnprocessableEntityException
    */
-  info: ErrorInfo;
+  error: ErrorSpec;
 }
 /**
  *
  * @export
- * @interface MessageCreate
+ * @interface ErrorSpec
  */
-export interface MessageCreate {
+export interface ErrorSpec {
+  /**
+   *
+   * @type {ErrorCode}
+   * @memberof ErrorSpec
+   */
+  code: ErrorCode;
   /**
    *
    * @type {any}
-   * @memberof MessageCreate
+   * @memberof ErrorSpec
    */
-  message_body: any;
+  errors: any;
 }
+
 /**
  *
  * @export
@@ -486,6 +508,25 @@ export interface StandardResponseAccount {
    *
    * @type {any}
    * @memberof StandardResponseAccount
+   */
+  typename: any;
+}
+/**
+ *
+ * @export
+ * @interface StandardResponseChatMessage
+ */
+export interface StandardResponseChatMessage {
+  /**
+   *
+   * @type {ChatMessage}
+   * @memberof StandardResponseChatMessage
+   */
+  data: ChatMessage;
+  /**
+   *
+   * @type {any}
+   * @memberof StandardResponseChatMessage
    */
   typename: any;
 }
@@ -542,31 +583,31 @@ export interface StatusResponseAccount {
 /**
  *
  * @export
- * @interface StatusResponseChatCompletionResponse
+ * @interface StatusResponseListChatMessage
  */
-export interface StatusResponseChatCompletionResponse {
-  /**
-   *
-   * @type {ChatCompletionResponse}
-   * @memberof StatusResponseChatCompletionResponse
-   */
-  data: ChatCompletionResponse;
+export interface StatusResponseListChatMessage {
   /**
    *
    * @type {any}
-   * @memberof StatusResponseChatCompletionResponse
+   * @memberof StatusResponseListChatMessage
+   */
+  data: any;
+  /**
+   *
+   * @type {any}
+   * @memberof StatusResponseListChatMessage
    */
   message: any;
   /**
    *
    * @type {any}
-   * @memberof StatusResponseChatCompletionResponse
+   * @memberof StatusResponseListChatMessage
    */
   success: any;
   /**
    *
    * @type {any}
-   * @memberof StatusResponseChatCompletionResponse
+   * @memberof StatusResponseListChatMessage
    */
   typename: any;
 }
@@ -1107,16 +1148,16 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
     /**
      * An endpoint to post messages and expect a response. The messages are reconstructed into a valuable prompt and sent over to OpenAI\'s API which most likely responds with a message.  :param message: The message object containing the message body to send  :raises ServiceUnavailableException:     when it fails to establish a successful communication with third party API
      * @summary Create Message
-     * @param {MessageCreate} messageCreate
+     * @param {ChatMessageCreate} chatMessageCreate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createMessageChatsMessagePost: async (
-      messageCreate: MessageCreate,
+      chatMessageCreate: ChatMessageCreate,
       options: AxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
-      // verify required parameter 'messageCreate' is not null or undefined
-      assertParamExists('createMessageChatsMessagePost', 'messageCreate', messageCreate);
+      // verify required parameter 'chatMessageCreate' is not null or undefined
+      assertParamExists('createMessageChatsMessagePost', 'chatMessageCreate', chatMessageCreate);
       const localVarPath = `/chats/message`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1138,7 +1179,42 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
       setSearchParams(localVarUrlObj, localVarQueryParameter);
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
       localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-      localVarRequestOptions.data = serializeDataIfNeeded(messageCreate, localVarRequestOptions, configuration);
+      localVarRequestOptions.data = serializeDataIfNeeded(chatMessageCreate, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Read Chat Message By Id
+     * @param {any} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readChatMessageByIdChatsMessageIdGet: async (id: any, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('readChatMessageByIdChatsMessageIdGet', 'id', id);
+      const localVarPath = `/chats/message/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
 
       return {
         url: toPathString(localVarUrlObj),
@@ -1158,15 +1234,32 @@ export const ChatApiFp = function (configuration?: Configuration) {
     /**
      * An endpoint to post messages and expect a response. The messages are reconstructed into a valuable prompt and sent over to OpenAI\'s API which most likely responds with a message.  :param message: The message object containing the message body to send  :raises ServiceUnavailableException:     when it fails to establish a successful communication with third party API
      * @summary Create Message
-     * @param {MessageCreate} messageCreate
+     * @param {ChatMessageCreate} chatMessageCreate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async createMessageChatsMessagePost(
-      messageCreate: MessageCreate,
+      chatMessageCreate: ChatMessageCreate,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseChatCompletionResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.createMessageChatsMessagePost(messageCreate, options);
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseListChatMessage>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createMessageChatsMessagePost(
+        chatMessageCreate,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Read Chat Message By Id
+     * @param {any} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async readChatMessageByIdChatsMessageIdGet(
+      id: any,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseChatMessage>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessageByIdChatsMessageIdGet(id, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
   };
@@ -1189,9 +1282,24 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
     createMessageChatsMessagePost(
       requestParameters: ChatApiCreateMessageChatsMessagePostRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<StatusResponseChatCompletionResponse> {
+    ): AxiosPromise<StatusResponseListChatMessage> {
       return localVarFp
-        .createMessageChatsMessagePost(requestParameters.messageCreate, options)
+        .createMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Read Chat Message By Id
+     * @param {ChatApiReadChatMessageByIdChatsMessageIdGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readChatMessageByIdChatsMessageIdGet(
+      requestParameters: ChatApiReadChatMessageByIdChatsMessageIdGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseChatMessage> {
+      return localVarFp
+        .readChatMessageByIdChatsMessageIdGet(requestParameters.id, options)
         .then((request) => request(axios, basePath));
     },
   };
@@ -1205,10 +1313,24 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
 export interface ChatApiCreateMessageChatsMessagePostRequest {
   /**
    *
-   * @type {MessageCreate}
+   * @type {ChatMessageCreate}
    * @memberof ChatApiCreateMessageChatsMessagePost
    */
-  readonly messageCreate: MessageCreate;
+  readonly chatMessageCreate: ChatMessageCreate;
+}
+
+/**
+ * Request parameters for readChatMessageByIdChatsMessageIdGet operation in ChatApi.
+ * @export
+ * @interface ChatApiReadChatMessageByIdChatsMessageIdGetRequest
+ */
+export interface ChatApiReadChatMessageByIdChatsMessageIdGetRequest {
+  /**
+   *
+   * @type {any}
+   * @memberof ChatApiReadChatMessageByIdChatsMessageIdGet
+   */
+  readonly id: any;
 }
 
 /**
@@ -1231,7 +1353,24 @@ export class ChatApi extends BaseAPI {
     options?: AxiosRequestConfig,
   ) {
     return ChatApiFp(this.configuration)
-      .createMessageChatsMessagePost(requestParameters.messageCreate, options)
+      .createMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Read Chat Message By Id
+   * @param {ChatApiReadChatMessageByIdChatsMessageIdGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ChatApi
+   */
+  public readChatMessageByIdChatsMessageIdGet(
+    requestParameters: ChatApiReadChatMessageByIdChatsMessageIdGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ChatApiFp(this.configuration)
+      .readChatMessageByIdChatsMessageIdGet(requestParameters.id, options)
       .then((request) => request(this.axios, this.basePath));
   }
 }
