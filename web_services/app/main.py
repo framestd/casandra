@@ -1,4 +1,5 @@
 # Standard Library
+from contextlib import asynccontextmanager
 from typing import Any, Callable
 
 # Third Party
@@ -11,6 +12,8 @@ from fastapi.responses import JSONResponse
 # First Party
 from app.account.handlers import router as account_router
 from app.chat.handlers import router as chat_router
+from app.conversation.handlers import router as conversation_router
+from app.core.broadcaster import broadcast
 from app.core.exceptions.http import AppHTTPException, ErrorCode
 from app.core.exceptions.http import UnprocessableEntityException
 from app.core.logging.logger import get_app_logger
@@ -21,11 +24,28 @@ from app.user.handlers import router as user_router
 
 logger = get_app_logger(__name__)
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("Broadcaster connecting to Redis server...")
+    await broadcast.connect()
+    logger.info("Broadcaster connected to Redis server successfully!")
+
+    yield
+
+    logger.info("Broadcaster disconnecting from Redis server...")
+    await broadcast.disconnect()
+    logger.info("Broadcaster disconnected from Redis server successfully!")
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     description=settings.DESCRIPTION,
     version=settings.VERSION,
+    lifespan=lifespan,
 )
+
+# app.openapi_version = "3.0.3"
 
 
 @app.middleware("http")
@@ -60,6 +80,7 @@ app.add_middleware(
 
 app.include_router(account_router, prefix="/accounts", tags=["Account"])
 app.include_router(chat_router, prefix="/chats", tags=["Chat"])
+app.include_router(conversation_router, prefix="/conversations", tags=["Conversation"])
 app.include_router(user_router, prefix="/users", tags=["User"])
 
 
@@ -84,7 +105,7 @@ def app_http_exception_handler(request: Request, exc: AppHTTPException):
 def request_validation_exception_handler(request: Request, exc: RequestValidationError):
     error_attrs: list[ErrorAttributes] = [
         ErrorAttributes(
-            context={"type": error.get("type"), **error.get("ctx")},
+            context={"type": error.get("type"), **(error.get("ctx") or {})},
             path=error.get("loc"),
             message=error.get("msg"),
             value=error.get("input"),
