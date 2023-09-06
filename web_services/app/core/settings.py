@@ -1,11 +1,9 @@
-# type: ignore
-
 # Standard Library
 from typing import Literal
 
 # Third Party
-from decouple import config
-from pydantic_settings import BaseSettings
+from pydantic import Field, RedisDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 def get_default_description(app_name: str) -> str:
@@ -15,37 +13,36 @@ def get_default_description(app_name: str) -> str:
 class Settings(BaseSettings):
     """Base configurations for the Casandra web services application"""
 
-    APP_NAME: str = config("APP_NAME", cast=str)
-    APP_CODE_NAME: str = config("APP_CODE_NAME", cast=str)
-    PORT: int = config("PORT", cast=int)
+    model_config = SettingsConfigDict(env_file=".env")
 
-    DESCRIPTION: str = config(
-        "APP_DESC",
+    APP_NAME: str = ""
+    APP_CODE_NAME: str
+    PORT: int
+
+    DESCRIPTION: str = Field(
+        validation_alias="APP_DESC",
         default=get_default_description(APP_NAME),
-        cast=str,
     )
 
-    CLIENT_HOSTS: list[str] = config(
-        "CLIENT_ADDRESSES",
-        cast=lambda x: [v.strip() for v in x.split(",")],
-    )
+    CLIENT_HOSTS: list[str]
 
     JWT_ALGORITHM: Literal["RS256"] = "RS256"
-    JWT_RS256_KEY: str = config("JWT_RS256_KEY", cast=lambda x: x.replace(r"\n", "\n"))
-    JWT_RS256_PUB_KEY: str = config(
-        "JWT_RS256_PUB_KEY",
-        cast=lambda x: x.replace(r"\n", "\n"),
-    )
-    TOKEN_EXPIRY: int = config("TOKEN_EXPIRY", cast=int)
+    JWT_RS256_KEY: str
+    JWT_RS256_PUB_KEY: str
+    TOKEN_EXPIRY: int
 
     VERSION: Literal["1.0"] = "1.0"
 
-    POSTGRES_PORT: int = config("POSTGRES_PORT", cast=int)
-    POSTGRES_HOST: str = config("POSTGRES_HOST", cast=str)
-    POSTGRES_USER: str = config("POSTGRES_USER", cast=str)
-    POSTGRES_PASSWORD: str = config("POSTGRES_PASSWORD", cast=str)
+    REDIS_URL: RedisDsn
 
-    OPENAI_SECRET_KEY: str = config("OPENAI_SECRET_KEY", cast=str)
+    POSTGRES_PORT: int
+    POSTGRES_HOST: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+
+    OPENAI_SECRET_KEY: str
+
+    WS_ACCESS_TOKEN_KEY: str = "ws_a_t"
 
 
-settings = Settings()
+settings = Settings()  # type: ignore
