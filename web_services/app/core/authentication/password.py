@@ -1,6 +1,8 @@
 # Third Party
 from passlib.context import CryptContext
 
+__all__ = ("Password",)
+
 
 class Password(object):
     """A wrapper object around plain password strings to enhance

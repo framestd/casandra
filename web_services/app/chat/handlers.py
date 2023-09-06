@@ -110,11 +110,13 @@ async def recieve_message_reply_stream(
             data = ChatMessage.model_validate(res).model_dump(mode="json")
 
             await websocket.send_json(data=data, mode="text")
-    except WebSocketDisconnect:
+    except WebSocketDisconnect as exc:
+        # info log:
+        logger.info(f"Websocket disconnected {str(exc)}", exc_info=True)
         await websocket.close(status.WS_1000_NORMAL_CLOSURE)
     except ServiceUnavailableException as exc:
-        # error log:
-        logger.error(f"{str(exc)}", exc_info=True)
+        # debug log:
+        logger.debug(f"{str(exc)}", exc_info=True)
 
         await websocket.close(status.WS_1013_TRY_AGAIN_LATER)
     except Exception as exc:
