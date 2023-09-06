@@ -20,13 +20,19 @@ from .router import router
 @router.get(
     "/{id}",
     response_model=StandardResponse[Conversation],
-    responses={403: responses.get("o403"), 422: responses.get("o422")},
+    responses={
+        401: responses.get("o401"),
+        403: responses.get("o403"),
+        422: responses.get("o422"),
+    },
 )
-def read_conversation(
+def read_conversation_by_id(
     id: UUID4,
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
     db: Session = Depends(get_db),
 ) -> StandardResponse[Conversation]:
+    """Read a conversation by a given id."""
+
     conversation = get_conversation_by_id(session=db, ctx=ctx, id=id)
 
     response = StandardResponse[Conversation](data=cast(Conversation, conversation))
