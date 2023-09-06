@@ -1,28 +1,11 @@
 # Standard Library
-from enum import Enum
+from typing import Any, Generator, cast
 
 # Third Party
 import openai
 
 # First Party
-from app.core.schemas.openai import ChatCompletionResponseBody
-
-# Local Folder
-from .personality import ADVANCED_BACKGROUND, PERSONALITY, SIMPLE_BACKGROUND
-
-
-class PersonalityBackground(Enum):
-    """A simple enum used to award background information to a personality
-    given to a GPT to assume.
-
-    `SIMPLE` consumes relatively less tokens
-
-    `ADVANCED` expends relatively more tokens
-
-    """
-
-    SIMPLE = 0
-    ADVANCED = 1
+from app.core.schemas.openai import ChatCompletionResponseStream
 
 
 class Prompt(object):
@@ -34,20 +17,13 @@ class Prompt(object):
         self.user = user
 
 
-def generate_prompt(
-    question: str,
-    background_type: PersonalityBackground = PersonalityBackground.SIMPLE,
-) -> Prompt:
+def generate_prompt(question: str) -> Prompt:
     """Generate a prompt from a give question or message,
     a background information for the personality which is predefined
     and set by an enum of `PersonalityBackground`
 
     """
-
-    is_simple = background_type is PersonalityBackground.SIMPLE
-    background = SIMPLE_BACKGROUND if is_simple else ADVANCED_BACKGROUND
-
-    system = f"{background}\n\n{PERSONALITY}"
+    system = f"You are a savage assistant, with great humor and sarcasm"
 
     return Prompt(system=system, user=question)
 
@@ -56,7 +32,7 @@ def generate_response(
     prompt: Prompt,
     max_tokens: int = 500,
     temperature: float = 0.5,
-) -> ChatCompletionResponseBody:
+) -> Generator[ChatCompletionResponseStream, Any, None]:
     """Generate a response to an given prompt.
     The prompt is programmed such that the GPT is given a
     personality of its own.
@@ -74,6 +50,11 @@ def generate_response(
             {"role": "system", "content": prompt.system},
             {"role": "user", "content": prompt.user},
         ],
+        stream=True,
     )
 
-    return response  # type: ignore
+    for chunk in response:  # type: ignore
+        yield cast(ChatCompletionResponseStream, chunk)
+
+    # return cast(ChatCompletionResponseBody, response)
+    return None
