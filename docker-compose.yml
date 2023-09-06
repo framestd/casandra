@@ -48,7 +48,7 @@ services:
       - 8000
     ports:
       - ${PORT}:8000
-    command: "uvicorn app.main:app --host='0.0.0.0' --port=8000 --reload"
+    command: "uvicorn app.main:app --log-level=debug --host='0.0.0.0' --port=8000 --reload"
     networks:
       - server
       - cache
@@ -62,12 +62,12 @@ services:
     environment:
       - APP_NAME=${APP_NAME} # the application name
       - APP_DESC=${APP_DESC} # a short description of the application
-      - CLIENT_ADDRESSES=${CLIENT_ADDRESSES} # CSV list of hosts to whitelist for CORS
+      - CLIENT_HOSTS=${CLIENT_ADDRESSES} # List of hosts to whitelist for CORS
       - POSTGRES_HOST=casandra_services_postgres # the container name of the database container
       - POSTGRES_PORT=${POSTGRES_PORT} # the port on which to communicate with the database
       - POSTGRES_USER=${POSTGRES_USER} # the database user
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # the database password
-      - REDIS_URL=redis://casandra_services_cache:6380 # the name of the redis container as hostname
+      - REDIS_URL=redis://casandra_services_cache:6379 # the name of the redis container as hostname
     restart: unless-stopped
 
   redis:
