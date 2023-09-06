@@ -55,7 +55,7 @@ async def publish_message(
     )
 
     response.set_cookie(
-        key=settings.WEBSOCKET_ACCESS_TOKEN_KEY,
+        key=settings.WS_ACCESS_TOKEN_KEY,
         value=str(websocket_access_token),
         expires=(datetime.utcnow() + expiry).astimezone(tz=UTC),
         path="/chats/message/ws",

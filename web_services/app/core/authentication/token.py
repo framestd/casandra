@@ -64,6 +64,9 @@ class JWTRS256Token(Generic[T], BaseModel):
     def __repr__(self) -> str:
         return self._token
 
+    def __str__(self) -> str:
+        return self._token
+
     @classmethod
     def from_data(cls, data: T, expires_delta: timedelta | None = None):
         """Create a new `JWTRS256Token` object from a data `T` that expires in `timedelta`.

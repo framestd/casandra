@@ -37,6 +37,9 @@ class AppHTTPException(HTTPException):
         self.code = code
         self.errors: list[ErrorAttributesDict] = []
 
+    def __str__(self) -> str:
+        return self.message
+
     def add_attributes(self, **kwargs: Unpack[ErrorAttributesDict]):
         self.errors.append(kwargs)
         return self

@@ -1,6 +1,8 @@
+# Standard Library
+from uuid import UUID
+
 # Third Party
 from jose import JWTError
-from pydantic import UUID4
 from sqlalchemy.orm import Session
 
 # First Party
@@ -9,7 +11,8 @@ from app.core.authentication.token import JWTRS256Token, split_prefix_from_sub
 from app.core.exceptions.application import ChallengeFailedException
 from app.core.exceptions.application import MissingResourceException
 from app.core.exceptions.code import ErrorContextType
-from app.core.exceptions.http import ConflictException, UnauthorizedException
+from app.core.exceptions.http import AppHTTPException, ConflictException
+from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
 from app.core.models.account import Account as AccountModel
 from app.core.models.user import User as UserModel
@@ -51,22 +54,22 @@ def create_user_account_service(session: Session, credentials: schema.AccountCre
         pass
 
     if not existing_account is None or not existing_user is None:
-        exception = ConflictException("Some of the details provied are already in use")
+        exception = ConflictException("Some of the details provided are already in use")
 
         if not existing_account is None:
-            # info log
-            logger.info(f'Email address "{email}" is already taken')
+            # debug log
+            logger.debug(f'Email address "{email}" is already taken')
 
             exception.add_attributes(
                 context={"type": ErrorContextType.details},
-                message="Email address already in use",
+                message="Email address's already in use",
                 path=("body", "email"),
                 value=email,
             )
 
         if not existing_user is None:
-            # info log
-            logger.info(f'Username "{username}" is already taken')
+            # debug log
+            logger.debug(f'Username "{username}" is already taken')
 
             exception.add_attributes(
                 context={"type": ErrorContextType.details},
@@ -104,8 +107,8 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
     try:
         account = get_account_by_email(session, email=identifier)
     except MissingResourceException as exc:  # Modify exception
-        # info log:
-        logger.info(exc.message)
+        # debug log:
+        logger.debug(exc.message, exc_info=True)
 
         exception = MissingResourceException(
             "You don not have an account", headers=exc.headers  # type: ignore
@@ -123,8 +126,8 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
     challenge = Password(plain=password)
 
     if not challenge.compare(hashed=account.password) is True:
-        # info log:
-        logger.info(
+        # debug log:
+        logger.debug(
             f"Access to account with email {identifier} was tried with a wrong password"
         )
 
@@ -174,20 +177,34 @@ def reauthenticate_user_account_service(session: Session, refresh_token: str):
         # error log:
         logger.error("Failed to verify refresh token", exc_info=True)
 
+        credentials_exception.add_attributes(
+            context={"type": ErrorContextType.details},
+            path=("body", "refresh_token"),
+            value=refresh_token,
+            message="Token has either expired or is invalid",
+        )
+
         raise credentials_exception
 
     try:
         account = get_account_by_id(session, id=token_data.account_id)  # type: ignore
     except MissingResourceException:
-        # info log:
-        logger.info("Account with the existing grant no longer exists")
+        # debug log:
+        logger.debug(f"Account, {token_data.account_id}, no longer exists")
+
+        credentials_exception.add_attributes(
+            context={"type": ErrorContextType.details},
+            path=("body", "refresh_token"),
+            value=token_data.account_id,
+            message="User account no longer exists",
+        )
 
         raise credentials_exception
 
     return account
 
 
-def get_account_by_id(session: Session, id: UUID4):
+def get_account_by_id(session: Session, id: UUID):
     """Get a user account by the account ID
 
     :param session: the database session to use to create a new account
@@ -201,8 +218,8 @@ def get_account_by_id(session: Session, id: UUID4):
     account = session.query(AccountModel).filter(AccountModel.id == id).one_or_none()
 
     if account is None:
-        # info log:
-        logger.info(f"Account with id {id} does not exist")
+        # debug log:
+        logger.debug(f"Account with id {id} does not exist")
 
         exception = MissingResourceException(f"Account with id **{id}** not found")
 
@@ -234,8 +251,8 @@ def get_account_by_email(session: Session, email: str):
     )
 
     if account is None:
-        # info log:
-        logger.info(f"Account with email address {email} does not exist")
+        # debug log:
+        logger.debug(f"Account with email address {email} does not exist")
 
         exception = MissingResourceException(
             f"Account with email address {email} not found"
@@ -249,5 +266,60 @@ def get_account_by_email(session: Session, email: str):
         )
 
         raise exception
+
+    return account
+
+
+def get_account_by_token(
+    session: Session,
+    token: str,
+    credentials_exception: AppHTTPException | None = None,
+):
+    if credentials_exception is None:
+        credentials_exception = UnauthorizedException(
+            message="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    encoded_token = JWTRS256Token[dict[str, str]](token=token)
+
+    try:
+        payload = encoded_token.decode()
+
+        sub = payload.get("sub")
+
+        if sub is None:
+            raise credentials_exception
+
+        _, account_id = split_prefix_from_sub(sub)
+
+        token_data = schema.TokenData(account_id=account_id)  # type: ignore
+
+    except JWTError as exc:
+        # debug log:
+        logger.debug(f"Failed to decode JWT token: {str(exc)}", exc_info=True)
+
+        credentials_exception.add_attributes(
+            context={"type": ErrorContextType.details},
+            path=("*",),
+            value=token,
+            message="Token has either expired or is invalid",
+        )
+
+        raise credentials_exception
+
+    try:
+        account = get_account_by_id(session=session, id=token_data.account_id)  # type: ignore
+    except MissingResourceException:
+        # debug log:
+        logger.debug(f"Account, {token_data.account_id}, no longer exists")
+
+        credentials_exception.add_attributes(
+            context={"type": ErrorContextType.details},
+            path=("*",),
+            value=token_data.account_id,
+            message="User account no longer exists",
+        )
+        raise credentials_exception
 
     return account

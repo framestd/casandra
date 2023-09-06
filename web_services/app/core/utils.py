@@ -1,11 +1,15 @@
 # Standard Library
 from contextlib import contextmanager
 from datetime import datetime
-from typing import Iterator
+from typing import Any, Iterator
+from uuid import UUID
 
 # Third Party
 import pytz
 from pydantic import ValidationError
+
+# First Party
+from app.core.authentication.token import prefix_sub
 
 
 def get_utc_time():
@@ -29,3 +33,7 @@ def suppress_recursion_validation_error() -> Iterator[None]:
     except ValidationError as exc:
         if not is_recursion_validation_error(exc):
             raise exc
+
+
+def tok_payload(account_id: UUID) -> dict[str, Any]:
+    return {"sub": prefix_sub(account_id.hex)}
