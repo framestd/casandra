@@ -19,15 +19,23 @@ if TYPE_CHECKING:
 
 
 class AccountBase(BaseModel):
+    """Foundational, common attributes"""
+
     email: EmailStr
 
 
 class AccountCreate(AccountBase):
+    """Attributes necessary for creating an Account object"""
+
     password: str
     user: UserCreate
 
 
 class Account(AccountBase, SchemaBase):
+    """Account object representation with extra attributes to
+    foundational attributes
+    """
+
     active_at: datetime
     verified_at: datetime | None
     user: Optional["User"]
@@ -42,6 +50,8 @@ class TokenTypeEnum(str, Enum):
 
 
 class Token(BaseModel):
+    """Token outbound attributes"""
+
     access_token: JWTRS256Token[Any] = Field(json_schema_extra={"type": "string"})
     refresh_token: JWTRS256Token[Any] = Field(json_schema_extra={"type": "string"})
     token_type: TokenTypeEnum
