@@ -4,9 +4,6 @@ from typing import Any, Literal, TypedDict, Unpack
 # Third Party
 from fastapi import HTTPException, status
 
-# First Party
-from app.core.utils import create_error
-
 # Local Folder
 from .code import ErrorCode
 
@@ -29,7 +26,7 @@ class AppHTTPException(HTTPException):
     ):
         super().__init__(
             status_code=status_code,
-            detail=create_error(message=message),
+            detail=message,
             headers=headers,
         )
 
