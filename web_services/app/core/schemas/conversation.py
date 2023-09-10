@@ -2,7 +2,7 @@
 from typing import TYPE_CHECKING
 
 # Third Party
-from pydantic import UUID4
+from pydantic import UUID4, Field
 
 # Local Folder
 from .base import BaseModel, SchemaBase
@@ -16,6 +16,16 @@ class ConversationBase(BaseModel):
     """Foundational, common attributes"""
 
     subject: str
+    started_by_id: UUID4
+
+
+class ConversationFilter(BaseModel):
+    """Filters available for conversation endpoint"""
+    subject: str | None = Field(None)
+
+
+class ConversationFilterExtra(ConversationFilter):
+    """Extra, reserved, filters available for conversation endpoint"""
     started_by_id: UUID4
 
 
