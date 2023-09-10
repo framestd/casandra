@@ -7,6 +7,7 @@ import uvicorn
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import JSONResponse
 
 # First Party
@@ -49,9 +50,7 @@ app = FastAPI(
 
 
 @app.middleware("http")
-async def standard_exception_handler(
-    request: Request, call_next: Callable[[Request], Any]
-):
+async def standard_exception_handler(request: Request, call_next: Callable[[Request], Any]):
     try:
         return await call_next(request)
     except Exception as exc:
@@ -65,7 +64,7 @@ async def standard_exception_handler(
 
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content=error_response.model_dump(),
+        content=error_response.model_dump(mode="json"),
     )
 
 
@@ -97,7 +96,7 @@ def app_http_exception_handler(request: Request, exc: AppHTTPException):
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=error_response.model_dump(),
+        content=error_response.model_dump(mode="json"),
     )
 
 
@@ -121,12 +120,25 @@ def request_validation_exception_handler(request: Request, exc: RequestValidatio
         error=error_spec,
     )
 
-    content = error_response.model_dump()
+    content = error_response.model_dump(mode="json")
 
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content=content,
     )
+
+
+@app.get("/openapi-3.0.3.json", tags=["Root"], include_in_schema=False)
+async def openapi_compat():
+    openapi_3_0_3 = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        openapi_version="3.0.3",
+        routes=app.routes,
+    )
+
+    return openapi_3_0_3
 
 
 @app.get("/", tags=["Root"], response_model=ApplicationInfo)
