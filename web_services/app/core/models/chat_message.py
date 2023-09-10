@@ -24,9 +24,7 @@ class ChatMessage(Base):
     """Chat messages belonging to a single conversation"""
 
     body: Mapped[str] = mapped_column(nullable=False)
-    role: Mapped[ChatMessageRoleEnum] = mapped_column(
-        Enum(ChatMessageRoleEnum), nullable=False
-    )
+    role: Mapped[ChatMessageRoleEnum] = mapped_column(Enum(ChatMessageRoleEnum), nullable=False)
 
     response_to_id: Mapped[UUID | None] = mapped_column(
         ForeignKey(
@@ -56,6 +54,10 @@ class ChatMessage(Base):
         back_populates="chat_messages",
         init=False,
         lazy="joined",
+        # Make more efficient using an innerjoin since references cannot be null, as specified in
+        # the foreign key above, for a many-to-one.
+        # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
+        innerjoin=True,
     )
 
     _dangling: Mapped[bool] = mapped_column(nullable=False, default=False)

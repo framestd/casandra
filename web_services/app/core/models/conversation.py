@@ -19,7 +19,7 @@ class Conversation(Base):
     """A conversation object to which all the messages in a
     particular chat are attached to"""
 
-    subject: Mapped[str] = mapped_column(nullable=False)
+    subject: Mapped[str] = mapped_column(nullable=False, index=True)
 
     started_by_id: Mapped[UUID] = mapped_column(
         ForeignKey("User.id", name="Conversations_user_id_fkey", ondelete="CASCADE"),
@@ -31,6 +31,10 @@ class Conversation(Base):
         back_populates="conversations",
         init=False,
         lazy="joined",
+        # Make more efficient using an innerjoin since references cannot be null, as specified in
+        # the foreign key above, for a many-to-one.
+        # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
+        innerjoin=True
     )
 
     chat_messages: Mapped[list["ChatMessage"]] = relationship(
