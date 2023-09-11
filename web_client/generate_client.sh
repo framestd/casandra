@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 openapi-generator-cli generate --skip-validate-spec\
-  -i http://localhost:3780/openapi.json\
+  -i http://localhost:3780/openapi-3.0.3.json\
   -g typescript-axios\
   -o client\
   -p useSingleRequestParameter=true,supportsES6=true,ensureUniqueParams=true\
