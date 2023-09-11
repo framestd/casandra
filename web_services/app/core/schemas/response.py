@@ -3,7 +3,7 @@ import re
 from typing import Any, Generic, Tuple, Type, TypeVar
 
 # Third Party
-from pydantic import Field, computed_field
+from pydantic import computed_field
 
 # First Party
 from app.core.exceptions.code import ErrorCode
@@ -17,9 +17,7 @@ DataT = TypeVar("DataT")
 ErrorT = TypeVar("ErrorT", bound=AppHTTPException)
 
 
-class ResponseBase(BaseModel, Generic[DataT]):
-    data: DataT
-
+class ResponseBase(BaseModel):
     @classmethod
     def model_parametrized_name(cls, params: Tuple[Type[Any], ...]) -> str:
         return f"{params[0].__name__}Response"
@@ -37,16 +35,24 @@ class ResponseMetadata(BaseModel):
     page_info: PageInfo
 
 
-class StatusResponse(ResponseBase[DataT]):
+class DataResponseBase(ResponseBase, Generic[DataT]):
+    data: DataT
+
+
+class StatusResponseBase(ResponseBase):
     message: str = "Completed successfully 😁"
     success: bool = True
 
 
-class StandardResponse(ResponseBase[DataT]):
+class StatusResponse(DataResponseBase[DataT], StatusResponseBase):
     ...
 
 
-class StandardPaginatedResponse(ResponseBase[list[DataT]]):
+class StandardResponse(DataResponseBase[DataT]):
+    ...
+
+
+class StandardPaginatedResponse(StandardResponse[list[DataT]]):
     metadata: ResponseMetadata
 
 
@@ -62,8 +68,7 @@ class ErrorSpec(BaseModel):
     errors: list[ErrorAttributes]
 
 
-class ErrorResponse(StatusResponse[Any], Generic[ErrorT]):
-    data: None = Field(default=None, exclude=True)
+class ErrorResponse(StatusResponseBase, Generic[ErrorT]):
     success: bool = False
     message: str = "Oops, failed to complete request 😔"
     error: ErrorSpec

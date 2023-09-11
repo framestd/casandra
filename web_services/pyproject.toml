@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Casandra is a chatbot that assists in consuming documents for study, to propose and answer questions based on the provided study documents"
 authors = ["Caleb Adepitan <adepitancaleb@gmail.com>"]
 readme = "README.md"
-packages = [{include = "."}]
+packages = [{include = "app"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"

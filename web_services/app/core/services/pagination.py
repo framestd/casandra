@@ -40,6 +40,7 @@ class Page(Generic[ModelT]):
         object_count_query: RowReturningQuery[tuple[UUID]],
         has_more_query_factory: Callable[[str, str], RowReturningQuery[tuple[int, bool, bool]]],
     ):
+        """A representation of a page of specific objects of a model, `ModelT`"""
         self.title = title
         self.read_size: int
 
@@ -83,15 +84,15 @@ class Page(Generic[ModelT]):
 
         # If results length is one, all cursors are not None but the same
         if len(read_pages_sorted_by_cursor_key) == 1:
-            # the encoded cursor of a point referencing both the top and bottom of the pages
+            # the encoded cursor of a point referencing both the top and bottom vertex of the page
             vertex_ref_enc = iso_format_date(top_vertex.created_at).encode()
             self._top_cursor = base64.urlsafe_b64encode(vertex_ref_enc).decode()
             self._bottom_cursor = self._top_cursor
 
         else:
-            # the encoded cursor of a point referencing the top of the pages
+            # the encoded cursor of a point referencing the top vertex of the page
             top_vertex_ref_enc = iso_format_date(top_vertex.created_at).encode()
-            # the encoded cursor of a point referencing the bottom of the pages
+            # the encoded cursor of a point referencing the bottom vertex of the page
             bottom_vertex_ref_enc = iso_format_date(bottom_vertex.created_at).encode()
 
             self._top_cursor = base64.urlsafe_b64encode(top_vertex_ref_enc).decode()
@@ -102,7 +103,7 @@ class Page(Generic[ModelT]):
 
     def _check_cursor_isset(self):
         if not self._cursor_isset:
-            raise AttributeError("cursors have not been set yet, you should read the pages first")
+            raise AttributeError("cursors have not been set yet, you should read the page first")
 
     def cursors(self) -> tuple[str | None, str | None]:
         """Retrieve the cursors to the top and bottom vertexes of the edges
