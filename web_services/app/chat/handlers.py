@@ -36,7 +36,7 @@ async def publish_message(
     response: Response,
     message: ChatMessageCreate,
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> StatusResponse[ChatMessage]:
     """
     Publish a prompt message to be handled by various connecting services.
@@ -80,7 +80,7 @@ async def publish_message(
 def read_chat_message_by_id(
     id: UUID4,
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Read a message by a given id."""
 
@@ -97,7 +97,7 @@ async def recieve_message_reply_stream(
     conversation_id: UUID4,
     websocket: WebSocket,
     ctx: Annotated[ServiceContext, Depends(get_ws_service_context)],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ):
     """Stream prompt message response back to connected clients
     just after they publish a message and it has been processed.
@@ -121,8 +121,6 @@ async def recieve_message_reply_stream(
         await websocket.close(status.WS_1013_TRY_AGAIN_LATER)
     except Exception as exc:
         # error log:
-        logger.error(
-            f"Error occured while streaming response: {str(exc)}", exc_info=True
-        )
+        logger.error(f"Error occured while streaming response: {str(exc)}", exc_info=True)
 
         await websocket.close(status.WS_1011_INTERNAL_ERROR)

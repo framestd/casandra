@@ -32,7 +32,7 @@ logger = get_app_logger(__name__)
     responses={419: responses.get("o419"), 422: responses.get("o422")},
 )
 def create_user_account(
-    credentials: AccountCreate, db: Session = Depends(get_db)
+    credentials: AccountCreate, db: Annotated[Session, Depends(get_db)]
 ) -> StatusResponse[Account]:
     """Create a user account"""
 
@@ -46,12 +46,10 @@ def create_user_account(
     return response
 
 
-@router.post(
-    "/authenticate", response_model=Token, responses={422: responses.get("o422")}
-)
+@router.post("/authenticate", response_model=Token, responses={422: responses.get("o422")})
 def authenticate_user_account(
     form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()],
-    db: Session = Depends(get_db),
+    db: Annotated[Session, Depends(get_db)],
 ) -> Token:
     """OAuth2 authentication for clients.
 
@@ -78,9 +76,7 @@ def authenticate_user_account(
     if grant_type == "refresh_token":
         account = reauthenticate_user_account_service(db, refresh_token)
     else:
-        account = authenticate_user_account_service(
-            db, identifier=identifier, password=password
-        )
+        account = authenticate_user_account_service(db, identifier=identifier, password=password)
 
     access_token = JWTRS256Token.from_data(data=tok_payload(account.id))
     refresh_token = JWTRS256Token.from_data(
