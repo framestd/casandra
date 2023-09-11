@@ -1,5 +1,5 @@
 {
-  "editor.wordWrapColumn": 100,
+  "editor.wordWrapColumn": 120,
   "editor.wordWrap": "wordWrapColumn",
   "[python]": {
     "editor.autoIndent": "advanced",
@@ -16,11 +16,12 @@
   "[typescriptreact]": {
     "editor.wordWrapColumn": 120
   },
-  // "python.formatting.provider": "none",
   "python.terminal.activateEnvironment": true,
   "python.defaultInterpreterPath": "./web_services/.venv",
   "python.analysis.typeCheckingMode": "strict",
   "python.analysis.autoImportCompletions": true,
   "python.analysis.useLibraryCodeForTypes": true,
-  "python.analysis.ignore": ["**/site-packages/**/*.py", ".vscode/*.py"]
+  "python.analysis.extraPaths": ["${workspaceFolder}/web_services/"],
+  "python.analysis.ignore": ["**/site-packages/**/*.py", ".vscode/*.py"],
+  "black-formatter.args": ["--line-length=100"]
 }
