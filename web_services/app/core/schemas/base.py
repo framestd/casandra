@@ -1,5 +1,6 @@
 # Standard Library
 from datetime import datetime
+from uuid import UUID
 
 # Third Party
 from pydantic import UUID4
@@ -8,7 +9,7 @@ from pydantic import ConfigDict
 
 
 class BaseModel(PyBaseModel):
-    model_config = ConfigDict(str_strip_whitespace=True)
+    model_config = ConfigDict(str_strip_whitespace=True, json_encoders={UUID: lambda x: x.hex})
 
 
 class SchemaBase(BaseModel):
