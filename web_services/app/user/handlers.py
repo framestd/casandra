@@ -1,3 +1,6 @@
+# Standard Library
+from typing import Annotated, cast
+
 # Third Party
 from fastapi import Depends
 from pydantic import UUID4
@@ -20,9 +23,9 @@ from .router import router
     response_model_exclude_none=True,
     responses={422: responses.get("o422")},
 )
-def find_user_by_username(username: str, db: Session = Depends(get_db)):
+def find_user_by_username(username: str, db: Annotated[Session, Depends(get_db)]):
     user = get_user_by_username(session=db, username=username)
-    response = StandardResponse[User](data=user)  # type: ignore
+    response = StandardResponse[User](data=cast(User, user))
 
     return response
 
@@ -33,8 +36,8 @@ def find_user_by_username(username: str, db: Session = Depends(get_db)):
     response_model_exclude_none=True,
     responses={422: responses.get("o422")},
 )
-def find_user_by_id(id: UUID4, db: Session = Depends(get_db)):
+def find_user_by_id(id: UUID4, db: Annotated[Session, Depends(get_db)]):
     user = get_user_by_id(session=db, id=id)
-    response = StandardResponse[User](data=user)  # type: ignore
+    response = StandardResponse[User](data=cast(User, user))
 
     return response
