@@ -60,10 +60,10 @@ def tok_payload(
     return payload
 
 
-def describe_field(model: type[ModelT], example: str = "(e.g, id:1754)") -> str:
+def describe_field(model: type[ModelT], example: str = "(e.g, id:asc)") -> str:
     columns = model.__fields__.keys()
     return (", ".join(columns) + " " + example).strip()
 
 
 def split_field(sort: str, delimiter: str = ","):
-    return filter(lambda v: bool(v), sort.split(delimiter))
+    return list(filter(lambda v: bool(v), sort.split(delimiter)))
