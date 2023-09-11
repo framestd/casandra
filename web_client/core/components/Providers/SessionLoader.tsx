@@ -34,7 +34,7 @@ export const SessionLoader = (props: SessionLoaderProps) => {
     }
 
     updateConfig(actions.createHasActiveSessionUpdateAction(true));
-    updateConfig(actions.createUserAccountUpdateAction(data));
+    updateConfig(actions.createUserAccountUpdateAction(data.data));
     updateConfig(actions.createSessionLoaderStateUpdateAction('loaded'));
   }, [data, isLoading, isSuccess, updateConfig]);
 

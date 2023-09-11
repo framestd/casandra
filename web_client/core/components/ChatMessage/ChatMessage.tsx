@@ -6,8 +6,7 @@ import { Typography } from '../Typography';
 
 export interface ChatMessageProps extends StackProps {
   message: ReactNode;
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  role: 'user' | 'assistant' | (string & {});
+  role: string;
 }
 
 export const ChatMesssage = ({ message, role, ...rest }: ChatMessageProps) => {

@@ -1,4 +1,4 @@
-import { Account } from '@/client/api';
+import { StandardResponseAccount } from '@/client/api';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { produce } from 'immer';
@@ -9,7 +9,7 @@ import { createAccountService } from './create.service';
 
 import { BaseQueryServiceOptions } from '../types';
 
-export interface IdentifyUserAccountService<S> extends BaseQueryServiceOptions<Account, unknown, S> {}
+export interface IdentifyUserAccountService<S> extends BaseQueryServiceOptions<StandardResponseAccount, unknown, S> {}
 
 export enum AccountAPIStaticCacheKeys {
   SESSION_USER = 'session_user',

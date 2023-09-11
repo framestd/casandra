@@ -1,10 +1,10 @@
 import { chatClient } from './client';
-import { MessageCreateConcrete } from './dto';
+import { ChatMessageCreateConcrete } from './dto';
 
 import { api } from '../base';
 
-export async function createMessageService(message: MessageCreateConcrete) {
-  const postChatMessage = await chatClient.createMessageChatsMessagePost(message);
+export async function createMessageService(message: ChatMessageCreateConcrete) {
+  const postChatMessage = await chatClient.publishMessageChatsMessagePost(message);
 
   const response = await postChatMessage(api);
 

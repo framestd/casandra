@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, Flex, VStack } from '@/chakra-ui/react';
+import { ChatMessage, ChatMessageRoleEnum } from '@/client';
 
 import { ChatBox } from '@/core/components/ChatBox';
 import { ChatMesssage } from '@/core/components/ChatMessage';
@@ -9,19 +10,13 @@ import { FlowBalls } from '@/core/components/Loader';
 import { ConfigContext, PrivateRoute } from '@/core/components/Providers';
 import { ChatLayout } from '@/core/composition/ChatLayout';
 import { useSendMessage } from '@/core/services';
-import { fullname } from '@/core/utils';
+import { APP_NAME, fullname } from '@/core/utils';
 
 import { useContext, useEffect, useState } from 'react';
 
-export interface Conversation {
-  role: 'assistant' | 'user';
-  message: string;
-  responsed?: boolean;
-}
-
 const Chat = () => {
   const [message, setMessage] = useState('');
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [conversations, setConversations] = useState<Partial<ChatMessage>[]>([]);
 
   const { config } = useContext(ConfigContext);
   const user = config.session.user_account?.user;
@@ -57,19 +52,19 @@ const Chat = () => {
 
     const newConversations = conversations.slice();
 
-    newConversations.push({ role: 'user', message: outbound_message, responsed: false });
+    newConversations.push({ role: ChatMessageRoleEnum.HUMAN, body: outbound_message });
 
     setConversations(newConversations);
     setMessage('');
 
-    const response = await chatMessageHandler.mutateAsync({ message_body: outbound_message });
+    const response = await chatMessageHandler.mutateAsync({ body: outbound_message });
 
-    const choices = response.data.data.response.choices;
+    const publishedMessage = response.data.data;
 
     const newConversationsWithResponse = newConversations.slice(0, newConversations.length - 1);
 
-    newConversationsWithResponse.push({ ...newConversations.at(-1)!, responsed: true });
-    newConversationsWithResponse.push({ role: 'assistant', message: choices.at(0)!.message.content });
+    newConversationsWithResponse.push(publishedMessage);
+    // newConversationsWithResponse.push({ role: 'assistant', message: choices.at(0)!.message.content });
 
     setConversations(newConversationsWithResponse);
   };
@@ -80,15 +75,13 @@ const Chat = () => {
         <Flex justifyContent="center" height="full">
           <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column">
             <VStack width="full" height="full" alignItems="flex-start" py={4} fontSize="md" overflow="auto">
-              {conversations.map((c, i) => {
-                const role = c.role === 'assistant' ? c.role : user ? fullname(user) : c.role;
+              {(conversations as ChatMessage[]).map((c, i) => {
+                const role = c.role === ChatMessageRoleEnum.ROBOT ? APP_NAME : user ? fullname(user) : c.role;
 
-                return <ChatMesssage key={i} message={c.message} role={role} color="white" />;
+                return <ChatMesssage key={i} message={c.body} role={role} color="white" />;
               })}
 
-              {chatMessageHandler.isLoading && (
-                <ChatMesssage message={<FlowBalls />} role={'assistant'} color="white" />
-              )}
+              {chatMessageHandler.isLoading && <ChatMesssage message={<FlowBalls />} role={APP_NAME} color="white" />}
             </VStack>
 
             <Box px={3} width="full">
