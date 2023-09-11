@@ -108,7 +108,7 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
         account = get_account_by_email(session, email=identifier)
     except MissingResourceException as exc:  # Modify exception
         # debug log:
-        logger.debug(exc.message, exc_info=True)
+        logger.debug(exc.message)
 
         exception = MissingResourceException(
             "You don not have an account", headers=exc.headers  # type: ignore
