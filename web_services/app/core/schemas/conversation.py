@@ -1,5 +1,5 @@
 # Standard Library
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 # Third Party
 from pydantic import UUID4, Field
@@ -21,11 +21,13 @@ class ConversationBase(BaseModel):
 
 class ConversationFilter(BaseModel):
     """Filters available for conversation endpoint"""
-    subject: str | None = Field(None)
+
+    subject: Annotated[str | None, Field(None, description="Filter by the conversation subject")]
 
 
 class ConversationFilterExtra(ConversationFilter):
     """Extra, reserved, filters available for conversation endpoint"""
+
     started_by_id: UUID4
 
 
