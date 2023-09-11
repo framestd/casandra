@@ -2,12 +2,13 @@
 from typing import Annotated, cast
 
 # Third Party
-from fastapi import Depends, Query
+from fastapi import Depends
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 
 # First Party
 from app.core.deps import ServiceContext, get_db, get_service_context
+from app.core.deps import preprocess_sort_param
 from app.core.logging.logger import get_app_logger
 from app.core.schemas.conversation import Conversation, ConversationFilter
 from app.core.schemas.pagination import PageInfo, PageOptions
@@ -15,7 +16,6 @@ from app.core.schemas.response import ResponseMetadata, StandardPaginatedRespons
 from app.core.schemas.response import StandardResponse
 from app.core.services.conversation import get_conversation_by_id, get_conversations
 from app.core.specs.additional_responses import responses
-from app.core.utils import describe_field
 
 # Local Folder
 from .router import router
@@ -56,7 +56,7 @@ def read_conversation_by_id(
 )
 def read_conversations(
     *,
-    sort: Annotated[str, Query(description=describe_field(Conversation))] = "",
+    sort: Annotated[list[str], Depends(preprocess_sort_param)],
     filter: Annotated[ConversationFilter, Depends()],
     page: Annotated[PageOptions, Depends()],
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
@@ -66,7 +66,7 @@ def read_conversations(
         session=db,
         ctx=ctx,
         filter=filter,
-        sorts=sort.split(","),
+        sorts=sort,
         page=page,
     )
 

@@ -2,7 +2,7 @@
 from typing import Annotated
 
 # Third Party
-from fastapi import Cookie, Depends, WebSocketException, status
+from fastapi import Cookie, Depends, Query, WebSocketException, status
 from sqlalchemy.orm import Session
 
 # First Party
@@ -10,8 +10,10 @@ from app.core.authentication.oauth2 import oauth2_scheme
 from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
 from app.core.models.account import Account
+from app.core.schemas.conversation import Conversation
 from app.core.services.account import get_account_by_token
 from app.core.settings import settings
+from app.core.utils import describe_field, split_field
 
 # Local Folder
 from .database.engine import SessionLocal
@@ -87,13 +89,15 @@ def get_current_account(
     return account
 
 
-def get_service_context(
-    current_account: Annotated[Account, Depends(get_current_account)]
-):
+def get_service_context(current_account: Annotated[Account, Depends(get_current_account)]):
     return ServiceContext(current_account)
 
 
-def get_ws_service_context(
-    current_account: Annotated[Account, Depends(get_ws_current_account)]
-):
+def get_ws_service_context(current_account: Annotated[Account, Depends(get_ws_current_account)]):
     return ServiceContext(current_account)
+
+
+def preprocess_sort_param(
+    sort: Annotated[str, Query(description=describe_field(Conversation))] = ""
+):
+    return split_field(sort, delimiter=",")
