@@ -1,3 +1,4 @@
+import { ErrorAttributes, ErrorCode } from '@/client';
 import {
   InfiniteData,
   InfiniteQueryObserverOptions,
@@ -8,25 +9,10 @@ import { AxiosError, AxiosResponse } from 'axios';
 
 type Require<T, K extends keyof T> = { [P in K]-?: T[P] } & Pick<T, Exclude<keyof T, K>>;
 
-export enum ErrorCodeEnum {
-  // APP
-  CHALLENGE_FAILED = 'CHALLENGE_FAILED',
-  MISSING_RESOURCE = 'MISSING_RESOURCE',
-
-  // HTTP
-  CONFLICT = 'CONFLICT',
-  FORBIDDEN_REQUEST = 'FORBIDDEN_REQUEST',
-  INVALID_REQUEST = 'INVALID_REQUEST',
-  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
-  UNAUTHORIZED = 'UNAUTHORIZED',
-  UNKNOWN = 'UNKNOWN',
-  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
-}
-
 export interface ErrorPayload {
   message: string;
   success: false;
-  error: { code: ErrorCodeEnum; [x: string]: any };
+  error: { code: ErrorCode; errors: ErrorAttributes[] };
 }
 
 export type WithId<T> = T & { id: string };

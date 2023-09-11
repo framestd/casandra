@@ -34,53 +34,53 @@ import type { RequestArgs } from './base';
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 
 /**
- *
+ * Account object representation with extra attributes to     foundational attributes
  * @export
  * @interface Account
  */
 export interface Account {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  id: any;
+  id: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  created_at: any;
+  created_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  updated_at: any;
+  updated_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  deleted_at: any | null;
+  deleted_at: string | null;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  email: any;
+  email: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  active_at: any;
+  active_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Account
    */
-  verified_at: any | null;
+  verified_at: string | null;
   /**
    *
    * @type {User}
@@ -89,23 +89,23 @@ export interface Account {
   user: User | null;
 }
 /**
- *
+ * Attributes necessary for creating an Account object
  * @export
  * @interface AccountCreate
  */
 export interface AccountCreate {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountCreate
    */
-  email: any;
+  email: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountCreate
    */
-  password: any;
+  password: string;
   /**
    *
    * @type {UserCreate}
@@ -121,65 +121,65 @@ export interface AccountCreate {
 export interface ApplicationInfo {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ApplicationInfo
    */
-  title: any;
+  title: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ApplicationInfo
    */
-  version: any;
+  version: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ApplicationInfo
    */
-  description: any;
+  description: string;
 }
 /**
- *
+ * ChatMessage outbound attributes
  * @export
  * @interface ChatMessage
  */
 export interface ChatMessage {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  id: any;
+  id: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  created_at: any;
+  created_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  updated_at: any;
+  updated_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  deleted_at: any | null;
+  deleted_at: string | null;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  body: any;
+  body: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  conversation_id: any;
+  conversation_id: string;
   /**
    *
    * @type {Conversation}
@@ -194,85 +194,90 @@ export interface ChatMessage {
   role: ChatMessageRoleEnum;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  response_from_id: any | null;
+  response_from_id: string | null;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessage
    */
-  response_to_id: any | null;
+  response_to_id: string | null;
 }
 
 /**
- *
+ * Attributes necessary for creating a ChatMessage object
  * @export
  * @interface ChatMessageCreate
  */
 export interface ChatMessageCreate {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessageCreate
    */
-  body: any;
+  body: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatMessageCreate
    */
-  conversation_id?: any | null;
+  conversation_id?: string | null;
 }
 /**
  *
  * @export
- * @interface ChatMessageRoleEnum
+ * @enum {string}
  */
-export interface ChatMessageRoleEnum {}
+
+export enum ChatMessageRoleEnum {
+  HUMAN = 'human',
+  ROBOT = 'robot',
+}
+
 /**
- *
+ * Conversation outbound attributes
  * @export
  * @interface Conversation
  */
 export interface Conversation {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Conversation
    */
-  id: any;
+  id: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Conversation
    */
-  created_at: any;
+  created_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Conversation
    */
-  updated_at: any;
+  updated_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Conversation
    */
-  deleted_at: any | null;
+  deleted_at: string | null;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Conversation
    */
-  subject: any;
+  subject: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Conversation
    */
-  started_by_id: any;
+  started_by_id: string;
   /**
    *
    * @type {User}
@@ -288,22 +293,22 @@ export interface Conversation {
 export interface ErrorAttributes {
   /**
    *
-   * @type {any}
+   * @type {object}
    * @memberof ErrorAttributes
    */
-  context: any | null;
+  context: object | null;
   /**
    *
-   * @type {any}
+   * @type {Array<PathInner>}
    * @memberof ErrorAttributes
    */
-  path: any;
+  path: Array<PathInner>;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ErrorAttributes
    */
-  message: any;
+  message: string;
   /**
    *
    * @type {any}
@@ -314,9 +319,21 @@ export interface ErrorAttributes {
 /**
  *
  * @export
- * @interface ErrorCode
+ * @enum {string}
  */
-export interface ErrorCode {}
+
+export enum ErrorCode {
+  CHALLENGE_FAILED = 'CHALLENGE_FAILED',
+  MISSING_RESOURCE = 'MISSING_RESOURCE',
+  CONFLICT = 'CONFLICT',
+  FORBIDDEN_REQUEST = 'FORBIDDEN_REQUEST',
+  INVALID_REQUEST = 'INVALID_REQUEST',
+  SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  UNKNOWN = 'UNKNOWN',
+  UNPROCESSABLE_ENTITY = 'UNPROCESSABLE_ENTITY',
+}
+
 /**
  *
  * @export
@@ -325,22 +342,16 @@ export interface ErrorCode {}
 export interface ErrorResponseConflictException {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ErrorResponseConflictException
    */
-  data?: any;
+  message?: string;
   /**
    *
-   * @type {any}
+   * @type {boolean}
    * @memberof ErrorResponseConflictException
    */
-  message?: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseConflictException
-   */
-  success?: any;
+  success?: boolean;
   /**
    *
    * @type {ErrorSpec}
@@ -356,57 +367,20 @@ export interface ErrorResponseConflictException {
 export interface ErrorResponseForbiddenRequestException {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ErrorResponseForbiddenRequestException
    */
-  data?: any;
+  message?: string;
   /**
    *
-   * @type {any}
+   * @type {boolean}
    * @memberof ErrorResponseForbiddenRequestException
    */
-  message?: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseForbiddenRequestException
-   */
-  success?: any;
+  success?: boolean;
   /**
    *
    * @type {ErrorSpec}
    * @memberof ErrorResponseForbiddenRequestException
-   */
-  error: ErrorSpec;
-}
-/**
- *
- * @export
- * @interface ErrorResponseServiceUnavailableException
- */
-export interface ErrorResponseServiceUnavailableException {
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseServiceUnavailableException
-   */
-  data?: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseServiceUnavailableException
-   */
-  message?: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseServiceUnavailableException
-   */
-  success?: any;
-  /**
-   *
-   * @type {ErrorSpec}
-   * @memberof ErrorResponseServiceUnavailableException
    */
   error: ErrorSpec;
 }
@@ -418,22 +392,16 @@ export interface ErrorResponseServiceUnavailableException {
 export interface ErrorResponseUnauthorizedException {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ErrorResponseUnauthorizedException
    */
-  data?: any;
+  message?: string;
   /**
    *
-   * @type {any}
+   * @type {boolean}
    * @memberof ErrorResponseUnauthorizedException
    */
-  message?: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseUnauthorizedException
-   */
-  success?: any;
+  success?: boolean;
   /**
    *
    * @type {ErrorSpec}
@@ -449,22 +417,16 @@ export interface ErrorResponseUnauthorizedException {
 export interface ErrorResponseUnprocessableEntityException {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ErrorResponseUnprocessableEntityException
    */
-  data?: any;
+  message?: string;
   /**
    *
-   * @type {any}
+   * @type {boolean}
    * @memberof ErrorResponseUnprocessableEntityException
    */
-  message?: any;
-  /**
-   *
-   * @type {any}
-   * @memberof ErrorResponseUnprocessableEntityException
-   */
-  success?: any;
+  success?: boolean;
   /**
    *
    * @type {ErrorSpec}
@@ -486,12 +448,99 @@ export interface ErrorSpec {
   code: ErrorCode;
   /**
    *
-   * @type {any}
+   * @type {Array<ErrorAttributes>}
    * @memberof ErrorSpec
    */
-  errors: any;
+  errors: Array<ErrorAttributes>;
 }
 
+/**
+ *
+ * @export
+ * @interface PageCursor
+ */
+export interface PageCursor {}
+/**
+ *
+ * @export
+ * @interface PageInfo
+ */
+export interface PageInfo {
+  /**
+   *
+   * @type {string}
+   * @memberof PageInfo
+   */
+  top_cursor: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof PageInfo
+   */
+  bottom_cursor: string | null;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PageInfo
+   */
+  has_next: boolean;
+  /**
+   *
+   * @type {boolean}
+   * @memberof PageInfo
+   */
+  has_prev: boolean;
+}
+/**
+ *
+ * @export
+ * @interface PathInner
+ */
+export interface PathInner {}
+/**
+ *
+ * @export
+ * @interface ResponseMetadata
+ */
+export interface ResponseMetadata {
+  /**
+   *
+   * @type {number}
+   * @memberof ResponseMetadata
+   */
+  total_objects: number;
+  /**
+   *
+   * @type {PageInfo}
+   * @memberof ResponseMetadata
+   */
+  page_info: PageInfo;
+}
+/**
+ *
+ * @export
+ * @interface StandardPaginatedResponseConversation
+ */
+export interface StandardPaginatedResponseConversation {
+  /**
+   *
+   * @type {Array<Conversation>}
+   * @memberof StandardPaginatedResponseConversation
+   */
+  data: Array<Conversation>;
+  /**
+   *
+   * @type {ResponseMetadata}
+   * @memberof StandardPaginatedResponseConversation
+   */
+  metadata: ResponseMetadata;
+  /**
+   *
+   * @type {string}
+   * @memberof StandardPaginatedResponseConversation
+   */
+  typename: string;
+}
 /**
  *
  * @export
@@ -506,10 +555,10 @@ export interface StandardResponseAccount {
   data: Account;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof StandardResponseAccount
    */
-  typename: any;
+  typename: string;
 }
 /**
  *
@@ -525,10 +574,29 @@ export interface StandardResponseChatMessage {
   data: ChatMessage;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof StandardResponseChatMessage
    */
-  typename: any;
+  typename: string;
+}
+/**
+ *
+ * @export
+ * @interface StandardResponseConversation
+ */
+export interface StandardResponseConversation {
+  /**
+   *
+   * @type {Conversation}
+   * @memberof StandardResponseConversation
+   */
+  data: Conversation;
+  /**
+   *
+   * @type {string}
+   * @memberof StandardResponseConversation
+   */
+  typename: string;
 }
 /**
  *
@@ -544,10 +612,10 @@ export interface StandardResponseUser {
   data: User;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof StandardResponseUser
    */
-  typename: any;
+  typename: string;
 }
 /**
  *
@@ -557,164 +625,170 @@ export interface StandardResponseUser {
 export interface StatusResponseAccount {
   /**
    *
+   * @type {string}
+   * @memberof StatusResponseAccount
+   */
+  message: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StatusResponseAccount
+   */
+  success: boolean;
+  /**
+   *
    * @type {Account}
    * @memberof StatusResponseAccount
    */
   data: Account;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof StatusResponseAccount
    */
-  message: any;
-  /**
-   *
-   * @type {any}
-   * @memberof StatusResponseAccount
-   */
-  success: any;
-  /**
-   *
-   * @type {any}
-   * @memberof StatusResponseAccount
-   */
-  typename: any;
+  typename: string;
 }
 /**
  *
  * @export
- * @interface StatusResponseListChatMessage
+ * @interface StatusResponseChatMessage
  */
-export interface StatusResponseListChatMessage {
+export interface StatusResponseChatMessage {
   /**
    *
-   * @type {any}
-   * @memberof StatusResponseListChatMessage
+   * @type {string}
+   * @memberof StatusResponseChatMessage
    */
-  data: any;
+  message: string;
   /**
    *
-   * @type {any}
-   * @memberof StatusResponseListChatMessage
+   * @type {boolean}
+   * @memberof StatusResponseChatMessage
    */
-  message: any;
+  success: boolean;
   /**
    *
-   * @type {any}
-   * @memberof StatusResponseListChatMessage
+   * @type {ChatMessage}
+   * @memberof StatusResponseChatMessage
    */
-  success: any;
+  data: ChatMessage;
   /**
    *
-   * @type {any}
-   * @memberof StatusResponseListChatMessage
+   * @type {string}
+   * @memberof StatusResponseChatMessage
    */
-  typename: any;
+  typename: string;
 }
 /**
  *
+ * @export
+ * @interface Subject
+ */
+export interface Subject {}
+/**
+ * Token outbound attributes
  * @export
  * @interface Token
  */
 export interface Token {
   /**
    * This class serves as a convenient representation     of a JWT RS256 Token, and also a valid Pydantic model     for representing this type of JWT token.      The signing algorithm used is an RS256 algorithm with     asymmetric key-pairs for signing and verifying, or encoding     and decoding.      It\'s safe to pass this object as a FastAPI or Pydantic     response model. It will be correctly represented as the     token string it wraps around, since it implements a     Pydantic model serializer.      To encode or sign a token from a regular Python data, dict,     you do not need to create this class object directly—the use     of `JWTRS256Token.from_data` covers this case.      The class object itself is used to wrap or represent an     already signed token string and can be used for decoding     the wrapped token.
-   * @type {any}
+   * @type {object}
    * @memberof Token
    */
-  access_token: any;
+  access_token: object;
   /**
    * This class serves as a convenient representation     of a JWT RS256 Token, and also a valid Pydantic model     for representing this type of JWT token.      The signing algorithm used is an RS256 algorithm with     asymmetric key-pairs for signing and verifying, or encoding     and decoding.      It\'s safe to pass this object as a FastAPI or Pydantic     response model. It will be correctly represented as the     token string it wraps around, since it implements a     Pydantic model serializer.      To encode or sign a token from a regular Python data, dict,     you do not need to create this class object directly—the use     of `JWTRS256Token.from_data` covers this case.      The class object itself is used to wrap or represent an     already signed token string and can be used for decoding     the wrapped token.
-   * @type {any}
+   * @type {object}
    * @memberof Token
    */
-  refresh_token: any;
+  refresh_token: object;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof Token
    */
-  token_type: any;
+  token_type: string;
 }
 /**
- *
+ * User outbound attributes
  * @export
  * @interface User
  */
 export interface User {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  id: any;
+  id: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  created_at: any;
+  created_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  updated_at: any;
+  updated_at: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  deleted_at: any | null;
+  deleted_at: string | null;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  first_name: any;
+  first_name: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  last_name: any;
+  last_name: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  username: any;
+  username: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof User
    */
-  account_id: any;
+  account_id: string;
 }
 /**
- *
+ * Attributes necessary for creating a User object
  * @export
  * @interface UserCreate
  */
 export interface UserCreate {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof UserCreate
    */
-  first_name: any;
+  first_name: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof UserCreate
    */
-  last_name: any;
+  last_name: string;
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof UserCreate
    */
-  username: any;
+  username: string;
 }
 
 /**
@@ -724,26 +798,26 @@ export interface UserCreate {
 export const AccountApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     *
+     * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
      * @summary Authenticate User Account
-     * @param {any} username
-     * @param {any | null} [grantType]
-     * @param {any} [password]
-     * @param {any} [refreshToken]
-     * @param {any} [scope]
-     * @param {any | null} [clientId]
-     * @param {any | null} [clientSecret]
+     * @param {string} username
+     * @param {string | null} [grantType]
+     * @param {string} [password]
+     * @param {string} [refreshToken]
+     * @param {string} [scope]
+     * @param {string | null} [clientId]
+     * @param {string | null} [clientSecret]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     authenticateUserAccountAccountsAuthenticatePost: async (
-      username: any,
-      grantType?: any | null,
-      password?: any,
-      refreshToken?: any,
-      scope?: any,
-      clientId?: any | null,
-      clientSecret?: any | null,
+      username: string,
+      grantType?: string | null,
+      password?: string,
+      refreshToken?: string,
+      scope?: string,
+      clientId?: string | null,
+      clientSecret?: string | null,
       options: AxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       // verify required parameter 'username' is not null or undefined
@@ -802,7 +876,7 @@ export const AccountApiAxiosParamCreator = function (configuration?: Configurati
       };
     },
     /**
-     *
+     * Create a user account
      * @summary Create User Account
      * @param {AccountCreate} accountCreate
      * @param {*} [options] Override http request option.
@@ -881,26 +955,26 @@ export const AccountApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = AccountApiAxiosParamCreator(configuration);
   return {
     /**
-     *
+     * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
      * @summary Authenticate User Account
-     * @param {any} username
-     * @param {any | null} [grantType]
-     * @param {any} [password]
-     * @param {any} [refreshToken]
-     * @param {any} [scope]
-     * @param {any | null} [clientId]
-     * @param {any | null} [clientSecret]
+     * @param {string} username
+     * @param {string | null} [grantType]
+     * @param {string} [password]
+     * @param {string} [refreshToken]
+     * @param {string} [scope]
+     * @param {string | null} [clientId]
+     * @param {string | null} [clientSecret]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async authenticateUserAccountAccountsAuthenticatePost(
-      username: any,
-      grantType?: any | null,
-      password?: any,
-      refreshToken?: any,
-      scope?: any,
-      clientId?: any | null,
-      clientSecret?: any | null,
+      username: string,
+      grantType?: string | null,
+      password?: string,
+      refreshToken?: string,
+      scope?: string,
+      clientId?: string | null,
+      clientSecret?: string | null,
       options?: AxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Token>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.authenticateUserAccountAccountsAuthenticatePost(
@@ -916,7 +990,7 @@ export const AccountApiFp = function (configuration?: Configuration) {
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
-     *
+     * Create a user account
      * @summary Create User Account
      * @param {AccountCreate} accountCreate
      * @param {*} [options] Override http request option.
@@ -955,7 +1029,7 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
   const localVarFp = AccountApiFp(configuration);
   return {
     /**
-     *
+     * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
      * @summary Authenticate User Account
      * @param {AccountApiAuthenticateUserAccountAccountsAuthenticatePostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -979,7 +1053,7 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
         .then((request) => request(axios, basePath));
     },
     /**
-     *
+     * Create a user account
      * @summary Create User Account
      * @param {AccountApiCreateUserAccountAccountsCreatePostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1013,52 +1087,52 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
 export interface AccountApiAuthenticateUserAccountAccountsAuthenticatePostRequest {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly username: any;
+  readonly username: string;
 
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly grantType?: any | null;
+  readonly grantType?: string | null;
 
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly password?: any;
+  readonly password?: string;
 
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly refreshToken?: any;
+  readonly refreshToken?: string;
 
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly scope?: any;
+  readonly scope?: string;
 
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly clientId?: any | null;
+  readonly clientId?: string | null;
 
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof AccountApiAuthenticateUserAccountAccountsAuthenticatePost
    */
-  readonly clientSecret?: any | null;
+  readonly clientSecret?: string | null;
 }
 
 /**
@@ -1083,7 +1157,7 @@ export interface AccountApiCreateUserAccountAccountsCreatePostRequest {
  */
 export class AccountApi extends BaseAPI {
   /**
-   *
+   * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
    * @summary Authenticate User Account
    * @param {AccountApiAuthenticateUserAccountAccountsAuthenticatePostRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1109,7 +1183,7 @@ export class AccountApi extends BaseAPI {
   }
 
   /**
-   *
+   * Create a user account
    * @summary Create User Account
    * @param {AccountApiCreateUserAccountAccountsCreatePostRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1146,18 +1220,18 @@ export class AccountApi extends BaseAPI {
 export const ChatApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * An endpoint to post messages and expect a response. The messages are reconstructed into a valuable prompt and sent over to OpenAI\'s API which most likely responds with a message.  :param message: The message object containing the message body to send  :raises ServiceUnavailableException:     when it fails to establish a successful communication with third party API
-     * @summary Create Message
+     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+     * @summary Publish Message
      * @param {ChatMessageCreate} chatMessageCreate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createMessageChatsMessagePost: async (
+    publishMessageChatsMessagePost: async (
       chatMessageCreate: ChatMessageCreate,
       options: AxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       // verify required parameter 'chatMessageCreate' is not null or undefined
-      assertParamExists('createMessageChatsMessagePost', 'chatMessageCreate', chatMessageCreate);
+      assertParamExists('publishMessageChatsMessagePost', 'chatMessageCreate', chatMessageCreate);
       const localVarPath = `/chats/message`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1187,13 +1261,16 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
       };
     },
     /**
-     *
+     * Read a message by a given id.
      * @summary Read Chat Message By Id
-     * @param {any} id
+     * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    readChatMessageByIdChatsMessageIdGet: async (id: any, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+    readChatMessageByIdChatsMessageIdGet: async (
+      id: string,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
       // verify required parameter 'id' is not null or undefined
       assertParamExists('readChatMessageByIdChatsMessageIdGet', 'id', id);
       const localVarPath = `/chats/message/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
@@ -1232,31 +1309,31 @@ export const ChatApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = ChatApiAxiosParamCreator(configuration);
   return {
     /**
-     * An endpoint to post messages and expect a response. The messages are reconstructed into a valuable prompt and sent over to OpenAI\'s API which most likely responds with a message.  :param message: The message object containing the message body to send  :raises ServiceUnavailableException:     when it fails to establish a successful communication with third party API
-     * @summary Create Message
+     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+     * @summary Publish Message
      * @param {ChatMessageCreate} chatMessageCreate
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    async createMessageChatsMessagePost(
+    async publishMessageChatsMessagePost(
       chatMessageCreate: ChatMessageCreate,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseListChatMessage>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.createMessageChatsMessagePost(
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseChatMessage>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.publishMessageChatsMessagePost(
         chatMessageCreate,
         options,
       );
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
-     *
+     * Read a message by a given id.
      * @summary Read Chat Message By Id
-     * @param {any} id
+     * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async readChatMessageByIdChatsMessageIdGet(
-      id: any,
+      id: string,
       options?: AxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseChatMessage>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessageByIdChatsMessageIdGet(id, options);
@@ -1273,22 +1350,22 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
   const localVarFp = ChatApiFp(configuration);
   return {
     /**
-     * An endpoint to post messages and expect a response. The messages are reconstructed into a valuable prompt and sent over to OpenAI\'s API which most likely responds with a message.  :param message: The message object containing the message body to send  :raises ServiceUnavailableException:     when it fails to establish a successful communication with third party API
-     * @summary Create Message
-     * @param {ChatApiCreateMessageChatsMessagePostRequest} requestParameters Request parameters.
+     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+     * @summary Publish Message
+     * @param {ChatApiPublishMessageChatsMessagePostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    createMessageChatsMessagePost(
-      requestParameters: ChatApiCreateMessageChatsMessagePostRequest,
+    publishMessageChatsMessagePost(
+      requestParameters: ChatApiPublishMessageChatsMessagePostRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<StatusResponseListChatMessage> {
+    ): AxiosPromise<StatusResponseChatMessage> {
       return localVarFp
-        .createMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
+        .publishMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
         .then((request) => request(axios, basePath));
     },
     /**
-     *
+     * Read a message by a given id.
      * @summary Read Chat Message By Id
      * @param {ChatApiReadChatMessageByIdChatsMessageIdGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1306,15 +1383,15 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
 };
 
 /**
- * Request parameters for createMessageChatsMessagePost operation in ChatApi.
+ * Request parameters for publishMessageChatsMessagePost operation in ChatApi.
  * @export
- * @interface ChatApiCreateMessageChatsMessagePostRequest
+ * @interface ChatApiPublishMessageChatsMessagePostRequest
  */
-export interface ChatApiCreateMessageChatsMessagePostRequest {
+export interface ChatApiPublishMessageChatsMessagePostRequest {
   /**
    *
    * @type {ChatMessageCreate}
-   * @memberof ChatApiCreateMessageChatsMessagePost
+   * @memberof ChatApiPublishMessageChatsMessagePost
    */
   readonly chatMessageCreate: ChatMessageCreate;
 }
@@ -1327,10 +1404,10 @@ export interface ChatApiCreateMessageChatsMessagePostRequest {
 export interface ChatApiReadChatMessageByIdChatsMessageIdGetRequest {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof ChatApiReadChatMessageByIdChatsMessageIdGet
    */
-  readonly id: any;
+  readonly id: string;
 }
 
 /**
@@ -1341,24 +1418,24 @@ export interface ChatApiReadChatMessageByIdChatsMessageIdGetRequest {
  */
 export class ChatApi extends BaseAPI {
   /**
-   * An endpoint to post messages and expect a response. The messages are reconstructed into a valuable prompt and sent over to OpenAI\'s API which most likely responds with a message.  :param message: The message object containing the message body to send  :raises ServiceUnavailableException:     when it fails to establish a successful communication with third party API
-   * @summary Create Message
-   * @param {ChatApiCreateMessageChatsMessagePostRequest} requestParameters Request parameters.
+   * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+   * @summary Publish Message
+   * @param {ChatApiPublishMessageChatsMessagePostRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    * @memberof ChatApi
    */
-  public createMessageChatsMessagePost(
-    requestParameters: ChatApiCreateMessageChatsMessagePostRequest,
+  public publishMessageChatsMessagePost(
+    requestParameters: ChatApiPublishMessageChatsMessagePostRequest,
     options?: AxiosRequestConfig,
   ) {
     return ChatApiFp(this.configuration)
-      .createMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
+      .publishMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
       .then((request) => request(this.axios, this.basePath));
   }
 
   /**
-   *
+   * Read a message by a given id.
    * @summary Read Chat Message By Id
    * @param {ChatApiReadChatMessageByIdChatsMessageIdGetRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1371,6 +1448,326 @@ export class ChatApi extends BaseAPI {
   ) {
     return ChatApiFp(this.configuration)
       .readChatMessageByIdChatsMessageIdGet(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
+ * ConversationApi - axios parameter creator
+ * @export
+ */
+export const ConversationApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Read a conversation by a given id.
+     * @summary Read Conversation By Id
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readConversationByIdConversationsIdGet: async (
+      id: string,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('readConversationByIdConversationsIdGet', 'id', id);
+      const localVarPath = `/conversations/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Read Conversations
+     * @param {string} [sort] id, created_at, updated_at, deleted_at, subject, started_by_id, started_by (e.g, id:1754)
+     * @param {Subject | null} [subject]
+     * @param {PageCursor | null} [pageCursor]
+     * @param {number} [pageSize]
+     * @param {boolean} [pageForward]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readConversationsConversationsGet: async (
+      sort?: string,
+      subject?: Subject | null,
+      pageCursor?: PageCursor | null,
+      pageSize?: number,
+      pageForward?: boolean,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/conversations/`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      if (sort !== undefined) {
+        localVarQueryParameter['sort'] = sort;
+      }
+
+      if (subject !== undefined) {
+        localVarQueryParameter['subject'] = subject;
+      }
+
+      if (pageCursor !== undefined) {
+        localVarQueryParameter['page_cursor'] = pageCursor;
+      }
+
+      if (pageSize !== undefined) {
+        localVarQueryParameter['page_size'] = pageSize;
+      }
+
+      if (pageForward !== undefined) {
+        localVarQueryParameter['page_forward'] = pageForward;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * ConversationApi - functional programming interface
+ * @export
+ */
+export const ConversationApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = ConversationApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Read a conversation by a given id.
+     * @summary Read Conversation By Id
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async readConversationByIdConversationsIdGet(
+      id: string,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseConversation>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.readConversationByIdConversationsIdGet(id, options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Read Conversations
+     * @param {string} [sort] id, created_at, updated_at, deleted_at, subject, started_by_id, started_by (e.g, id:1754)
+     * @param {Subject | null} [subject]
+     * @param {PageCursor | null} [pageCursor]
+     * @param {number} [pageSize]
+     * @param {boolean} [pageForward]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async readConversationsConversationsGet(
+      sort?: string,
+      subject?: Subject | null,
+      pageCursor?: PageCursor | null,
+      pageSize?: number,
+      pageForward?: boolean,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardPaginatedResponseConversation>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.readConversationsConversationsGet(
+        sort,
+        subject,
+        pageCursor,
+        pageSize,
+        pageForward,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+  };
+};
+
+/**
+ * ConversationApi - factory interface
+ * @export
+ */
+export const ConversationApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = ConversationApiFp(configuration);
+  return {
+    /**
+     * Read a conversation by a given id.
+     * @summary Read Conversation By Id
+     * @param {ConversationApiReadConversationByIdConversationsIdGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readConversationByIdConversationsIdGet(
+      requestParameters: ConversationApiReadConversationByIdConversationsIdGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseConversation> {
+      return localVarFp
+        .readConversationByIdConversationsIdGet(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Read Conversations
+     * @param {ConversationApiReadConversationsConversationsGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readConversationsConversationsGet(
+      requestParameters: ConversationApiReadConversationsConversationsGetRequest = {},
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardPaginatedResponseConversation> {
+      return localVarFp
+        .readConversationsConversationsGet(
+          requestParameters.sort,
+          requestParameters.subject,
+          requestParameters.pageCursor,
+          requestParameters.pageSize,
+          requestParameters.pageForward,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * Request parameters for readConversationByIdConversationsIdGet operation in ConversationApi.
+ * @export
+ * @interface ConversationApiReadConversationByIdConversationsIdGetRequest
+ */
+export interface ConversationApiReadConversationByIdConversationsIdGetRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationApiReadConversationByIdConversationsIdGet
+   */
+  readonly id: string;
+}
+
+/**
+ * Request parameters for readConversationsConversationsGet operation in ConversationApi.
+ * @export
+ * @interface ConversationApiReadConversationsConversationsGetRequest
+ */
+export interface ConversationApiReadConversationsConversationsGetRequest {
+  /**
+   * id, created_at, updated_at, deleted_at, subject, started_by_id, started_by (e.g, id:1754)
+   * @type {string}
+   * @memberof ConversationApiReadConversationsConversationsGet
+   */
+  readonly sort?: string;
+
+  /**
+   *
+   * @type {Subject}
+   * @memberof ConversationApiReadConversationsConversationsGet
+   */
+  readonly subject?: Subject | null;
+
+  /**
+   *
+   * @type {PageCursor}
+   * @memberof ConversationApiReadConversationsConversationsGet
+   */
+  readonly pageCursor?: PageCursor | null;
+
+  /**
+   *
+   * @type {number}
+   * @memberof ConversationApiReadConversationsConversationsGet
+   */
+  readonly pageSize?: number;
+
+  /**
+   *
+   * @type {boolean}
+   * @memberof ConversationApiReadConversationsConversationsGet
+   */
+  readonly pageForward?: boolean;
+}
+
+/**
+ * ConversationApi - object-oriented interface
+ * @export
+ * @class ConversationApi
+ * @extends {BaseAPI}
+ */
+export class ConversationApi extends BaseAPI {
+  /**
+   * Read a conversation by a given id.
+   * @summary Read Conversation By Id
+   * @param {ConversationApiReadConversationByIdConversationsIdGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConversationApi
+   */
+  public readConversationByIdConversationsIdGet(
+    requestParameters: ConversationApiReadConversationByIdConversationsIdGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConversationApiFp(this.configuration)
+      .readConversationByIdConversationsIdGet(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Read Conversations
+   * @param {ConversationApiReadConversationsConversationsGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConversationApi
+   */
+  public readConversationsConversationsGet(
+    requestParameters: ConversationApiReadConversationsConversationsGetRequest = {},
+    options?: AxiosRequestConfig,
+  ) {
+    return ConversationApiFp(this.configuration)
+      .readConversationsConversationsGet(
+        requestParameters.sort,
+        requestParameters.subject,
+        requestParameters.pageCursor,
+        requestParameters.pageSize,
+        requestParameters.pageForward,
+        options,
+      )
       .then((request) => request(this.axios, this.basePath));
   }
 }
@@ -1483,11 +1880,11 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
     /**
      *
      * @summary Find User By Id
-     * @param {any} id
+     * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    findUserByIdUsersIdGet: async (id: any, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+    findUserByIdUsersIdGet: async (id: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
       // verify required parameter 'id' is not null or undefined
       assertParamExists('findUserByIdUsersIdGet', 'id', id);
       const localVarPath = `/users/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
@@ -1514,12 +1911,12 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
     /**
      *
      * @summary Find User By Username
-     * @param {any} username
+     * @param {string} username
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     findUserByUsernameUsersByUsernameGet: async (
-      username: any,
+      username: string,
       options: AxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       // verify required parameter 'username' is not null or undefined
@@ -1562,12 +1959,12 @@ export const UserApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Find User By Id
-     * @param {any} id
+     * @param {string} id
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async findUserByIdUsersIdGet(
-      id: any,
+      id: string,
       options?: AxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseUser>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.findUserByIdUsersIdGet(id, options);
@@ -1576,12 +1973,12 @@ export const UserApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Find User By Username
-     * @param {any} username
+     * @param {string} username
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async findUserByUsernameUsersByUsernameGet(
-      username: any,
+      username: string,
       options?: AxiosRequestConfig,
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseUser>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.findUserByUsernameUsersByUsernameGet(username, options);
@@ -1638,10 +2035,10 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
 export interface UserApiFindUserByIdUsersIdGetRequest {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof UserApiFindUserByIdUsersIdGet
    */
-  readonly id: any;
+  readonly id: string;
 }
 
 /**
@@ -1652,10 +2049,10 @@ export interface UserApiFindUserByIdUsersIdGetRequest {
 export interface UserApiFindUserByUsernameUsersByUsernameGetRequest {
   /**
    *
-   * @type {any}
+   * @type {string}
    * @memberof UserApiFindUserByUsernameUsersByUsernameGet
    */
-  readonly username: any;
+  readonly username: string;
 }
 
 /**
