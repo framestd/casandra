@@ -56,9 +56,7 @@ def get_user_by_username(session: Session, username: str):
         # info log:
         logger.info(f"User with username {username} does not exist")
 
-        exception = MissingResourceException(
-            f"User with username {username} not found"
-        )
+        exception = MissingResourceException(f"User with username {username} not found")
 
         exception.add_attributes(
             context=None,
