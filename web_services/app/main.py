@@ -12,7 +12,6 @@ from fastapi.responses import JSONResponse
 
 # First Party
 from app.account.handlers import router as account_router
-from app.chat.handlers import router as chat_router
 from app.conversation.handlers import router as conversation_router
 from app.core.broadcaster import broadcast
 from app.core.exceptions.http import AppHTTPException, ErrorCode
@@ -21,6 +20,7 @@ from app.core.logging.logger import get_app_logger
 from app.core.schemas.base import ApplicationInfo
 from app.core.schemas.response import ErrorAttributes, ErrorResponse, ErrorSpec
 from app.core.settings import settings
+from app.message.handlers import router as message_router
 from app.user.handlers import router as user_router
 
 logger = get_app_logger(__name__)
@@ -78,7 +78,7 @@ app.add_middleware(
 
 
 app.include_router(account_router, prefix="/accounts", tags=["Account"])
-app.include_router(chat_router, prefix="/chats", tags=["Chat"])
+app.include_router(message_router, prefix="/messages", tags=["Message"])
 app.include_router(conversation_router, prefix="/conversations", tags=["Conversation"])
 app.include_router(user_router, prefix="/users", tags=["User"])
 
