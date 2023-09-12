@@ -18,7 +18,7 @@ from app.core.intelligence.basic import generate_prompt, generate_response
 from app.core.logging.logger import get_app_logger
 from app.core.models.chat_message import ChatMessage as ChatMessageModel
 from app.core.models.chat_message import ChatMessageRoleEnum
-from app.core.schemas import chat_message as schema
+from app.core.schemas import message as schema
 from app.core.schemas.conversation import ConversationCreate
 from app.core.schemas.openai import ChatCompletionResponseStream
 
@@ -38,7 +38,7 @@ logger = get_app_logger(__name__)
 async def handle_message(
     session: Session,
     ctx: ServiceContext,
-    message: schema.ChatMessageCreate,
+    message: schema.MessageCreate,
 ):
     body = message.body
     conversation_id = message.conversation_id
@@ -57,9 +57,7 @@ async def handle_message(
         # reassign
         conversation_id = conversation.id
     else:
-        conversation = get_conversation_by_id(
-            session=session, ctx=ctx, id=conversation_id
-        )
+        conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
 
     modeled_message = ChatMessageModel(
         body=body,
@@ -72,11 +70,9 @@ async def handle_message(
 
     modeled_message.conversation = conversation
 
-    json_message = schema.ChatMessage.model_validate(modeled_message).model_dump_json()
+    json_message = schema.Message.model_validate(modeled_message).model_dump_json()
 
-    result = await broadcast.publish(
-        f"conversation:{conversation_id}", message=json_message
-    )
+    result = await broadcast.publish(f"conversation:{conversation_id}", message=json_message)
 
     # debug log:
     logger.debug(result)
@@ -94,7 +90,7 @@ async def message_reply_stream(
             evt = cast(Event, event)
             data = cast(dict[str, Any], json.loads(evt.message))
 
-            parsed_message = schema.ChatMessage.model_validate(data)
+            parsed_message = schema.Message.model_validate(data)
 
             conversation = get_conversation_by_id(
                 session=session,
@@ -218,9 +214,7 @@ def get_chat_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         to do so.
     """
 
-    chat_message = (
-        session.query(ChatMessageModel).filter(ChatMessageModel.id == id).one_or_none()
-    )
+    chat_message = session.query(ChatMessageModel).filter(ChatMessageModel.id == id).one_or_none()
 
     if chat_message is None:
         exception = MissingResourceException(f"There's no chat message with id {id}")
