@@ -56,7 +56,7 @@ async def publish_message(
         key=settings.WS_ACCESS_TOKEN_KEY,
         value=str(websocket_access_token),
         expires=(datetime.utcnow() + expiry).astimezone(tz=UTC),
-        path="/chats/message/ws",
+        path="/conversations",
     )
 
     return StatusResponse[Message](
