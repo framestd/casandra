@@ -23,7 +23,6 @@ passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-multipart = "^0.0.6"
 pydantic-settings = "^2.0.3"
 colorlog = "^6.7.0"
-broadcaster = {extras = ["redis"], version = "^0.2.0"}
 websockets = "^11.0.3"
 
 [build-system]
