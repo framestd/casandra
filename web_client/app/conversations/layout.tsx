@@ -12,8 +12,8 @@ export const generateMetadata = async (_: any, parent?: ResolvingMetadata): Prom
     // @ts-expect-error
     title: { template: parentTitle?.template, default: 'Start a conversation' },
     themeColor: [
-      { media: '(prefers-color-scheme: dark)', color: '#12222a' },
-      { media: '(prefers-color-scheme: light)', color: '#12222a' },
+      { media: '(prefers-color-scheme: dark)', color: '#000000' },
+      { media: '(prefers-color-scheme: light)', color: '#ffffff' },
     ],
   };
 };
