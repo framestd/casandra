@@ -15,24 +15,25 @@
 import type { Configuration } from './configuration';
 import type { AxiosPromise, AxiosInstance, AxiosRequestConfig } from 'axios';
 import globalAxios from 'axios';
+
+// @ts-ignore
+import { BASE_PATH, BaseAPI, COLLECTION_FORMATS, RequiredError } from './base';
 // Some imports not used depending on template conditions
 // @ts-ignore
 import {
-  DUMMY_BASE_URL,
   assertParamExists,
+  createRequestFunction,
+  DUMMY_BASE_URL,
+  serializeDataIfNeeded,
   setApiKeyToObject,
   setBasicAuthToObject,
   setBearerAuthToObject,
   setOAuthToObject,
   setSearchParams,
-  serializeDataIfNeeded,
   toPathString,
-  createRequestFunction,
 } from './common';
-import type { RequestArgs } from './base';
-// @ts-ignore
-import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError } from './base';
 
+import type { RequestArgs } from './base';
 /**
  * Account object representation with extra attributes to     foundational attributes
  * @export
@@ -139,92 +140,11 @@ export interface ApplicationInfo {
   description: string;
 }
 /**
- * ChatMessage outbound attributes
+ *
  * @export
- * @interface ChatMessage
+ * @interface Body
  */
-export interface ChatMessage {
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  updated_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  deleted_at: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  body: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  conversation_id: string;
-  /**
-   *
-   * @type {Conversation}
-   * @memberof ChatMessage
-   */
-  conversation: Conversation;
-  /**
-   *
-   * @type {ChatMessageRoleEnum}
-   * @memberof ChatMessage
-   */
-  role: ChatMessageRoleEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  response_from_id: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessage
-   */
-  response_to_id: string | null;
-}
-
-/**
- * Attributes necessary for creating a ChatMessage object
- * @export
- * @interface ChatMessageCreate
- */
-export interface ChatMessageCreate {
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessageCreate
-   */
-  body: string;
-  /**
-   *
-   * @type {string}
-   * @memberof ChatMessageCreate
-   */
-  conversation_id?: string | null;
-}
+export interface Body {}
 /**
  *
  * @export
@@ -274,16 +194,29 @@ export interface Conversation {
   subject: string;
   /**
    *
-   * @type {string}
-   * @memberof Conversation
-   */
-  started_by_id: string;
-  /**
-   *
    * @type {User}
    * @memberof Conversation
    */
   started_by: User;
+  /**
+   *
+   * @type {string}
+   * @memberof Conversation
+   */
+  started_by_id: string;
+}
+/**
+ * Updateable attributes for a Conversation object
+ * @export
+ * @interface ConversationUpdate
+ */
+export interface ConversationUpdate {
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationUpdate
+   */
+  subject: string;
 }
 /**
  *
@@ -455,6 +388,93 @@ export interface ErrorSpec {
 }
 
 /**
+ * ChatMessage outbound attributes
+ * @export
+ * @interface Message
+ */
+export interface Message {
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  deleted_at: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  body: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  conversation_id: string;
+  /**
+   *
+   * @type {Conversation}
+   * @memberof Message
+   */
+  conversation: Conversation;
+  /**
+   *
+   * @type {ChatMessageRoleEnum}
+   * @memberof Message
+   */
+  role: ChatMessageRoleEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  response_from_id: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof Message
+   */
+  response_to_id: string | null;
+}
+
+/**
+ * Attributes necessary for creating a ChatMessage object
+ * @export
+ * @interface MessageCreate
+ */
+export interface MessageCreate {
+  /**
+   *
+   * @type {string}
+   * @memberof MessageCreate
+   */
+  body: string;
+  /**
+   *
+   * @type {string}
+   * @memberof MessageCreate
+   */
+  conversation_id?: string | null;
+}
+/**
  *
  * @export
  * @interface PageCursor
@@ -500,6 +520,12 @@ export interface PathInner {}
 /**
  *
  * @export
+ * @interface ResponseFromId
+ */
+export interface ResponseFromId {}
+/**
+ *
+ * @export
  * @interface ResponseMetadata
  */
 export interface ResponseMetadata {
@@ -516,6 +542,30 @@ export interface ResponseMetadata {
    */
   page_info: PageInfo;
 }
+/**
+ *
+ * @export
+ * @interface ResponseToId
+ */
+export interface ResponseToId {}
+/**
+ *
+ * @export
+ * @interface Role
+ */
+export interface Role {}
+/**
+ * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+ * @export
+ * @interface Sort
+ */
+export interface Sort {}
+/**
+ * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
+ * @export
+ * @interface Sort1
+ */
+export interface Sort1 {}
 /**
  *
  * @export
@@ -544,6 +594,31 @@ export interface StandardPaginatedResponseConversation {
 /**
  *
  * @export
+ * @interface StandardPaginatedResponseMessage
+ */
+export interface StandardPaginatedResponseMessage {
+  /**
+   *
+   * @type {Array<Message>}
+   * @memberof StandardPaginatedResponseMessage
+   */
+  data: Array<Message>;
+  /**
+   *
+   * @type {ResponseMetadata}
+   * @memberof StandardPaginatedResponseMessage
+   */
+  metadata: ResponseMetadata;
+  /**
+   *
+   * @type {string}
+   * @memberof StandardPaginatedResponseMessage
+   */
+  typename: string;
+}
+/**
+ *
+ * @export
  * @interface StandardResponseAccount
  */
 export interface StandardResponseAccount {
@@ -563,25 +638,6 @@ export interface StandardResponseAccount {
 /**
  *
  * @export
- * @interface StandardResponseChatMessage
- */
-export interface StandardResponseChatMessage {
-  /**
-   *
-   * @type {ChatMessage}
-   * @memberof StandardResponseChatMessage
-   */
-  data: ChatMessage;
-  /**
-   *
-   * @type {string}
-   * @memberof StandardResponseChatMessage
-   */
-  typename: string;
-}
-/**
- *
- * @export
  * @interface StandardResponseConversation
  */
 export interface StandardResponseConversation {
@@ -595,6 +651,25 @@ export interface StandardResponseConversation {
    *
    * @type {string}
    * @memberof StandardResponseConversation
+   */
+  typename: string;
+}
+/**
+ *
+ * @export
+ * @interface StandardResponseMessage
+ */
+export interface StandardResponseMessage {
+  /**
+   *
+   * @type {Message}
+   * @memberof StandardResponseMessage
+   */
+  data: Message;
+  /**
+   *
+   * @type {string}
+   * @memberof StandardResponseMessage
    */
   typename: string;
 }
@@ -651,31 +726,31 @@ export interface StatusResponseAccount {
 /**
  *
  * @export
- * @interface StatusResponseChatMessage
+ * @interface StatusResponseMessage
  */
-export interface StatusResponseChatMessage {
+export interface StatusResponseMessage {
   /**
    *
    * @type {string}
-   * @memberof StatusResponseChatMessage
+   * @memberof StatusResponseMessage
    */
   message: string;
   /**
    *
    * @type {boolean}
-   * @memberof StatusResponseChatMessage
+   * @memberof StatusResponseMessage
    */
   success: boolean;
   /**
    *
-   * @type {ChatMessage}
-   * @memberof StatusResponseChatMessage
+   * @type {Message}
+   * @memberof StatusResponseMessage
    */
-  data: ChatMessage;
+  data: Message;
   /**
    *
    * @type {string}
-   * @memberof StatusResponseChatMessage
+   * @memberof StatusResponseMessage
    */
   typename: string;
 }
@@ -1214,245 +1289,6 @@ export class AccountApi extends BaseAPI {
 }
 
 /**
- * ChatApi - axios parameter creator
- * @export
- */
-export const ChatApiAxiosParamCreator = function (configuration?: Configuration) {
-  return {
-    /**
-     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
-     * @summary Publish Message
-     * @param {ChatMessageCreate} chatMessageCreate
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    publishMessageChatsMessagePost: async (
-      chatMessageCreate: ChatMessageCreate,
-      options: AxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'chatMessageCreate' is not null or undefined
-      assertParamExists('publishMessageChatsMessagePost', 'chatMessageCreate', chatMessageCreate);
-      const localVarPath = `/chats/message`;
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      // authentication OAuth2PasswordBearer required
-      // oauth required
-      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
-
-      localVarHeaderParameter['Content-Type'] = 'application/json';
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-      localVarRequestOptions.data = serializeDataIfNeeded(chatMessageCreate, localVarRequestOptions, configuration);
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-    /**
-     * Read a message by a given id.
-     * @summary Read Chat Message By Id
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    readChatMessageByIdChatsMessageIdGet: async (
-      id: string,
-      options: AxiosRequestConfig = {},
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'id' is not null or undefined
-      assertParamExists('readChatMessageByIdChatsMessageIdGet', 'id', id);
-      const localVarPath = `/chats/message/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-      let baseOptions;
-      if (configuration) {
-        baseOptions = configuration.baseOptions;
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
-      const localVarHeaderParameter = {} as any;
-      const localVarQueryParameter = {} as any;
-
-      // authentication OAuth2PasswordBearer required
-      // oauth required
-      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter);
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      };
-    },
-  };
-};
-
-/**
- * ChatApi - functional programming interface
- * @export
- */
-export const ChatApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator = ChatApiAxiosParamCreator(configuration);
-  return {
-    /**
-     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
-     * @summary Publish Message
-     * @param {ChatMessageCreate} chatMessageCreate
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async publishMessageChatsMessagePost(
-      chatMessageCreate: ChatMessageCreate,
-      options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseChatMessage>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.publishMessageChatsMessagePost(
-        chatMessageCreate,
-        options,
-      );
-      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-    },
-    /**
-     * Read a message by a given id.
-     * @summary Read Chat Message By Id
-     * @param {string} id
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async readChatMessageByIdChatsMessageIdGet(
-      id: string,
-      options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseChatMessage>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessageByIdChatsMessageIdGet(id, options);
-      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
-    },
-  };
-};
-
-/**
- * ChatApi - factory interface
- * @export
- */
-export const ChatApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-  const localVarFp = ChatApiFp(configuration);
-  return {
-    /**
-     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
-     * @summary Publish Message
-     * @param {ChatApiPublishMessageChatsMessagePostRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    publishMessageChatsMessagePost(
-      requestParameters: ChatApiPublishMessageChatsMessagePostRequest,
-      options?: AxiosRequestConfig,
-    ): AxiosPromise<StatusResponseChatMessage> {
-      return localVarFp
-        .publishMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
-        .then((request) => request(axios, basePath));
-    },
-    /**
-     * Read a message by a given id.
-     * @summary Read Chat Message By Id
-     * @param {ChatApiReadChatMessageByIdChatsMessageIdGetRequest} requestParameters Request parameters.
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    readChatMessageByIdChatsMessageIdGet(
-      requestParameters: ChatApiReadChatMessageByIdChatsMessageIdGetRequest,
-      options?: AxiosRequestConfig,
-    ): AxiosPromise<StandardResponseChatMessage> {
-      return localVarFp
-        .readChatMessageByIdChatsMessageIdGet(requestParameters.id, options)
-        .then((request) => request(axios, basePath));
-    },
-  };
-};
-
-/**
- * Request parameters for publishMessageChatsMessagePost operation in ChatApi.
- * @export
- * @interface ChatApiPublishMessageChatsMessagePostRequest
- */
-export interface ChatApiPublishMessageChatsMessagePostRequest {
-  /**
-   *
-   * @type {ChatMessageCreate}
-   * @memberof ChatApiPublishMessageChatsMessagePost
-   */
-  readonly chatMessageCreate: ChatMessageCreate;
-}
-
-/**
- * Request parameters for readChatMessageByIdChatsMessageIdGet operation in ChatApi.
- * @export
- * @interface ChatApiReadChatMessageByIdChatsMessageIdGetRequest
- */
-export interface ChatApiReadChatMessageByIdChatsMessageIdGetRequest {
-  /**
-   *
-   * @type {string}
-   * @memberof ChatApiReadChatMessageByIdChatsMessageIdGet
-   */
-  readonly id: string;
-}
-
-/**
- * ChatApi - object-oriented interface
- * @export
- * @class ChatApi
- * @extends {BaseAPI}
- */
-export class ChatApi extends BaseAPI {
-  /**
-   * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
-   * @summary Publish Message
-   * @param {ChatApiPublishMessageChatsMessagePostRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof ChatApi
-   */
-  public publishMessageChatsMessagePost(
-    requestParameters: ChatApiPublishMessageChatsMessagePostRequest,
-    options?: AxiosRequestConfig,
-  ) {
-    return ChatApiFp(this.configuration)
-      .publishMessageChatsMessagePost(requestParameters.chatMessageCreate, options)
-      .then((request) => request(this.axios, this.basePath));
-  }
-
-  /**
-   * Read a message by a given id.
-   * @summary Read Chat Message By Id
-   * @param {ChatApiReadChatMessageByIdChatsMessageIdGetRequest} requestParameters Request parameters.
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   * @memberof ChatApi
-   */
-  public readChatMessageByIdChatsMessageIdGet(
-    requestParameters: ChatApiReadChatMessageByIdChatsMessageIdGetRequest,
-    options?: AxiosRequestConfig,
-  ) {
-    return ChatApiFp(this.configuration)
-      .readChatMessageByIdChatsMessageIdGet(requestParameters.id, options)
-      .then((request) => request(this.axios, this.basePath));
-  }
-}
-
-/**
  * ConversationApi - axios parameter creator
  * @export
  */
@@ -1499,7 +1335,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
     /**
      *
      * @summary Read Conversations
-     * @param {string} [sort] id, created_at, updated_at, deleted_at, subject, started_by_id, started_by (e.g, id:1754)
+     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
      * @param {Subject | null} [subject]
      * @param {PageCursor | null} [pageCursor]
      * @param {number} [pageSize]
@@ -1508,7 +1344,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
      * @throws {RequiredError}
      */
     readConversationsConversationsGet: async (
-      sort?: string,
+      sort?: Sort1 | null,
       subject?: Subject | null,
       pageCursor?: PageCursor | null,
       pageSize?: number,
@@ -1560,6 +1396,51 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
         options: localVarRequestOptions,
       };
     },
+    /**
+     *
+     * @summary Revise Conversation
+     * @param {string} id
+     * @param {ConversationUpdate} conversationUpdate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    reviseConversationConversationsIdPut: async (
+      id: string,
+      conversationUpdate: ConversationUpdate,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('reviseConversationConversationsIdPut', 'id', id);
+      // verify required parameter 'conversationUpdate' is not null or undefined
+      assertParamExists('reviseConversationConversationsIdPut', 'conversationUpdate', conversationUpdate);
+      const localVarPath = `/conversations/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(conversationUpdate, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
   };
 };
 
@@ -1587,7 +1468,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
     /**
      *
      * @summary Read Conversations
-     * @param {string} [sort] id, created_at, updated_at, deleted_at, subject, started_by_id, started_by (e.g, id:1754)
+     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
      * @param {Subject | null} [subject]
      * @param {PageCursor | null} [pageCursor]
      * @param {number} [pageSize]
@@ -1596,7 +1477,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
      * @throws {RequiredError}
      */
     async readConversationsConversationsGet(
-      sort?: string,
+      sort?: Sort1 | null,
       subject?: Subject | null,
       pageCursor?: PageCursor | null,
       pageSize?: number,
@@ -1609,6 +1490,26 @@ export const ConversationApiFp = function (configuration?: Configuration) {
         pageCursor,
         pageSize,
         pageForward,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Revise Conversation
+     * @param {string} id
+     * @param {ConversationUpdate} conversationUpdate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async reviseConversationConversationsIdPut(
+      id: string,
+      conversationUpdate: ConversationUpdate,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseConversation>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.reviseConversationConversationsIdPut(
+        id,
+        conversationUpdate,
         options,
       );
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
@@ -1664,6 +1565,21 @@ export const ConversationApiFactory = function (
         )
         .then((request) => request(axios, basePath));
     },
+    /**
+     *
+     * @summary Revise Conversation
+     * @param {ConversationApiReviseConversationConversationsIdPutRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    reviseConversationConversationsIdPut(
+      requestParameters: ConversationApiReviseConversationConversationsIdPutRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseConversation> {
+      return localVarFp
+        .reviseConversationConversationsIdPut(requestParameters.id, requestParameters.conversationUpdate, options)
+        .then((request) => request(axios, basePath));
+    },
   };
 };
 
@@ -1688,11 +1604,11 @@ export interface ConversationApiReadConversationByIdConversationsIdGetRequest {
  */
 export interface ConversationApiReadConversationsConversationsGetRequest {
   /**
-   * id, created_at, updated_at, deleted_at, subject, started_by_id, started_by (e.g, id:1754)
-   * @type {string}
+   * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
+   * @type {Sort1}
    * @memberof ConversationApiReadConversationsConversationsGet
    */
-  readonly sort?: string;
+  readonly sort?: Sort1 | null;
 
   /**
    *
@@ -1721,6 +1637,27 @@ export interface ConversationApiReadConversationsConversationsGetRequest {
    * @memberof ConversationApiReadConversationsConversationsGet
    */
   readonly pageForward?: boolean;
+}
+
+/**
+ * Request parameters for reviseConversationConversationsIdPut operation in ConversationApi.
+ * @export
+ * @interface ConversationApiReviseConversationConversationsIdPutRequest
+ */
+export interface ConversationApiReviseConversationConversationsIdPutRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationApiReviseConversationConversationsIdPut
+   */
+  readonly id: string;
+
+  /**
+   *
+   * @type {ConversationUpdate}
+   * @memberof ConversationApiReviseConversationConversationsIdPut
+   */
+  readonly conversationUpdate: ConversationUpdate;
 }
 
 /**
@@ -1763,6 +1700,511 @@ export class ConversationApi extends BaseAPI {
       .readConversationsConversationsGet(
         requestParameters.sort,
         requestParameters.subject,
+        requestParameters.pageCursor,
+        requestParameters.pageSize,
+        requestParameters.pageForward,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Revise Conversation
+   * @param {ConversationApiReviseConversationConversationsIdPutRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConversationApi
+   */
+  public reviseConversationConversationsIdPut(
+    requestParameters: ConversationApiReviseConversationConversationsIdPutRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConversationApiFp(this.configuration)
+      .reviseConversationConversationsIdPut(requestParameters.id, requestParameters.conversationUpdate, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
+ * MessageApi - axios parameter creator
+ * @export
+ */
+export const MessageApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+     * @summary Publish Message
+     * @param {MessageCreate} messageCreate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publishMessageMessagesPost: async (
+      messageCreate: MessageCreate,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'messageCreate' is not null or undefined
+      assertParamExists('publishMessageMessagesPost', 'messageCreate', messageCreate);
+      const localVarPath = `/messages/`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(messageCreate, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Read a message by a given id.
+     * @summary Read Chat Message By Id
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readChatMessageByIdMessagesIdGet: async (id: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('readChatMessageByIdMessagesIdGet', 'id', id);
+      const localVarPath = `/messages/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Read Chat Messages By Conversation Id
+     * @param {string} conversationId
+     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+     * @param {Body | null} [body]
+     * @param {Role | null} [role]
+     * @param {ResponseFromId | null} [responseFromId]
+     * @param {ResponseToId | null} [responseToId]
+     * @param {PageCursor | null} [pageCursor]
+     * @param {number} [pageSize]
+     * @param {boolean} [pageForward]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readChatMessagesByConversationIdMessagesGet: async (
+      conversationId: string,
+      sort?: Sort | null,
+      body?: Body | null,
+      role?: Role | null,
+      responseFromId?: ResponseFromId | null,
+      responseToId?: ResponseToId | null,
+      pageCursor?: PageCursor | null,
+      pageSize?: number,
+      pageForward?: boolean,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'conversationId' is not null or undefined
+      assertParamExists('readChatMessagesByConversationIdMessagesGet', 'conversationId', conversationId);
+      const localVarPath = `/messages/`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      if (conversationId !== undefined) {
+        localVarQueryParameter['conversation_id'] = conversationId;
+      }
+
+      if (sort !== undefined) {
+        localVarQueryParameter['sort'] = sort;
+      }
+
+      if (body !== undefined) {
+        localVarQueryParameter['body'] = body;
+      }
+
+      if (role !== undefined) {
+        localVarQueryParameter['role'] = role;
+      }
+
+      if (responseFromId !== undefined) {
+        localVarQueryParameter['response_from_id'] = responseFromId;
+      }
+
+      if (responseToId !== undefined) {
+        localVarQueryParameter['response_to_id'] = responseToId;
+      }
+
+      if (pageCursor !== undefined) {
+        localVarQueryParameter['page_cursor'] = pageCursor;
+      }
+
+      if (pageSize !== undefined) {
+        localVarQueryParameter['page_size'] = pageSize;
+      }
+
+      if (pageForward !== undefined) {
+        localVarQueryParameter['page_forward'] = pageForward;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * MessageApi - functional programming interface
+ * @export
+ */
+export const MessageApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = MessageApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+     * @summary Publish Message
+     * @param {MessageCreate} messageCreate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async publishMessageMessagesPost(
+      messageCreate: MessageCreate,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseMessage>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.publishMessageMessagesPost(messageCreate, options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     * Read a message by a given id.
+     * @summary Read Chat Message By Id
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async readChatMessageByIdMessagesIdGet(
+      id: string,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseMessage>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessageByIdMessagesIdGet(id, options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Read Chat Messages By Conversation Id
+     * @param {string} conversationId
+     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+     * @param {Body | null} [body]
+     * @param {Role | null} [role]
+     * @param {ResponseFromId | null} [responseFromId]
+     * @param {ResponseToId | null} [responseToId]
+     * @param {PageCursor | null} [pageCursor]
+     * @param {number} [pageSize]
+     * @param {boolean} [pageForward]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async readChatMessagesByConversationIdMessagesGet(
+      conversationId: string,
+      sort?: Sort | null,
+      body?: Body | null,
+      role?: Role | null,
+      responseFromId?: ResponseFromId | null,
+      responseToId?: ResponseToId | null,
+      pageCursor?: PageCursor | null,
+      pageSize?: number,
+      pageForward?: boolean,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardPaginatedResponseMessage>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessagesByConversationIdMessagesGet(
+        conversationId,
+        sort,
+        body,
+        role,
+        responseFromId,
+        responseToId,
+        pageCursor,
+        pageSize,
+        pageForward,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+  };
+};
+
+/**
+ * MessageApi - factory interface
+ * @export
+ */
+export const MessageApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+  const localVarFp = MessageApiFp(configuration);
+  return {
+    /**
+     * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+     * @summary Publish Message
+     * @param {MessageApiPublishMessageMessagesPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    publishMessageMessagesPost(
+      requestParameters: MessageApiPublishMessageMessagesPostRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StatusResponseMessage> {
+      return localVarFp
+        .publishMessageMessagesPost(requestParameters.messageCreate, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Read a message by a given id.
+     * @summary Read Chat Message By Id
+     * @param {MessageApiReadChatMessageByIdMessagesIdGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readChatMessageByIdMessagesIdGet(
+      requestParameters: MessageApiReadChatMessageByIdMessagesIdGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseMessage> {
+      return localVarFp
+        .readChatMessageByIdMessagesIdGet(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Read Chat Messages By Conversation Id
+     * @param {MessageApiReadChatMessagesByConversationIdMessagesGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    readChatMessagesByConversationIdMessagesGet(
+      requestParameters: MessageApiReadChatMessagesByConversationIdMessagesGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardPaginatedResponseMessage> {
+      return localVarFp
+        .readChatMessagesByConversationIdMessagesGet(
+          requestParameters.conversationId,
+          requestParameters.sort,
+          requestParameters.body,
+          requestParameters.role,
+          requestParameters.responseFromId,
+          requestParameters.responseToId,
+          requestParameters.pageCursor,
+          requestParameters.pageSize,
+          requestParameters.pageForward,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * Request parameters for publishMessageMessagesPost operation in MessageApi.
+ * @export
+ * @interface MessageApiPublishMessageMessagesPostRequest
+ */
+export interface MessageApiPublishMessageMessagesPostRequest {
+  /**
+   *
+   * @type {MessageCreate}
+   * @memberof MessageApiPublishMessageMessagesPost
+   */
+  readonly messageCreate: MessageCreate;
+}
+
+/**
+ * Request parameters for readChatMessageByIdMessagesIdGet operation in MessageApi.
+ * @export
+ * @interface MessageApiReadChatMessageByIdMessagesIdGetRequest
+ */
+export interface MessageApiReadChatMessageByIdMessagesIdGetRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof MessageApiReadChatMessageByIdMessagesIdGet
+   */
+  readonly id: string;
+}
+
+/**
+ * Request parameters for readChatMessagesByConversationIdMessagesGet operation in MessageApi.
+ * @export
+ * @interface MessageApiReadChatMessagesByConversationIdMessagesGetRequest
+ */
+export interface MessageApiReadChatMessagesByConversationIdMessagesGetRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly conversationId: string;
+
+  /**
+   * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+   * @type {Sort}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly sort?: Sort | null;
+
+  /**
+   *
+   * @type {Body}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly body?: Body | null;
+
+  /**
+   *
+   * @type {Role}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly role?: Role | null;
+
+  /**
+   *
+   * @type {ResponseFromId}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly responseFromId?: ResponseFromId | null;
+
+  /**
+   *
+   * @type {ResponseToId}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly responseToId?: ResponseToId | null;
+
+  /**
+   *
+   * @type {PageCursor}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly pageCursor?: PageCursor | null;
+
+  /**
+   *
+   * @type {number}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly pageSize?: number;
+
+  /**
+   *
+   * @type {boolean}
+   * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
+   */
+  readonly pageForward?: boolean;
+}
+
+/**
+ * MessageApi - object-oriented interface
+ * @export
+ * @class MessageApi
+ * @extends {BaseAPI}
+ */
+export class MessageApi extends BaseAPI {
+  /**
+   * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
+   * @summary Publish Message
+   * @param {MessageApiPublishMessageMessagesPostRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof MessageApi
+   */
+  public publishMessageMessagesPost(
+    requestParameters: MessageApiPublishMessageMessagesPostRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return MessageApiFp(this.configuration)
+      .publishMessageMessagesPost(requestParameters.messageCreate, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Read a message by a given id.
+   * @summary Read Chat Message By Id
+   * @param {MessageApiReadChatMessageByIdMessagesIdGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof MessageApi
+   */
+  public readChatMessageByIdMessagesIdGet(
+    requestParameters: MessageApiReadChatMessageByIdMessagesIdGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return MessageApiFp(this.configuration)
+      .readChatMessageByIdMessagesIdGet(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Read Chat Messages By Conversation Id
+   * @param {MessageApiReadChatMessagesByConversationIdMessagesGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof MessageApi
+   */
+  public readChatMessagesByConversationIdMessagesGet(
+    requestParameters: MessageApiReadChatMessagesByConversationIdMessagesGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return MessageApiFp(this.configuration)
+      .readChatMessagesByConversationIdMessagesGet(
+        requestParameters.conversationId,
+        requestParameters.sort,
+        requestParameters.body,
+        requestParameters.role,
+        requestParameters.responseFromId,
+        requestParameters.responseToId,
         requestParameters.pageCursor,
         requestParameters.pageSize,
         requestParameters.pageForward,
