@@ -1,23 +1,26 @@
 'use client';
 
+import { useContext } from 'react';
+
 import { Link } from '@/chakra-ui/next-js';
 import { FormControl, Input, InputGroup, VStack } from '@/chakra-ui/react';
+
+import { useRouter, useSearchParams } from 'next/navigation';
+import { SubmitHandler, useForm } from 'react-hook-form';
+
+import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 
 import { PrimaryButton } from '@/core/components/Button';
 import { Form } from '@/core/components/Form';
 import { InputErrorMessage } from '@/core/components/InputErrorMessage';
 import { InputLabel } from '@/core/components/InputLabel';
 import { PasswordInput } from '@/core/components/PasswordInput';
-import { ConfigContext, actions } from '@/core/components/Providers';
+import { actions, ConfigContext } from '@/core/components/Providers';
 import { Typography } from '@/core/components/Typography';
 import { SigninCredentials } from '@/core/services';
 import { useAuthenticateAccountService } from '@/core/services/account';
 import { REFRESH_TOKEN_KEY, storeToken } from '@/core/utils';
-
-import { classValidatorResolver } from '@hookform/resolvers/class-validator';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { useContext } from 'react';
-import { SubmitHandler, useForm } from 'react-hook-form';
+import { CONVERSATIONS } from '@/core/utils/routes';
 
 export const SigninForm = () => {
   const router = useRouter();
@@ -34,8 +37,8 @@ export const SigninForm = () => {
   const signin: SubmitHandler<SigninCredentials> = async (data) => {
     const response = await signinHandler.mutateAsync(data);
 
-    storeToken(response.data.access_token);
-    storeToken(response.data.refresh_token, REFRESH_TOKEN_KEY);
+    storeToken(response.data.access_token + '');
+    storeToken(response.data.refresh_token + '', REFRESH_TOKEN_KEY);
 
     updateConfig(actions.createHasActiveSessionUpdateAction(true));
 
@@ -45,7 +48,8 @@ export const SigninForm = () => {
       return router.replace(addressToReturnTo);
     }
 
-    router.replace('/chat');
+    // TODO: change 'new' to user's most recent conversation's id
+    router.replace(`${CONVERSATIONS}/new`);
   };
 
   return (
