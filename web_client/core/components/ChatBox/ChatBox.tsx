@@ -1,25 +1,28 @@
-import { Flex, FlexProps } from '@/chakra-ui/react';
-import { APP_BAR_HEIGHT } from '@/core/utils';
+'use client';
 
 import { ReactNode } from 'react';
+
+import { Flex, FlexProps, useColorModeValue } from '@/chakra-ui/react';
+
+import { backdropFactory } from '@/core/theme';
+import { APP_BAR_HEIGHT } from '@/core/utils';
 
 export interface ChatBoxProps extends FlexProps {
   children: ReactNode;
 }
 
 export const ChatBox = ({ children, ...rest }: ChatBoxProps) => {
+  const bgColor = useColorModeValue('whiteAlpha.500', 'whiteAlpha.200');
+
   return (
     <Flex
-      backdropFilter="auto"
-      backdropBlur="xl"
-      backdropSaturate="180%"
-      bgColor="whiteAlpha.300"
       position="absolute"
       borderTopRadius="2xl"
       width={700}
       maxWidth="full"
       height={`calc(100% - ${APP_BAR_HEIGHT}px)`}
       top={`${APP_BAR_HEIGHT}px`}
+      {...backdropFactory({ bgColor })}
       {...rest}
     >
       {children}
