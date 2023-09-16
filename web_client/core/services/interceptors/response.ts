@@ -1,9 +1,11 @@
-import { ACCESS_TOKEN_KEY, REFRESH_TOKEN_KEY, getToken, removeToken, storeToken } from '@/core/utils';
-import { AxiosError, AxiosResponse, AxiosInstance } from 'axios';
+import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
+
+import { ErrorCode } from '@/client';
+import { ACCESS_TOKEN_KEY, getToken, REFRESH_TOKEN_KEY, removeToken, storeToken } from '@/core/utils';
 
 import { reauthenticateAccountService } from '../account/authenticate.service';
 import { isErrorResponse } from '../base';
-import { ErrorCodeEnum, ErrorPayload } from '../types';
+import { ErrorPayload } from '../types';
 
 type RemoteResponse = AxiosResponse<any>;
 type ResponseInterceptor = <R extends RemoteResponse = RemoteResponse>(r: R) => R | Promise<R>;
@@ -49,7 +51,7 @@ export const createResponseErrorInterceptor = (api: AxiosInstance) => {
       return logout();
     }
 
-    if (error && error.error.code === ErrorCodeEnum.UNAUTHORIZED) {
+    if (error && error.error.code === ErrorCode.UNAUTHORIZED) {
       const access_token = getToken(ACCESS_TOKEN_KEY);
       const refresh_token = getToken(REFRESH_TOKEN_KEY);
 
@@ -65,8 +67,8 @@ export const createResponseErrorInterceptor = (api: AxiosInstance) => {
         return logout();
       }
 
-      const newAccessToken: string = response.data.access_token;
-      const newRefreshToken: string = response.data.refresh_token;
+      const newAccessToken: string = response.data.access_token + '';
+      const newRefreshToken: string = response.data.refresh_token + '';
       const newTokensType: string = response.data.token_type;
 
       if (!newAccessToken || !newRefreshToken) {

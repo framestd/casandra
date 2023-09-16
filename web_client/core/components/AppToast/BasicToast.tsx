@@ -1,11 +1,13 @@
 'use client';
 
-import { Circle, forwardRef, HStack, Icon, IconButton, useColorModeValue, VStack } from '@/chakra-ui/react';
-
-import { getThemeColor } from '@/core/utils';
+import {
+  Circle, forwardRef, HStack, Icon, IconButton, useColorModeValue, VStack
+} from '@/chakra-ui/react';
 
 import { rgba } from 'polished';
 import { IoCloseOutline } from 'react-icons/io5';
+
+import { getThemeColor } from '@/core/utils';
 
 import { Typography } from '../Typography';
 import { AppToastProps } from './AppToast';

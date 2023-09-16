@@ -1,4 +1,5 @@
 import { toast, ToastOptions } from 'react-toastify';
+
 import { AppToast, AppToastProps } from './AppToast';
 
 type ToastifyToast<TData = unknown> = Omit<

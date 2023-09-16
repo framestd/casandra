@@ -1,7 +1,6 @@
+import { api } from '../base';
 import { accountClient } from './client';
 import { SignupCredentials } from './dto';
-
-import { api } from '../base';
 
 export async function createAccountService(signup: SignupCredentials) {
   const createAccount = await accountClient.createUserAccountAccountsCreatePost({

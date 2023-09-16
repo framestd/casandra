@@ -1,6 +1,7 @@
 'use client';
 
 import {
+  BoxProps,
   ComponentStyleConfig,
   extendTheme,
   Input,
@@ -11,8 +12,24 @@ import {
   withDefaultColorScheme,
 } from '@/chakra-ui/react';
 
-import { mode, StyleFunctionProps } from '@chakra-ui/theme-tools';
 import { rgba } from 'polished';
+
+import { mode, StyleFunctionProps } from '@chakra-ui/theme-tools';
+
+export const backdrop = {
+  backdropFilter: 'auto',
+  backdropBlur: 'xl',
+  backdropSaturate: '180%',
+};
+
+export const backdropFactory = (
+  opts?: Pick<BoxProps, 'backdropBlur' | 'backdropFilter' | 'backdropSaturate' | 'bgColor'>,
+) => {
+  return {
+    ...backdrop,
+    ...opts,
+  };
+};
 
 const brand = {
   50: '#F9E6EB',

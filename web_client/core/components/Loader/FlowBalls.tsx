@@ -1,7 +1,8 @@
-import { Box, BoxProps, forwardRef, theme } from '@/chakra-ui/react';
-import { css, keyframes } from '@emotion/react';
-
 import { CSSProperties } from 'react';
+
+import { Box, BoxProps, forwardRef, theme } from '@/chakra-ui/react';
+
+import { css, keyframes } from '@emotion/react';
 
 export interface FlowBallsProps extends BoxProps {
   size?: number;

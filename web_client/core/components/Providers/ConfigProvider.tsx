@@ -1,10 +1,11 @@
 'use client';
 
-import { Account } from '@/client';
-import { APP_NAME } from '@/core/utils';
+import { createContext, Dispatch, ReactNode, useMemo, useReducer } from 'react';
 
 import { produce } from 'immer';
-import { Dispatch, ReactNode, createContext, useMemo, useReducer } from 'react';
+
+import { Account } from '@/client';
+import { APP_NAME } from '@/core/utils';
 
 export type ConfigLoadingState = 'loaded' | 'loading' | 'reloading';
 

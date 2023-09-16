@@ -1,10 +1,11 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { Fragment, ReactNode, useContext, useEffect } from 'react';
 
-import { ConfigContext } from './ConfigProvider';
+import { useRouter } from 'next/navigation';
+
 import { SplashScreen } from '../Loader';
+import { ConfigContext } from './ConfigProvider';
 
 export interface PrivateRouteProps {
   children: ReactNode;

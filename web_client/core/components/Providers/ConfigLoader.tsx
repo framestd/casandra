@@ -1,11 +1,11 @@
 'use client';
 
+import { Fragment, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
+
 import { useGetApplicationInfo } from '@/core/services/_app';
 import { CONFIG_SCRIPT_NAME } from '@/core/utils';
 
-import { Fragment, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
-
-import { ConfigContext, actions } from './ConfigProvider';
+import { actions, ConfigContext } from './ConfigProvider';
 
 export interface ConfigLoaderProps {
   children: ReactNode;

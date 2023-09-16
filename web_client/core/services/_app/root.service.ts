@@ -1,6 +1,5 @@
-import { rootClient } from './client';
-
 import { api } from '../base';
+import { rootClient } from './client';
 
 export async function getApplicationInfo() {
   const getRoot = await rootClient.rootGet();

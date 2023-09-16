@@ -1,7 +1,11 @@
 'use client';
 
-import { Box, FlexProps, Flex, SystemStyleObject, Textarea, IconButton, Icon } from '@/chakra-ui/react';
 import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
+
+import {
+  Box, Flex, FlexProps, Icon, IconButton, SystemStyleObject, Textarea
+} from '@/chakra-ui/react';
+
 import { IoSend } from 'react-icons/io5';
 
 import styles from './index.module.css';
@@ -75,7 +79,6 @@ export const ChatTextBox = ({ value, isSendDisabled = false, onChange, onSend, .
           px={0}
           rows={1}
           border={0}
-          color="gray.100"
           width="full"
           height="full"
           resize="none"

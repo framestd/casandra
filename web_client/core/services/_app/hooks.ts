@@ -1,20 +1,19 @@
-import { ApplicationInfo } from '@/client/api';
-
 import { useQuery } from '@tanstack/react-query';
 
-import { getApplicationInfo } from './root.service';
+import { ApplicationInfo } from '@/client/api';
 
 import { BaseQueryServiceOptions } from '../types';
+import { getApplicationInfo } from './root.service';
 
-export interface IdentifyUserAccountService<S> extends BaseQueryServiceOptions<ApplicationInfo, unknown, S> {}
+export interface GetApplicationInfoOptions<S> extends BaseQueryServiceOptions<ApplicationInfo, unknown, S> {}
 
-export enum RootAPIStaticCacheKeys {
+export enum CacheKeyNamespaces {
   APPLICATION_INFO = 'application_info',
 }
 
-export function useGetApplicationInfo<S>(options: IdentifyUserAccountService<S> = {}) {
+export function useGetApplicationInfo<S>(options: GetApplicationInfoOptions<S> = {}) {
   return useQuery({
-    queryKey: [RootAPIStaticCacheKeys.APPLICATION_INFO],
+    queryKey: [CacheKeyNamespaces.APPLICATION_INFO],
     enabled: options.trigger,
     queryFn: getApplicationInfo,
 

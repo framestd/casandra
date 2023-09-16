@@ -1,6 +1,7 @@
 'use client';
 
 import { Box, BoxProps, useColorModeValue } from '@/chakra-ui/react';
+
 import { Typography } from '../Typography';
 
 export interface AppDescriptionProps extends BoxProps {

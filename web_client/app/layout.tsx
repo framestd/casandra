@@ -1,12 +1,12 @@
 import './globals.css';
 import 'react-toastify/dist/ReactToastify.css';
 
+import type { Metadata } from 'next';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+
 import { AppProvider } from '@/core/components/Providers';
 import { getApplicationInfo_Cached } from '@/core/services/build-props';
 import { CONFIG_SCRIPT_NAME } from '@/core/utils';
-
-import type { Metadata } from 'next';
-import { Plus_Jakarta_Sans } from 'next/font/google';
 
 const pjs = Plus_Jakarta_Sans({ subsets: ['latin'] });
 

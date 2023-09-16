@@ -1,10 +1,10 @@
 'use client';
 
-import { useIdentifyUserAccountService } from '@/core/services';
-
 import { Fragment, ReactNode, useContext, useEffect } from 'react';
 
-import { ConfigContext, actions } from './ConfigProvider';
+import { useIdentifyUserAccountService } from '@/core/services';
+
+import { actions, ConfigContext } from './ConfigProvider';
 
 export interface SessionLoaderProps {
   children: ReactNode;

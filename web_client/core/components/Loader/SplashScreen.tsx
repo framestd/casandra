@@ -2,13 +2,12 @@
 
 import { Box, VStack } from '@/chakra-ui/react';
 
-import { getThemeColor } from '@/core/utils';
-
 import { InfinitySpin } from 'react-loader-spinner';
 
-import { styles } from './SplashScreenStyles';
+import { getThemeColor } from '@/core/utils';
 
 import { AppName } from '../AppBar/AppName';
+import { styles } from './SplashScreenStyles';
 
 export interface SplashScreenProps {
   title: string;

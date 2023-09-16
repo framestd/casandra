@@ -1,7 +1,6 @@
+import { api } from '../base';
 import { accountClient } from './client';
 import { SigninCredentials } from './dto';
-
-import { api } from '../base';
 
 export async function reauthenticateAccountService(refreshToken: string) {
   const authenticateAccount = await accountClient.authenticateUserAccountAccountsAuthenticatePost(

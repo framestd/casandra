@@ -1,6 +1,7 @@
-import { USERNAME_REGEX } from '@/core/utils';
 import { Exclude, Expose } from 'class-transformer';
 import { IsEmail, IsNotEmpty, Matches, MinLength } from 'class-validator';
+
+import { USERNAME_REGEX } from '@/core/utils';
 
 @Exclude()
 export class SignupCredentials {

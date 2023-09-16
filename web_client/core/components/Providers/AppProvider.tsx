@@ -1,20 +1,22 @@
 'use client';
 
+import { Fragment, ReactNode } from 'react';
+
 import { CacheProvider } from '@/chakra-ui/next-js';
 import { ChakraProvider, ColorModeScript } from '@/chakra-ui/react';
 
-import { theme } from '@/core/theme/theme';
-import { MissingAccessTokenException, isErrorResponse } from '@/core/services';
-
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Fragment, ReactNode } from 'react';
 import { ToastContainer } from 'react-toastify';
 
+import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+
+import { isErrorResponse, MissingAccessTokenException } from '@/core/services';
+import { theme } from '@/core/theme/theme';
+
+import { toast } from '../AppToast';
 import { ConfigLoader } from './ConfigLoader';
 import { ConfigProvider } from './ConfigProvider';
 import { SessionLoader } from './SessionLoader';
-
-import { toast } from '../AppToast';
 
 export interface AppProviderProps {
   children?: ReactNode;
@@ -89,6 +91,8 @@ export function AppProvider({ children }: AppProviderProps) {
             />
           </ChakraProvider>
         </CacheProvider>
+
+        <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />
       </QueryClientProvider>
     </Fragment>
   );

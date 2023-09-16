@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import {
   Button,
   Circle,
@@ -12,17 +14,18 @@ import {
   VStack,
 } from '@/chakra-ui/react';
 
-import { ThemeTypings } from '@chakra-ui/styled-system';
 import { Variants } from 'framer-motion';
 import { rgba } from 'polished';
-import { useState } from 'react';
 import { IoCloseOutline } from 'react-icons/io5';
+
+import { ThemeTypings } from '@chakra-ui/styled-system';
+
+import { getThemeColor } from '@/core/utils';
 
 import { MotionText } from '../Common';
 import { Typography } from '../Typography';
-import { type AppToastProps, type AppToastType } from './AppToast';
+import { AppToastProps, type AppToastType } from './AppToast';
 import { useToastIcons } from './hooks';
-import { getThemeColor } from '@/core/utils';
 
 export interface ComplexToastAction {
   name: string;

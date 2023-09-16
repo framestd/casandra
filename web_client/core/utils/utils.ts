@@ -2,10 +2,10 @@ import { ThemeTypings } from '@/chakra-ui/react';
 
 import get from 'lodash.get';
 
-import { Choose } from './types';
+import { User } from '@/client';
 
 import { theme } from '../theme';
-import { User } from '@/client';
+import { Choose } from './types';
 
 export const APP_BAR_HEIGHT = 50;
 export const USERNAME_REGEX = /^[A-Za-z]+(?:[_.]?[A-Za-z0-9]+)*$/;

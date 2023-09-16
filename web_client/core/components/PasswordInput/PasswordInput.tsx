@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 import {
   forwardRef,
   Icon,
@@ -10,7 +12,7 @@ import {
   InputRightElement,
   useBreakpointValue,
 } from '@/chakra-ui/react';
-import { useState } from 'react';
+
 import { BsEye, BsEyeSlash } from 'react-icons/bs';
 
 export interface PasswordInputProps extends InputProps {

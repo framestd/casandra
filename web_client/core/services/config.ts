@@ -1,12 +1,12 @@
 import { Configuration } from '@/client/configuration';
 
-import { SERVER_BASE_URL, SERVER_INTERNAL_ADDRESS, getToken } from '../utils';
+import { getToken, SERVER_BASE_URL, SERVER_INTERNAL_ADDRESS } from '../utils';
 
 export class MissingAccessTokenException extends Error {
   name = MissingAccessTokenException.name;
 }
 
-function getServerBaseURL() {
+export function getServerBaseURL() {
   // in production
   if (process.env.NODE_ENV !== 'development') return SERVER_BASE_URL;
 

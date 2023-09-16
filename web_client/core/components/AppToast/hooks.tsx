@@ -1,8 +1,9 @@
 import { IconProps, useColorModeValue } from '@/chakra-ui/react';
 
 import { IconType } from 'react-icons';
-import { BsInfoCircle, BsCheck2Circle } from 'react-icons/bs';
-import { IoWarningOutline, IoAlertCircleOutline } from 'react-icons/io5';
+import { BsCheck2Circle, BsInfoCircle } from 'react-icons/bs';
+import { IoAlertCircleOutline, IoWarningOutline } from 'react-icons/io5';
+
 import { AppToastType } from './AppToast';
 
 export function useToastIcons() {

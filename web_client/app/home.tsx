@@ -1,5 +1,7 @@
 'use client';
 
+import { ReactNode, useContext } from 'react';
+
 import { Link } from '@/chakra-ui/next-js';
 import { Box, VStack } from '@/chakra-ui/react';
 
@@ -7,8 +9,6 @@ import { AppDescription, AppName } from '@/core/components/AppBar';
 import { PrimaryButton } from '@/core/components/Button';
 import { styles } from '@/core/components/Loader';
 import { ConfigContext } from '@/core/components/Providers';
-
-import { ReactNode, useContext } from 'react';
 
 export interface HomeScaffoldProps {
   children?: ReactNode;
