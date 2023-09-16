@@ -23,5 +23,44 @@
   "python.analysis.useLibraryCodeForTypes": true,
   "python.analysis.extraPaths": ["${workspaceFolder}/web_services/"],
   "python.analysis.ignore": ["**/site-packages/**/*.py", ".vscode/*.py"],
-  "black-formatter.args": ["--line-length=100"]
+  "black-formatter.args": ["--line-length=100"],
+  "importSorter.generalConfiguration.sortOnBeforeSave": false,
+  "importSorter.generalConfiguration.exclude": ["\\@/chakra-ui/.*"],
+  "importSorter.importStringConfiguration.tabSize": 2,
+  "importSorter.sortConfiguration.customOrderingRules.rules": [
+    {
+      "regex": "^node:", // Node.js stdlib imports
+      "orderLevel": 0
+    },
+    {
+      "type": "importMember", // e.g, import "reflect-metadata"
+      "regex": "^$",
+      "orderLevel": 5,
+      "disableSort": true
+    },
+    {
+      "regex": "^react$", // e.g, import {...} from "react"
+      "orderLevel": 10
+    },
+    {
+      "regex": "^@/chakra", // custom chakra re-export
+      "orderLevel": 15
+    },
+    {
+      "regex": "^[^.@]", // absolute and node_modules imports
+      "orderLevel": 20
+    },
+    {
+      "regex": "^[@](?!/)", // any @organization import not an import alias like @/path
+      "orderLevel": 25
+    },
+    {
+      "regex": "^@/", // import aliases
+      "orderLevel": 30
+    },
+    {
+      "regex": "^[.]", // relative imports
+      "orderLevel": 35
+    }
+  ]
 }
