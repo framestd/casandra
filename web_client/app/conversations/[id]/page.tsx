@@ -8,14 +8,16 @@ import { useRouter } from 'next/navigation';
 
 import { ChatMessageRoleEnum, Message } from '@/client';
 import { ChatBox } from '@/core/components/ChatBox';
-import { ChatMesssage } from '@/core/components/ChatMessage';
+import { ConversationMesssage } from '@/core/components/ConversationMessage';
 import { ChatTextBox } from '@/core/components/ChatTextBox';
 import { FlowBalls } from '@/core/components/Loader';
 import { ConfigContext, PrivateRoute } from '@/core/components/Providers';
-import { ChatLayout } from '@/core/composition/ChatLayout';
+import { ConversationLayout } from '@/core/composition/ConversationLayout';
 import { usePagedNormalizerFn } from '@/core/composition/hooks';
 import {
-  useConversationMessageSocket, usePublishMessageService, useReadMessagesByConversationIdService
+  useConversationMessageSocket,
+  usePublishMessageService,
+  useReadMessagesByConversationIdService,
 } from '@/core/services';
 import { APP_NAME, fullname } from '@/core/utils';
 import { CONVERSATIONS } from '@/core/utils/routes';
@@ -95,22 +97,22 @@ const Conversations = ({ params }: ChatProps) => {
 
   return (
     <PrivateRoute>
-      <ChatLayout name={user ? fullname(user) : ''}>
+      <ConversationLayout name={user ? fullname(user) : ''}>
         <Flex justifyContent="center" height="full">
           <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column">
             <VStack width="full" height="full" alignItems="flex-start" py={4} fontSize="md" overflow="auto">
               {(conversations as Message[]).map((c, i) => {
                 const entity = c.role === ChatMessageRoleEnum.ROBOT ? APP_NAME : user ? fullname(user) : c.role;
 
-                return <ChatMesssage key={c.id || i} enitity={entity} message={c.body} role={c.role} />;
+                return <ConversationMesssage key={c.id || i} enitity={entity} message={c.body} role={c.role} />;
               })}
 
               {publishMessageHandler.isLoading && (
-                <ChatMesssage message={<FlowBalls />} enitity={APP_NAME} role={ChatMessageRoleEnum.ROBOT} />
+                <ConversationMesssage message={<FlowBalls />} enitity={APP_NAME} role={ChatMessageRoleEnum.ROBOT} />
               )}
 
               {socketMessage && (
-                <ChatMesssage
+                <ConversationMesssage
                   key={socketMessage.id}
                   message={socketMessage.body}
                   enitity={APP_NAME}
@@ -131,7 +133,7 @@ const Conversations = ({ params }: ChatProps) => {
             </Box>
           </ChatBox>
         </Flex>
-      </ChatLayout>
+      </ConversationLayout>
     </PrivateRoute>
   );
 };
