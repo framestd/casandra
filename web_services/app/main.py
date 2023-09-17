@@ -13,10 +13,10 @@ from fastapi.responses import JSONResponse
 # First Party
 from app.account.handlers import router as account_router
 from app.conversation.handlers import router as conversation_router
-from app.core.broadcaster import broadcast
 from app.core.exceptions.http import AppHTTPException, ErrorCode
 from app.core.exceptions.http import UnprocessableEntityException
 from app.core.logging.logger import get_app_logger
+from app.core.redis.client import appredis
 from app.core.schemas.base import ApplicationInfo
 from app.core.schemas.response import ErrorAttributes, ErrorResponse, ErrorSpec
 from app.core.settings import settings
@@ -28,15 +28,15 @@ logger = get_app_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Broadcaster connecting to Redis server...")
-    await broadcast.connect()
-    logger.info("Broadcaster connected to Redis server successfully!")
+    logger.info("Opening connection to Redis...")
+    await appredis.connect()
+    logger.info("Redis connection opened and provided!")
 
     yield
 
-    logger.info("Broadcaster disconnecting from Redis server...")
-    await broadcast.disconnect()
-    logger.info("Broadcaster disconnected from Redis server successfully!")
+    logger.info("Disconnecting all Redis connections...")
+    await appredis.disconnect(True)
+    logger.info("Disconnected all Redis connections!")
 
 
 app = FastAPI(
