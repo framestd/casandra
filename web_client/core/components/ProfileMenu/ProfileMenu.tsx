@@ -1,10 +1,11 @@
 'use client';
 
+import { useContext } from 'react';
+
 import { Avatar, HStack, StackProps } from '@/chakra-ui/react';
 
+import { backdropFactory } from '@/core/theme';
 import { fullname } from '@/core/utils';
-
-import { useContext } from 'react';
 
 import { ConfigContext } from '../Providers';
 import { Typography } from '../Typography';
@@ -23,20 +24,15 @@ export const ProfileMenu = ({ name, ...rest }: ProfileMenuProps) => {
       ps={2}
       pe={16}
       py={2}
-      backdropFilter="auto"
-      backdropBlur="xl"
-      backdropSaturate="180%"
-      bgColor="whiteAlpha.300"
       borderRadius="full"
-      width={{ base: 'auto', lg: 250 }}
+      width="full"
       _hover={{ bgColor: 'whiteAlpha.400' }}
+      {...backdropFactory({ bgColor: 'whiteAlpha.200' })}
       {...rest}
     >
       <Avatar name={fname} size={{ base: 'sm', lg: 'md' }} />
 
-      <Typography fontWeight={600} color="gray.100">
-        {fname}
-      </Typography>
+      <Typography fontWeight={600}>{fname}</Typography>
     </HStack>
   );
 };
