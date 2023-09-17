@@ -7,13 +7,13 @@ import { getApplicationInfo } from './root.service';
 
 export interface GetApplicationInfoOptions<S> extends BaseQueryServiceOptions<ApplicationInfo, unknown, S> {}
 
-export enum CacheKeyNamespaces {
+export enum QueryKeyNamespace {
   APPLICATION_INFO = 'application_info',
 }
 
 export function useGetApplicationInfo<S>(options: GetApplicationInfoOptions<S> = {}) {
   return useQuery({
-    queryKey: [CacheKeyNamespaces.APPLICATION_INFO],
+    queryKey: [QueryKeyNamespace.APPLICATION_INFO],
     enabled: options.trigger,
     queryFn: getApplicationInfo,
 
