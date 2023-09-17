@@ -1,11 +1,13 @@
-import { ErrorAttributes, ErrorCode } from '@/client';
+import { AxiosError, AxiosResponse } from 'axios';
+
 import {
   InfiniteData,
   InfiniteQueryObserverOptions,
   QueryObserverOptions,
   UseMutationOptions,
 } from '@tanstack/react-query';
-import { AxiosError, AxiosResponse } from 'axios';
+
+import { ErrorAttributes, ErrorCode } from '@/client';
 
 type Require<T, K extends keyof T> = { [P in K]-?: T[P] } & Pick<T, Exclude<keyof T, K>>;
 
@@ -15,14 +17,21 @@ export interface ErrorPayload {
   error: { code: ErrorCode; errors: ErrorAttributes[] };
 }
 
+export interface BasePagedServiceParams {
+  sort?: string[];
+  pageCursor?: string;
+  pageSize?: number;
+  pageForward?: boolean;
+}
+
 export type WithId<T> = T & { id: string };
 
-export type ServiceOptions<RequestData, ResponseData, ErrorData = ErrorPayload, Context = unknown> = UseMutationOptions<
-  AxiosResponse<ResponseData, any>,
-  ErrorData,
+export type MutationServiceOptions<
   RequestData,
-  Context
->;
+  ResponseData,
+  ErrorData = ErrorPayload,
+  Context = unknown,
+> = UseMutationOptions<AxiosResponse<ResponseData, any>, ErrorData, RequestData, Context>;
 
 interface IBaseQueryServiceOptions<R = any, V = unknown, S = unknown>
   extends Pick<
