@@ -1,8 +1,6 @@
 'use client';
 
-import {
-  Circle, forwardRef, HStack, Icon, IconButton, useColorModeValue, VStack
-} from '@/chakra-ui/react';
+import { Circle, forwardRef, HStack, Icon, IconButton, useColorModeValue, VStack } from '@/chakra-ui/react';
 
 import { rgba } from 'polished';
 import { IoCloseOutline } from 'react-icons/io5';

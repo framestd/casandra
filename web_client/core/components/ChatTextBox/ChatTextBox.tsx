@@ -2,9 +2,7 @@
 
 import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 
-import {
-  Box, Flex, FlexProps, Icon, IconButton, SystemStyleObject, Textarea
-} from '@/chakra-ui/react';
+import { Box, Flex, FlexProps, Icon, IconButton, SystemStyleObject, Textarea } from '@/chakra-ui/react';
 
 import { IoSend } from 'react-icons/io5';
 
