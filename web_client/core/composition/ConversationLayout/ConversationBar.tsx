@@ -21,7 +21,10 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
   const { data } = useReadConversationsService({
     variables: { sort: ['created_at:desc'] },
     select: (data) => {
-      return { ...data, pages: data.pages.map((page) => page.data) };
+      return {
+        ...data,
+        pages: data.pages.map((page) => page.data),
+      };
     },
   });
 
