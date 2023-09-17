@@ -2,7 +2,7 @@
 from typing import Literal
 
 # Third Party
-from pydantic import Field, RedisDsn
+from pydantic import Field, RedisDsn, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -43,6 +43,16 @@ class Settings(BaseSettings):
     OPENAI_SECRET_KEY: str
 
     WS_ACCESS_TOKEN_KEY: str = "ws_a_t"
+
+    @computed_field
+    @property
+    def CELERY_BROKER_URL(self) -> RedisDsn:
+        return self.REDIS_URL
+
+    @computed_field
+    @property
+    def CELERY_RESULT_BACKEND(self) -> RedisDsn:
+        return self.REDIS_URL
 
 
 settings = Settings()  # type: ignore
