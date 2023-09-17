@@ -1,8 +1,10 @@
 # Standard Library
-from typing import Annotated
+from typing import Annotated, TypeVar
+from uuid import uuid4
 
 # Third Party
-from fastapi import Cookie, Depends, Query, WebSocketException, status
+from fastapi import Cookie, Depends, Query, WebSocket, WebSocketException, status
+from redis.asyncio import StrictRedis
 from sqlalchemy.orm import Session
 
 # First Party
@@ -10,7 +12,8 @@ from app.core.authentication.oauth2 import oauth2_scheme
 from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
 from app.core.models.account import Account
-from app.core.schemas.conversation import Conversation
+from app.core.redis.client import appredis
+from app.core.schemas.base import BaseModel
 from app.core.services.account import get_account_by_token
 from app.core.settings import settings
 from app.core.utils import describe_field, split_field
@@ -21,44 +24,54 @@ from .database.engine import SessionLocal
 __all__ = (
     "ServiceContext",
     "get_db",
+    "get_redis_db",
     "get_current_account",
     "get_ws_current_account",
     "get_service_context",
     "get_ws_service_context",
+    "preprocess_sort_param",
 )
 
 logger = get_app_logger(__name__)
 
+SchemaT = TypeVar("SchemaT", bound=BaseModel)
+
 
 class ServiceContext:
-    def __init__(self, account: Account):
+    def __init__(self, *, account: Account, rdb: "StrictRedis[str]"):
         self.user = account.user
         self.account = account
+        self.rdb = rdb
 
 
 async def get_db():
-    logger.info("Opening a database session...")
-
+    session_id = uuid4()
+    logger.info(f"Opening a database session (Session ID: {session_id.hex})...")
     db = SessionLocal()
 
     try:
-        logger.info("Database session opened and provided!")
-
+        logger.info(f"Database session  (Session ID: {session_id.hex}) opened and provided!")
         yield db
     except Exception:
         db.rollback()
     finally:
-        logger.info("Closing the database session...")
-
+        logger.info(f"Closing the database session  (Session ID: {session_id.hex})...")
         db.close()
+        logger.info(f"Database session  (Session ID: {session_id.hex}) closed!")
 
-        logger.info("Database session closed!")
+
+async def get_redis_db():
+    redis = appredis.get_cleint()
+    return redis
 
 
-def get_ws_current_account(
+async def get_ws_current_account(
+    websocket: WebSocket,
     token: Annotated[str | None, Cookie(alias=settings.WS_ACCESS_TOKEN_KEY)] = None,
     db: Session = Depends(get_db),
 ):
+    await websocket.accept()
+
     if token is None:
         message = f"Required cookie, {settings.WS_ACCESS_TOKEN_KEY}, but none found"
 
@@ -89,15 +102,25 @@ def get_current_account(
     return account
 
 
-def get_service_context(current_account: Annotated[Account, Depends(get_current_account)]):
-    return ServiceContext(current_account)
-
-
-def get_ws_service_context(current_account: Annotated[Account, Depends(get_ws_current_account)]):
-    return ServiceContext(current_account)
-
-
-def preprocess_sort_param(
-    sort: Annotated[str, Query(description=describe_field(Conversation))] = ""
+def get_service_context(
+    current_account: Annotated[Account, Depends(get_current_account)],
+    rdb: Annotated["StrictRedis[str]", Depends(get_redis_db)],
 ):
-    return split_field(sort, delimiter=",")
+    return ServiceContext(account=current_account, rdb=rdb)
+
+
+def get_ws_service_context(
+    current_account: Annotated[Account, Depends(get_ws_current_account)],
+    rdb: Annotated["StrictRedis[str]", Depends(get_redis_db)],
+):
+    return ServiceContext(account=current_account, rdb=rdb)
+
+
+def preprocess_sort_param(schema: type[SchemaT]):
+    def preprocessor(sort: Annotated[str | None, Query(description=describe_field(schema))] = None):
+        default: list[str] = []
+        if sort is None:
+            return default
+        return split_field(sort, delimiter=",")
+
+    return preprocessor
