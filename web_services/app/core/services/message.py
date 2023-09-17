@@ -1,5 +1,7 @@
 # Standard Library
+import asyncio
 import json
+from contextlib import asynccontextmanager
 from typing import Any, Generator, cast
 from uuid import UUID, uuid4
 
@@ -9,7 +11,6 @@ from broadcaster import Event  # type: ignore
 from sqlalchemy.orm import Session
 
 # First Party
-from app.core.broadcaster import broadcast
 from app.core.deps import ServiceContext
 from app.core.exceptions.application import MissingResourceException
 from app.core.exceptions.http import ForbiddenRequestException
@@ -18,18 +19,26 @@ from app.core.intelligence.basic import generate_prompt, generate_response
 from app.core.logging.logger import get_app_logger
 from app.core.models.chat_message import ChatMessage as ChatMessageModel
 from app.core.models.chat_message import ChatMessageRoleEnum
+from app.core.redis.channels import get_conversation_channel_for
+from app.core.redis.publisher import publisher
+from app.core.redis.types import PubSubMessage
 from app.core.schemas import message as schema
 from app.core.schemas.conversation import ConversationCreate
 from app.core.schemas.openai import ChatCompletionResponseStream
+from app.core.schemas.pagination import PageOptions
+from app.core.schemas.websocket import DataStream, MessageStream, SignalStream
+from app.core.schemas.websocket import StreamSignalEnum
+from app.core.services.pagination import PageBuilder
 
 # Local Folder
 from .conversation import create_conversation_service, get_conversation_by_id
+from .service_object import PagedServiceObject
 
 __all__ = (
     "handle_message",
-    "message_reply_stream",
-    "save_chat_message_pair_service",
-    "get_chat_message_by_id",
+    "open_message_reply_stream",
+    "save_message_response_pair_service",
+    "get_message_by_id",
 )
 
 logger = get_app_logger(__name__)
@@ -59,6 +68,8 @@ async def handle_message(
     else:
         conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
 
+    session.expunge(conversation)
+
     modeled_message = ChatMessageModel(
         body=body,
         conversation_id=conversation_id,
@@ -72,106 +83,163 @@ async def handle_message(
 
     json_message = schema.Message.model_validate(modeled_message).model_dump_json()
 
-    result = await broadcast.publish(f"conversation:{conversation_id}", message=json_message)
-
-    # debug log:
-    logger.debug(result)
+    # Only publish if message originally had a conversation attached
+    # If not, it was a <noop> message just to get a conversation going.
+    if message.conversation_id is not None:
+        channel = get_conversation_channel_for(conversation_id)
+        asyncio.create_task(publisher(ctx.rdb, channel, json_message))
 
     return modeled_message
 
 
-async def message_reply_stream(
-    session: Session,
-    ctx: ServiceContext,
-    conversation_id: UUID,
-):
-    async with broadcast.subscribe(f"conversation:{conversation_id}") as sub:  # type: ignore
-        async for event in cast(Any, sub):
-            evt = cast(Event, event)
-            data = cast(dict[str, Any], json.loads(evt.message))
+@asynccontextmanager
+async def open_message_reply_stream(session: Session, ctx: ServiceContext, conversation_id: UUID):
+    pubsub = ctx.rdb.pubsub()  # type: ignore
+    channel = get_conversation_channel_for(conversation_id)
 
-            parsed_message = schema.Message.model_validate(data)
+    logger.info(f"Subscribing to {channel} channel...")
 
-            conversation = get_conversation_by_id(
-                session=session,
-                ctx=ctx,
-                id=parsed_message.conversation_id,
-            )
+    await pubsub.subscribe(channel)  # type: ignore
 
-            prompt = generate_prompt(question=parsed_message.body)
+    logger.info(f"Subscribed to {channel} channel!")
 
-            openai_response: Generator[ChatCompletionResponseStream, Any, None]
+    websocket_begin_stream_signal = SignalStream(
+        channel=channel,
+        message="Data stream begins",
+        signal=StreamSignalEnum.begin,
+    )
 
-            try:
-                # reassign
-                openai_response = generate_response(prompt=prompt)
-            except openai.OpenAIError:
-                logger.error("Failed to get completion from OpenAI", exc_info=True)
+    websocket_end_stream_signal = SignalStream(
+        channel=channel,
+        message="Data stream ends",
+        signal=StreamSignalEnum.end,
+    )
 
-                raise ServiceUnavailableException(
-                    message="Failed to establish outbound communication"
+    async def message_reply_stream():
+        while True:
+            message = cast(PubSubMessage | None, await pubsub.get_message())  # type: ignore
+
+            if message is None:
+                # Return control to the loop giving it time to do something else
+                await asyncio.sleep(0)
+                continue
+            elif not message.get("type").endswith("message"):
+                websocket_message = MessageStream(channel=channel, message="Subscribed")
+                yield websocket_message
+            else:
+                data = schema.Message.model_validate(json.loads(message.get("data")))
+
+                conversation = get_conversation_by_id(
+                    session=session,
+                    ctx=ctx,
+                    id=data.conversation_id,
                 )
 
-            completion = ""
-            chunk_id = uuid4()
+                # Do not track changes, detach from the session
+                session.expunge(conversation)
 
-            for chunk in openai_response:
-                delta = chunk.choices[0].delta
-                content = delta.content if hasattr(delta, "content") else None
+                prompt = generate_prompt(question=data.body)
 
-                if content is None:
-                    continue
+                openai_response: Generator[ChatCompletionResponseStream, Any, None]
 
-                completion += content
+                try:
+                    # reassign
+                    openai_response = generate_response(prompt=prompt)
+                except openai.OpenAIError:
+                    logger.error("Failed to get completion from OpenAI", exc_info=True)
 
-                response_chunk = ChatMessageModel(
-                    body=completion,
-                    role=ChatMessageRoleEnum.robot,
-                    conversation_id=parsed_message.conversation_id,
-                    response_to_id=parsed_message.id,
-                    response_from_id=None,
-                    _dangling=True,
-                )
+                    raise ServiceUnavailableException("Failed to establish outbound communication")
 
-                response_chunk.id = chunk_id
-                response_chunk.conversation = conversation
+                completion = ""
+                chunk_id = uuid4()
 
-                yield response_chunk
+                yield websocket_begin_stream_signal
 
-            message = ChatMessageModel(
-                body=parsed_message.body,
-                conversation_id=parsed_message.conversation_id,
-                response_from_id=parsed_message.response_from_id,
-                response_to_id=parsed_message.response_to_id,
-                role=parsed_message.role,
-                _dangling=False,
-            )
+                for chunk in openai_response:
+                    delta = chunk.choices[0].delta
+                    content = delta.content if hasattr(delta, "content") else None
 
-            response = ChatMessageModel(
-                body=completion,
-                conversation_id=message.conversation_id,
-                response_from_id=None,
-                response_to_id=None,
-                role=ChatMessageRoleEnum.robot,
-                _dangling=False,
-            )
+                    if content is None:
+                        continue
 
-            response.id = chunk_id
+                    completion += content
 
-            message.response_from_id = response.id
-            response.response_to_id = message.id
+                    response_chunk = ChatMessageModel(
+                        body=completion,
+                        role=ChatMessageRoleEnum.robot,
+                        conversation_id=data.conversation_id,
+                        response_to_id=data.id,
+                        response_from_id=None,
+                        _dangling=True,
+                    )
 
-            _, saved_response = save_chat_message_pair_service(
-                session=session,
-                ctx=ctx,
-                message_pair=(message, response),
-            )
+                    response_chunk.id = chunk_id
+                    response_chunk.conversation = conversation
 
-            yield saved_response
-    return
+                    websocket_data = DataStream[schema.Message](
+                        channel=channel,
+                        message="Streaming data...",
+                        data=cast(schema.Message, response_chunk),
+                    )
+
+                    yield websocket_data
+
+                    await asyncio.sleep(0)
+                yield websocket_end_stream_signal
+
+            # Return control to the event loop giving it time to do something else
+            await asyncio.sleep(0)
+
+    try:
+        yield message_reply_stream
+    except Exception as exc:
+        logger.error(f"Error occured while streaming {str(exc)}", exc_info=True)
+
+        raise exc
+    finally:
+        logger.info(f"Unsubscribing from {channel} channel and closing pubsub connection...")
+
+        await pubsub.unsubscribe(channel)  # type: ignore
+        await pubsub.close()
+
+        logger.info(f"Unsubscribed from {channel} channel and closed pubsub connection!")
+
+    # async with broadcast.subscribe(f"conversation:{conversation_id}") as sub:
+
+    #         message = ChatMessageModel(
+    #             body=parsed_message.body,
+    #             conversation_id=parsed_message.conversation_id,
+    #             response_from_id=parsed_message.response_from_id,
+    #             response_to_id=parsed_message.response_to_id,
+    #             role=parsed_message.role,
+    #             _dangling=False,
+    #         )
+
+    #         response = ChatMessageModel(
+    #             body=completion,
+    #             conversation_id=message.conversation_id,
+    #             response_from_id=None,
+    #             response_to_id=None,
+    #             role=ChatMessageRoleEnum.robot,
+    #             _dangling=False,
+    #         )
+
+    #         response.id = chunk_id
+
+    #         message.response_from_id = response.id
+    #         response.response_to_id = message.id
+
+    #         _, saved_response = save_message_response_pair_service(
+    #             session=session,
+    #             ctx=ctx,
+    #             message_pair=(message, response),
+    #         )
+
+    #         yield saved_response
+    # return
 
 
-def save_chat_message_pair_service(
+def save_message_response_pair_service(
     session: Session,
     ctx: ServiceContext,
     message_pair: tuple[ChatMessageModel, ChatMessageModel],
@@ -180,12 +248,18 @@ def save_chat_message_pair_service(
     exists, yet, create a new conversation to attach the dangling message to
 
     :param session: the database session to use to create a new account
+
     :param ctx: the service context containing contextual data necessary for running
         the service
+
     :param chat_message_create: the data to use to create a new message
     """
 
     message, response = message_pair
+
+    # this shouldn't happen
+    if message.conversation.started_by_id != ctx.user.id:
+        raise ForbiddenRequestException("Conversation must be started by the current user")
 
     session.add(message)
     session.add(response)
@@ -196,13 +270,12 @@ def save_chat_message_pair_service(
     return (message, response)
 
 
-def get_chat_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
+def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
     """Get a chat message by ID
 
     :params session: the database session to use to create a new account
 
-    :params ctx: the service context containing contextual data necessary for running
-        the service
+    :params ctx: the service context necessary for running the service
 
     :params id: the identifier to use to find the chat message
 
@@ -233,3 +306,51 @@ def get_chat_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         raise ForbiddenRequestException("You are not allowed to read this message")
 
     return chat_message
+
+
+def get_messages_by_conversation_id(
+    *,
+    session: Session,
+    ctx: ServiceContext,
+    conversation_id: UUID,
+    filter: schema.MessageFilter,
+    sorts: list[str],
+    page_opts: PageOptions,
+):
+    conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
+
+    # TODO: revise when the feature to share conversations have been implemented
+    if conversation.started_by_id != ctx.user.id:
+        raise ForbiddenRequestException(
+            "You are not allowed to read messages from this conversation"
+        )
+
+    page_builder = PageBuilder[ChatMessageModel, schema.MessageFilterExtra]()
+
+    after = page_opts.page_cursor if page_opts.page_forward else None
+    before = page_opts.page_cursor if not page_opts.page_forward else None
+
+    filter_extra = schema.MessageFilterExtra(
+        conversation_id=conversation_id,
+        **filter.model_dump(exclude_defaults=True),
+    )
+
+    page = (
+        page_builder.setup(session=session, model=ChatMessageModel)
+        .go_to_edge_before(before)
+        .go_to_edge_after(after)
+        .skim_through(filter=filter_extra)
+        .sort(sorts)
+        .build()
+    )
+
+    result = PagedServiceObject(
+        page.read(page_opts.page_size),
+        cursors=page.cursors(),
+        page_size=page.read_size,
+        total_pages=page.total_size,
+        has_next=page.has_next(),
+        has_prev=page.has_previous(),
+    )
+
+    return result
