@@ -16,7 +16,7 @@ class ConversationBase(BaseModel):
     """Foundational, common attributes"""
 
     subject: str
-    started_by_id: UUID4
+
 
 
 class ConversationFilter(BaseModel):
@@ -34,10 +34,16 @@ class ConversationFilterExtra(ConversationFilter):
 class ConversationCreate(ConversationBase):
     """Attributes necessary for creating a Conversation object"""
 
-    pass
+    started_by_id: UUID4
+
+
+class ConversationUpdate(ConversationBase):
+    """Updateable attributes for a Conversation object"""
+    subject: str
 
 
 class Conversation(ConversationBase, SchemaBase):
     """Conversation outbound attributes"""
 
     started_by: "User"
+    started_by_id: UUID4
