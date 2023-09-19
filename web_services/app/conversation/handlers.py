@@ -150,7 +150,6 @@ async def recieve_message_reply_stream(
     async def streamer(websocket: WebSocket):
         async with open_message_reply_stream(db, ctx, conversation_id) as message_reply_stream:
             async for stream in message_reply_stream():
-                logger.debug(stream)
                 await websocket.send_json(mode="binary", data=stream.model_dump(mode="json"))
 
     async with asyncio.TaskGroup() as tg:
