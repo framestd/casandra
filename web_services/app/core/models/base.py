@@ -32,7 +32,7 @@ class Base(DeclarativeBase, MappedAsDataclass):
         init=False,
         index=True,
         nullable=False,
-        default=get_utc_time(),
+        default_factory=get_utc_time,
     )
 
     updated_at: Mapped[datetime] = mapped_column(
@@ -41,7 +41,7 @@ class Base(DeclarativeBase, MappedAsDataclass):
         init=False,
         index=True,
         nullable=False,
-        default=get_utc_time(),
+        default_factory=get_utc_time,
         onupdate=get_utc_time,
     )
 
