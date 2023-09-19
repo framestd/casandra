@@ -1,12 +1,9 @@
-import { AxiosResponse } from 'axios';
-import { produce } from 'immer';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { InfiniteData, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-import { ConversationUpdate, StandardPaginatedResponseConversation } from '@/client';
+import { Conversation, ConversationUpdate, StandardPaginatedResponseConversation } from '@/client';
 
 import { BaseInfiniteQueryServiceOptions, WithId } from '../types';
-import { getNextPageParam, getPreviousPageParam } from '../utils';
+import { getNextPageParam, getPreviousPageParam, writeOptimisticInfiniteData } from '../utils';
 import {
   readConversationsService,
   ReadConversationsVariables,
@@ -47,50 +44,19 @@ export function useReviseConversationService() {
     },
 
     onMutate(variables) {
-      type QueryData = InfiniteData<AxiosResponse<StandardPaginatedResponseConversation>>;
-
       const { id, ...update } = variables;
-      const queryKeyNamespace = ConversationKeysNS.READ_CONVERSATIONS;
-      const queriesData = queryClient.getQueriesData<QueryData>([queryKeyNamespace]);
-      const queryData = queryClient.getQueryData<QueryData>([queryKeyNamespace], { exact: false, type: 'active' });
+      const partialQueryKey = [ConversationKeysNS.READ_CONVERSATIONS];
 
-      const queryKeyDataPair = queriesData.find(([_, data]) => data === queryData);
+      const writeInfo = writeOptimisticInfiniteData<StandardPaginatedResponseConversation>(
+        queryClient,
+        partialQueryKey,
+        { id, ...update } as Conversation,
+        (draft) => draft.id === id,
+      );
 
-      const [queryKey] = queryKeyDataPair || [];
+      if (!writeInfo) return;
 
-      if (!queryKey) return;
-
-      queryClient.setQueryData<QueryData>(queryKey, (data) => {
-        if (!data) return;
-
-        const newData = produce(data, (draft) => {
-          let indexOfConversation = -1;
-
-          const indexOfPage = draft.pages.findIndex((page) => {
-            const pageFound = page.data.data.some((data, j) => {
-              const conversationFound = data.id === id;
-
-              if (conversationFound) indexOfConversation = j;
-
-              return conversationFound;
-            });
-
-            return pageFound;
-          });
-
-          if (indexOfPage === -1) return draft;
-
-          const page = draft.pages.at(indexOfPage)!;
-
-          const conversation = page.data.data[indexOfConversation];
-
-          page.data.data[indexOfConversation] = Object.assign({}, conversation, update);
-        });
-
-        return newData;
-      });
-
-      return { queryKey, previous: queryData };
+      return { queryKey: writeInfo.queryKey, previous: writeInfo.previous };
     },
 
     onError(_err, _variables, context) {
@@ -98,10 +64,12 @@ export function useReviseConversationService() {
       queryClient.setQueryData(context.queryKey, context.previous);
     },
 
-    onSettled() {
+    onSettled(_data, _err, _var, context) {
+      if (!context) return;
+
       queryClient.invalidateQueries({
-        queryKey: [ConversationKeysNS.READ_CONVERSATIONS],
-        exact: false,
+        queryKey: context.queryKey,
+        exact: true,
         type: 'active',
       });
     },
