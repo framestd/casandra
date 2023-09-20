@@ -74,6 +74,15 @@ export function usePublishMessageService() {
       queryClient.setQueryData(context.queryKey, context.previous);
     },
 
+    /**
+     * fix: publsihed message disappearing
+
+     * newly published message (optimistically written to cache) disapears
+     * from cache when query is invalidated on request settled
+     * (onSettled, i.e., Promise.resolve or Promise.reject). This is so because
+     * messages are not saved immediately when published, not until their
+     * response stream is complete. This may change in the future
+     */
     onSettled(_data, _err, _var, _context) {
       // DO NOT INVALIDATE: New message isn't available until the websocket stream ends
       //
