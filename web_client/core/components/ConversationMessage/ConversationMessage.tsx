@@ -20,9 +20,10 @@ export const ConversationMesssage = ({ message, enitity, role, ...rest }: ChatMe
   return (
     <HStack
       px={3}
-      py={2}
+      py={8}
       width="full"
       alignItems="baseline"
+      borderBottomWidth={1}
       bgColor={role === ChatMessageRoleEnum.ROBOT ? highlght : undefined}
       {...rest}
     >
