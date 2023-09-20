@@ -51,7 +51,7 @@ export class WebSocketManager {
   private onStateChange: WebSocketEventHandler<'state'>;
   private reconnectionCount: number = 0;
   private timeoutId: NodeJS.Timeout | number = -1;
-  private INTERNAL_STATE: WebSocketManagerState;
+  private INTERNAL_STATE: WebSocketManagerState = WebSocketManagerState.DISCONNECTED;
 
   // With the following reconnect strategy, the reconnection
   // logic is tried 7 times in a total of a 180-second window.
@@ -188,6 +188,7 @@ export class WebSocketManager {
   }
 
   disconnect(): void {
+    if (this.STATE === WebSocketManagerState.DISCONNECTED) return;
     // eslint-disable-next-line no-console
     console.info('Disconnecting websocket by manager');
     this.websocket.removeEventListener('close', this.onclose);
