@@ -74,13 +74,15 @@ export function usePublishMessageService() {
       queryClient.setQueryData(context.queryKey, context.previous);
     },
 
-    onSettled(_data, _err, _var, context) {
-      if (!context) return;
-      queryClient.invalidateQueries({
-        queryKey: context.queryKey,
-        exact: true,
-        type: 'active',
-      });
+    onSettled(_data, _err, _var, _context) {
+      // DO NOT INVALIDATE: New message isn't available until the websocket stream ends
+      //
+      // if (!context) return;
+      // queryClient.invalidateQueries({
+      //   queryKey: context.queryKey,
+      //   exact: true,
+      //   type: 'active',
+      // });
     },
   });
 }
@@ -116,13 +118,15 @@ export function useConversationMessageSocket(id: string) {
     const conversationId = uuidToHex(stream.channel.split(':').at(-1)!);
     const partialQueryKey = [MessageKeysNS.READ_MESSAGES, conversationId];
 
-    isDataStream(stream) &&
-      writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
-        queryClient,
-        partialQueryKey,
-        stream.data,
-        (draft) => draft.id === stream.data.id,
-      );
+    queueMicrotask(() => {
+      isDataStream(stream) &&
+        writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
+          queryClient,
+          partialQueryKey,
+          stream.data,
+          (draft) => draft.id === stream.data.id,
+        );
+    });
   }, [queryClient, result.isSuccess, result.message]);
 
   return result;
