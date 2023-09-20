@@ -21,6 +21,12 @@ export function getServerBaseURL() {
   return serverBaseUrl;
 }
 
+export const getSocketURL = (pathname: string, base = getServerBaseURL()) => {
+  const url = new URL(pathname, base);
+  url.protocol = base.startsWith('https:') ? 'wss:' : 'ws:';
+  return url;
+};
+
 function getAccessToken() {
   const token = getToken();
 

@@ -7,7 +7,19 @@ type WebSocketEventHandlerMap = { [P in keyof WebSocketManagerEventMap]: WebSock
 type ResultantConfig = { [P in keyof WebSocketManagerConfig]: ReturnType<WebSocketManagerConfig[P]> };
 
 interface WebSocketManagerConfig {
+  /**
+   * Computes the elligibility for a reconnection when the current connection closes
+   * @param retryCount The amount of current retries
+   * @param custom The custom value provided when WebSocketManager was instantiated
+   * @returns A boolean indicating whether to reconnect or not
+   */
   reconnect: (retryCount: number, custom: WebSocketManagerOptions['reconnect']) => boolean;
+  /**
+   * Computes a reconnection delay in milliseconds for the current phase of reconnection
+   * @param retryCount The amount of current retries
+   * @param custom The custom value provided when WebSocketManager was instantiated
+   * @returns A delay in milliseconds that must pass before the next reconnection attempt
+   */
   reconnectDelay: (retryCount: number, custom: WebSocketManagerOptions['reconnectDelay']) => number;
 }
 
@@ -54,10 +66,22 @@ export class WebSocketManager {
   }
 
   private static config: WebSocketManagerConfig = {
+    /**
+     * Computes the elligibility for a reconnection when the current connection closes
+     * @param retryCount The amount of current retries
+     * @param custom The custom value provided when WebSocketManager was instantiated
+     * @returns A boolean indicating whether to reconnect or not
+     */
     reconnect(retryCount, custom) {
       if (custom) return isFunction(custom) ? custom(retryCount) : custom;
       return retryCount < WebSocketManager.MAX_RETRY;
     },
+    /**
+     * Computes a reconnection delay in milliseconds for the current phase of reconnection
+     * @param retryCount The amount of current retries
+     * @param custom The custom value provided when WebSocketManager was instantiated
+     * @returns A delay in milliseconds that must pass before the next reconnection attempt
+     */
     reconnectDelay(retryCount, custom) {
       if (custom) return isFunction(custom) ? custom(retryCount) : custom;
       return WebSocketManager.BASE_RETRY_INTERVAL * Math.pow(2, retryCount + 1);
@@ -72,6 +96,9 @@ export class WebSocketManager {
     this.onclose = (ev) => {
       this.STATE = WebSocketManagerState.CLOSED;
       this.eventsMap.close.forEach((fn) => fn.call(this.websocket, ev));
+
+      // give time for the closed state to be propagated through event handler
+      // by queueing a reconnection task following a state change task
       queueMicrotask(() => this.reconnect());
     };
 
@@ -82,6 +109,14 @@ export class WebSocketManager {
 
     this.onmessage = (ev) => {
       this.eventsMap.message.forEach((fn) => fn.call(this.websocket, ev));
+
+      // Reset reconnection count after a message comes in.
+      // A message coming in guarantees the stability of the connection, so next time
+      // a disconnection occurs the reconnect strategy can start on a clean slate.
+      // If this was to be reset on connection open, then it could try to reconnect
+      // infinitely if after the connection opened it closes which would be the case
+      // for an unstable connection.
+      this.resetReconnectionCount();
     };
 
     this.onopen = (ev) => {
