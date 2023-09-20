@@ -1,3 +1,5 @@
+import { useEffect } from 'react';
+
 import { SignalStream, StreamSignalEnum, StreamTypeEnum, WebSocketStream } from '@/core/services/websocket';
 import { never } from '@/core/utils';
 
@@ -9,7 +11,6 @@ import {
   WebSocketError,
   WithURL,
 } from './useWebSocketManager';
-import { useEffect } from 'react';
 
 export interface UseWebSocketOptions extends UseWebSocketManagerOptions {
   onStreamBegin?: (stream: SignalStream<StreamSignalEnum.BEGIN>) => void;

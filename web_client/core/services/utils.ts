@@ -1,8 +1,9 @@
 import { AxiosResponse } from 'axios';
+import { Draft, produce } from 'immer';
+
+import { InfiniteData, QueryClient, QueryKey } from '@tanstack/react-query';
 
 import { ResponseMetadata } from '@/client';
-import { InfiniteData, QueryClient, QueryKey } from '@tanstack/react-query';
-import { Draft, produce } from 'immer';
 
 type ResponseData<T> = Record<'data', T[]>;
 type ResponseDataMetadata<T> = AxiosResponse<Record<'metadata', T>>;

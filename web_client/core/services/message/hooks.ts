@@ -3,7 +3,6 @@ import { useEffect, useMemo } from 'react';
 import Cookies from 'js-cookie';
 
 import { createId as cuid2 } from '@paralleldrive/cuid2';
-
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ChatMessageRoleEnum, Message, StandardPaginatedResponseMessage } from '@/client';
@@ -14,9 +13,9 @@ import { CONVERSATIONS } from '@/core/utils/routes';
 import { getSocketURL } from '../config';
 import { BaseInfiniteQueryServiceOptions } from '../types';
 import { getNextPageParam, getPreviousPageParam, writeOptimisticInfiniteData } from '../utils';
+import { isDataStream } from '../websocket';
 import { readMessagesByConversationIdService, ReadMessagesVariables } from './message.service';
 import { publishMessageService } from './send.service';
-import { isDataStream } from '../websocket';
 
 export interface ReadMessagesServiceOptions<S>
   extends BaseInfiniteQueryServiceOptions<StandardPaginatedResponseMessage, ReadMessagesVariables, S> {}

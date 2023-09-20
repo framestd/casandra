@@ -1295,7 +1295,7 @@ export class AccountApi extends BaseAPI {
 export const ConversationApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * Read a conversation by a given id.
+     * Read a conversation by a given ID.
      * @summary Read Conversation By Id
      * @param {string} id
      * @param {*} [options] Override http request option.
@@ -1333,7 +1333,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
       };
     },
     /**
-     *
+     * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
      * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
      * @param {Subject | null} [subject]
@@ -1397,7 +1397,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
       };
     },
     /**
-     *
+     * Revise a conversation by a given ID, specifying changes to be made
      * @summary Revise Conversation
      * @param {string} id
      * @param {ConversationUpdate} conversationUpdate
@@ -1452,7 +1452,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = ConversationApiAxiosParamCreator(configuration);
   return {
     /**
-     * Read a conversation by a given id.
+     * Read a conversation by a given ID.
      * @summary Read Conversation By Id
      * @param {string} id
      * @param {*} [options] Override http request option.
@@ -1466,7 +1466,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
-     *
+     * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
      * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
      * @param {Subject | null} [subject]
@@ -1495,7 +1495,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
-     *
+     * Revise a conversation by a given ID, specifying changes to be made
      * @summary Revise Conversation
      * @param {string} id
      * @param {ConversationUpdate} conversationUpdate
@@ -1529,7 +1529,7 @@ export const ConversationApiFactory = function (
   const localVarFp = ConversationApiFp(configuration);
   return {
     /**
-     * Read a conversation by a given id.
+     * Read a conversation by a given ID.
      * @summary Read Conversation By Id
      * @param {ConversationApiReadConversationByIdConversationsIdGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1544,7 +1544,7 @@ export const ConversationApiFactory = function (
         .then((request) => request(axios, basePath));
     },
     /**
-     *
+     * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
      * @param {ConversationApiReadConversationsConversationsGetRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1566,7 +1566,7 @@ export const ConversationApiFactory = function (
         .then((request) => request(axios, basePath));
     },
     /**
-     *
+     * Revise a conversation by a given ID, specifying changes to be made
      * @summary Revise Conversation
      * @param {ConversationApiReviseConversationConversationsIdPutRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1668,7 +1668,7 @@ export interface ConversationApiReviseConversationConversationsIdPutRequest {
  */
 export class ConversationApi extends BaseAPI {
   /**
-   * Read a conversation by a given id.
+   * Read a conversation by a given ID.
    * @summary Read Conversation By Id
    * @param {ConversationApiReadConversationByIdConversationsIdGetRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1685,7 +1685,7 @@ export class ConversationApi extends BaseAPI {
   }
 
   /**
-   *
+   * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
    * @summary Read Conversations
    * @param {ConversationApiReadConversationsConversationsGetRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1709,7 +1709,7 @@ export class ConversationApi extends BaseAPI {
   }
 
   /**
-   *
+   * Revise a conversation by a given ID, specifying changes to be made
    * @summary Revise Conversation
    * @param {ConversationApiReviseConversationConversationsIdPutRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
