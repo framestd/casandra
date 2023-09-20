@@ -86,28 +86,45 @@ export function usePublishMessageService() {
   });
 }
 
-    reader.readAsText(event.data, 'utf-8');
-  };
+export function useConversationMessageSocket(id: string) {
+  const queryClient = useQueryClient();
+  const sockurl = useMemo(() => getSocketURL(`${CONVERSATIONS}/${id}/ws`), [id]);
 
+  // Run on every render: the only reason this is in a useEffect hook is cause
+  // it's uses browser only APIs, if not we can do without the hook.
   useEffect(() => {
-    // An active session is required before connecting to socket
-    if (!config.has_active_session) return;
-
     const wsCookie = Cookies.get(WS_ACCESS_TOKEN_KEY);
     const accessToken = getToken(ACCESS_TOKEN_KEY)!;
     if (wsCookie === undefined || wsCookie !== accessToken)
       Cookies.set(WS_ACCESS_TOKEN_KEY, accessToken, { path: '/conversations' });
+  });
 
-    const socket = new WebSocket(sockurl);
+  const result = useWebSocket<Message>(sockurl, {
+    connect: true,
+    onStreamEnd: (s) => {
+      const conversationId = uuidToHex(s.channel.split(':').at(-1)!);
+      queryClient.invalidateQueries({
+        queryKey: [MessageKeysNS.READ_MESSAGES, conversationId],
+        exact: false,
+      });
+    },
+  });
 
-    socket.addEventListener('open', onopen);
-    socket.addEventListener('message', onmessage);
-    socket.addEventListener('close', onclose);
-    socket.addEventListener('error', onerror);
-    window.addEventListener('beforeunload', () => socket.close(1000, 'client:unload'));
+  useEffect(() => {
+    if (!result.isSuccess) return;
 
-    return () => socket.close(1000, 'client:done');
-  }, [config.has_active_session, onclose, onerror, onopen, sockurl]);
+    const stream = result.message;
+    const conversationId = uuidToHex(stream.channel.split(':').at(-1)!);
+    const partialQueryKey = [MessageKeysNS.READ_MESSAGES, conversationId];
 
-  return message;
+    isDataStream(stream) &&
+      writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
+        queryClient,
+        partialQueryKey,
+        stream.data,
+        (draft) => draft.id === stream.data.id,
+      );
+  }, [queryClient, result.isSuccess, result.message]);
+
+  return result;
 }
