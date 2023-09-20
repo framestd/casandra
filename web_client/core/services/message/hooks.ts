@@ -46,32 +46,45 @@ export function useReadMessagesByConversationIdService<S>(
 }
 
 export function usePublishMessageService() {
-  return useMutation({ mutationFn: publishMessageService, meta: { report_error: true, title: 'Publish Message' } });
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    meta: { report_error: true, title: 'Send Message' },
+    mutationFn: publishMessageService,
+    onMutate(variables) {
+      // <noop> message
+      if (!variables.conversation_id) return;
+
+      const partialQueryKey = [MessageKeysNS.READ_MESSAGES, variables.conversation_id];
+      const partialMessage = { id: cuid2(), body: variables.body, role: ChatMessageRoleEnum.HUMAN } as Message;
+
+      const writeInfo = writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
+        queryClient,
+        partialQueryKey,
+        partialMessage,
+        (_) => false, // its a new message can never be matched
+      );
+
+      if (!writeInfo) return;
+
+      return { queryKey: writeInfo.queryKey, previous: writeInfo.previous };
+    },
+
+    onError(_err, _variables, context) {
+      if (!context) return;
+      queryClient.setQueryData(context.queryKey, context.previous);
+    },
+
+    onSettled(_data, _err, _var, context) {
+      if (!context) return;
+      queryClient.invalidateQueries({
+        queryKey: context.queryKey,
+        exact: true,
+        type: 'active',
+      });
+    },
+  });
 }
-
-export function useConversationMessageSocket(conversationId: string, options: SocketOptions = {}) {
-  const [message, setMessage] = useState<Message | null>(null);
-  const { onclose, onerror, onopen } = useSocketStatusEvents();
-  const { config } = useContext(ConfigContext);
-
-  const sockurl = useMemo(() => {
-    if (options.url) return options.url.toString();
-
-    const url = new URL(getServerBaseURL() + `${CONVERSATIONS}/${conversationId}/ws`);
-
-    url.protocol = 'ws:';
-
-    return url.toString();
-  }, [conversationId, options.url]);
-
-  const onmessage = (event: MessageEvent<Blob>) => {
-    const reader = new FileReader();
-
-    reader.addEventListener('load', () => {
-      const stream: WebSocketStream<Message> = JSON.parse(reader.result as string);
-
-      if (stream.type === StreamTypeEnum.DATA) setMessage(stream.data);
-    });
 
     reader.readAsText(event.data, 'utf-8');
   };
