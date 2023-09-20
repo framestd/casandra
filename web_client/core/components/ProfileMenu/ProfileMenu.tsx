@@ -9,6 +9,7 @@ import { fullname } from '@/core/utils';
 
 import { ConfigContext } from '../Providers';
 import { Typography } from '../Typography';
+import { useThemeConstants } from '@/core/composition/hooks';
 
 export interface ProfileMenuProps extends StackProps {
   name?: string;
@@ -18,6 +19,7 @@ export const ProfileMenu = ({ name, ...rest }: ProfileMenuProps) => {
   const { config } = useContext(ConfigContext);
   const user = config.session.user_account?.user;
   const fname = name ? name : user ? fullname(user) : '';
+  const { blended_bg, blended_hover_bg } = useThemeConstants();
 
   return (
     <HStack
@@ -26,8 +28,8 @@ export const ProfileMenu = ({ name, ...rest }: ProfileMenuProps) => {
       py={2}
       borderRadius="full"
       width="full"
-      _hover={{ bgColor: 'whiteAlpha.400' }}
-      {...backdropFactory({ bgColor: 'whiteAlpha.200' })}
+      _hover={{ bgColor: blended_hover_bg }}
+      {...backdropFactory({ bgColor: blended_bg })}
       {...rest}
     >
       <Avatar name={fname} size={{ base: 'sm', lg: 'md' }} />
