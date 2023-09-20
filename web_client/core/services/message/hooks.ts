@@ -1,26 +1,22 @@
-import { useContext, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 
 import Cookies from 'js-cookie';
 
-import { useInfiniteQuery, useMutation } from '@tanstack/react-query';
+import { createId as cuid2 } from '@paralleldrive/cuid2';
 
-import { Message, StandardPaginatedResponseMessage } from '@/client';
-import { ConfigContext } from '@/core/components/Providers';
-import { useSocketStatusEvents } from '@/core/composition/hooks';
-import { ACCESS_TOKEN_KEY, getToken, WS_ACCESS_TOKEN_KEY } from '@/core/utils';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+import { ChatMessageRoleEnum, Message, StandardPaginatedResponseMessage } from '@/client';
+import { useWebSocket } from '@/core/composition/hooks';
+import { ACCESS_TOKEN_KEY, getToken, uuidToHex, WS_ACCESS_TOKEN_KEY } from '@/core/utils';
 import { CONVERSATIONS } from '@/core/utils/routes';
 
-import { getServerBaseURL } from '../config';
+import { getSocketURL } from '../config';
 import { BaseInfiniteQueryServiceOptions } from '../types';
-import { getNextPageParam, getPreviousPageParam } from '../utils';
-import { StreamTypeEnum, WebSocketStream } from '../websocket';
+import { getNextPageParam, getPreviousPageParam, writeOptimisticInfiniteData } from '../utils';
 import { readMessagesByConversationIdService, ReadMessagesVariables } from './message.service';
 import { publishMessageService } from './send.service';
-
-export interface SocketOptions {
-  url?: URL;
-  onMessageEnd?: () => void;
-}
+import { isDataStream } from '../websocket';
 
 export interface ReadMessagesServiceOptions<S>
   extends BaseInfiniteQueryServiceOptions<StandardPaginatedResponseMessage, ReadMessagesVariables, S> {}
