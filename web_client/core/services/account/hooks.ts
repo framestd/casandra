@@ -21,7 +21,7 @@ export function useIdentifyUserAccountService<S>(options: IdentifyUserAccountSer
     queryKey: [AccountKeysNS.SESSION_USER],
     enabled: options.trigger,
     staleTime: Infinity,
-    queryFn: identifyUserAccountService,
+    queryFn: async ({ signal }) => await identifyUserAccountService({ signal }),
 
     select: options.select,
   });

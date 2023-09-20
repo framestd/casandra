@@ -3,18 +3,23 @@ import { ConversationUpdate } from '@/client';
 import { api } from '../base';
 import { BasePagedServiceParams } from '../types';
 import { conversationClient } from './client';
+import { AxiosRequestConfig } from 'axios';
 
 export interface ReadConversationsVariables extends BasePagedServiceParams {
   subject?: string;
 }
 
-export async function readConversationsService(variables: ReadConversationsVariables) {
+export async function readConversationsService(
+  variables: ReadConversationsVariables,
+  axiosOptions?: AxiosRequestConfig,
+) {
   const readConversations = await conversationClient.readConversationsConversationsGet(
     variables.sort?.join(','),
     variables.subject,
     variables.pageCursor,
     variables.pageSize,
     variables.pageForward,
+    axiosOptions,
   );
 
   const response = await readConversations(api);

@@ -15,7 +15,7 @@ export function useGetApplicationInfo<S>(options: GetApplicationInfoOptions<S> =
   return useQuery({
     queryKey: [QueryKeyNamespace.APPLICATION_INFO],
     enabled: options.trigger,
-    queryFn: getApplicationInfo,
+    queryFn: async ({ signal }) => await getApplicationInfo({ signal }),
 
     select: options.select,
   });

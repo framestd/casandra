@@ -3,6 +3,7 @@ import { ChatMessageRoleEnum } from '@/client';
 import { api } from '../base';
 import { BasePagedServiceParams } from '../types';
 import { messageClient } from './client';
+import { AxiosRequestConfig } from 'axios';
 
 export interface ReadMessagesVariables extends BasePagedServiceParams {
   body?: string;
@@ -19,7 +20,11 @@ export async function readMessageByIdService(id: string) {
   return response;
 }
 
-export async function readMessagesByConversationIdService(conversation_id: string, varialbles: ReadMessagesVariables) {
+export async function readMessagesByConversationIdService(
+  conversation_id: string,
+  varialbles: ReadMessagesVariables,
+  axiosOptions?: AxiosRequestConfig,
+) {
   const readMessagesByConversationId = await messageClient.readChatMessagesByConversationIdMessagesGet(
     conversation_id,
     varialbles.sort?.join(','),
@@ -30,6 +35,7 @@ export async function readMessagesByConversationIdService(conversation_id: strin
     varialbles.pageCursor,
     varialbles.pageSize,
     varialbles.pageForward,
+    axiosOptions,
   );
 
   const response = await readMessagesByConversationId(api);

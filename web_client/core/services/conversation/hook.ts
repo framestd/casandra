@@ -24,7 +24,7 @@ export function useReadConversationsService<S>(options: ReadConversationsService
     enabled: options.trigger !== false,
     queryKey: [ConversationKeysNS.READ_CONVERSATIONS, variables],
     staleTime: Infinity,
-    queryFn: async () => await readConversationsService(variables),
+    queryFn: async ({ signal }) => await readConversationsService(variables, { signal }),
     select: options.select,
     getPreviousPageParam: getPreviousPageParam,
     getNextPageParam: getNextPageParam,

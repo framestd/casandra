@@ -35,7 +35,7 @@ export function useReadMessagesByConversationIdService<S>(
     enabled: options.trigger !== false,
     queryKey,
     staleTime: Infinity,
-    queryFn: async () => await readMessagesByConversationIdService(conversationId, variables),
+    queryFn: async ({ signal }) => await readMessagesByConversationIdService(conversationId, variables, { signal }),
     select: options.select,
     getPreviousPageParam: getPreviousPageParam,
     getNextPageParam: getNextPageParam,
@@ -99,7 +99,7 @@ export function useConversationMessageSocket(id: string) {
   });
 
   const result = useWebSocket<Message>(sockurl, {
-    connect: true,
+    connect: id !== 'new',
     onStreamEnd: (s) => {
       const conversationId = uuidToHex(s.channel.split(':').at(-1)!);
       queryClient.invalidateQueries({
