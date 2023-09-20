@@ -1,3 +1,5 @@
+'use client';
+
 import { ReactNode, useContext } from 'react';
 
 import { Box, Flex, VStack } from '@/chakra-ui/react';
@@ -7,21 +9,22 @@ import { useParams } from 'next/navigation';
 import { AppBar } from '@/core/components/AppBar';
 import { ProfileMenu } from '@/core/components/ProfileMenu';
 import { ConfigContext } from '@/core/components/Providers';
-import { APP_BAR_HEIGHT } from '@/core/utils';
+import { APP_BAR_HEIGHT, fullname } from '@/core/utils';
 
 import { ConversationBar } from './ConversationBar';
 
 export interface ChatLayoutProps {
-  name: string;
   children?: ReactNode;
 }
 
-export const ConversationLayout = ({ children, name }: ChatLayoutProps) => {
+export const ConversationLayout = ({ children }: ChatLayoutProps) => {
   const params = useParams();
   const { config } = useContext(ConfigContext);
+  const user = config.session.user_account?.user;
+  const name = user ? fullname(user) : '';
 
   return (
-    <Box height="full" bgRepeat="no-repeat" bgSize="cover">
+    <Box height="full">
       <AppBar type="tool" title={config.application_config.name} />
 
       <Flex height={`calc(100% - ${APP_BAR_HEIGHT}px)`} width="full">
@@ -37,7 +40,7 @@ export const ConversationLayout = ({ children, name }: ChatLayoutProps) => {
         >
           {/* TODO: Create and render error component */}
 
-          <ConversationBar activeConversationId={params.id.toString()} pt={8} flex="1 1 auto" />
+          <ConversationBar activeConversationId={params.id.toString()} flex="1 1 auto" />
 
           <ProfileMenu name={name} />
         </VStack>
