@@ -2,10 +2,10 @@ import { ThemeTypings } from '@/chakra-ui/react';
 
 import get from 'lodash.get';
 
-import { User } from '@/client';
-
 import { theme } from '../theme';
 import { Choose } from './types';
+
+type UserPerson = { first_name: string; last_name: string };
 
 export const APP_BAR_HEIGHT = 50;
 export const USERNAME_REGEX = /^[A-Za-z]+(?:[_.]?[A-Za-z0-9]+)*$/;
@@ -32,4 +32,21 @@ export const removeToken = (key = ACCESS_TOKEN_KEY) => {
   return localStorage.removeItem(key);
 };
 
-export const fullname = (user: User) => user.first_name.concat(' ', user.last_name);
+export const fullname = <U extends UserPerson>(user: U) => user.first_name.concat(' ', user.last_name);
+
+export const isFunction = (v: any): v is (...args: any) => any => typeof v === 'function';
+
+export const isURL = <T extends URL | string = URL | string>(v: any): v is T => {
+  try {
+    new URL(v);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
+export const uuidToHex = (uuid: string) => uuid.replace(/-/g, '');
+
+export const never = (_: never) => {
+  throw new Error('Unreachable');
+};
