@@ -1,4 +1,0 @@
-.chat_text_box__wrapper:has(textarea:focus-visible) {
-  box-shadow: 0 0 0 1px var(--chakra-colors-brand-500);
-  border-color: var(--chakra-colors-brand-500);
-}

@@ -1,21 +1,20 @@
 'use client';
 
-import { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
+import { ChangeEvent, KeyboardEvent, MouseEvent, useState } from 'react';
 
 import { Box, Flex, FlexProps, Icon, IconButton, SystemStyleObject, Textarea } from '@/chakra-ui/react';
 
 import { IoSend } from 'react-icons/io5';
 
-import styles from './index.module.css';
 
 export interface ChatTextBoxProps extends Omit<FlexProps, 'onChange'> {
-  value: string;
-  onChange?: (message: string) => void;
-  onSend?: () => void;
-  isSendDisabled?: boolean;
+  value?: string;
+  onSend?: (message: string) => void;
+  isSending?: boolean;
 }
 
-export const ChatTextBox = ({ value, isSendDisabled = false, onChange, onSend, ...props }: ChatTextBoxProps) => {
+export const ChatTextBox = ({ value, isSending = false, onSend, ...props }: ChatTextBoxProps) => {
+  const [textValue, setTextValue] = useState(() => value || '');
   const sty: SystemStyleObject = {
     py: 0,
     fontSize: 'md',
@@ -28,17 +27,23 @@ export const ChatTextBox = ({ value, isSendDisabled = false, onChange, onSend, .
 
     if (!box) return;
 
-    onChange?.(evt.target.value);
+    box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+
+    setTextValue(evt.target.value);
   };
 
   const handleSend = (_evt: MouseEvent<HTMLButtonElement>) => {
-    onSend?.();
+    setTextValue('');
+    onSend?.(textValue.trim());
   };
 
   const handleKeyDown = (evt: KeyboardEvent) => {
     if (evt.key === 'Enter' && !evt.shiftKey) {
       evt.preventDefault();
-      '' !== value.trim() && onSend?.();
+      if ('' !== textValue.trim()) {
+        setTextValue('');
+        onSend?.(textValue.trim());
+      }
     }
   };
 
@@ -48,23 +53,23 @@ export const ChatTextBox = ({ value, isSendDisabled = false, onChange, onSend, .
       py={1.5}
       width="full"
       overflow="auto"
-      alignItems="center"
+      alignItems="flex-start"
       position="relative"
       minHeight="46px"
       maxHeight={`${22 * 9}px`}
       borderRadius="xl"
       borderWidth={1}
       borderStyle="solid"
-      className={styles.chat_text_box__wrapper}
       borderColor="gray.500"
       {...props}
     >
       <Box
+        my="auto"
         width="full"
         display="inline-grid"
         position="relative"
         alignItems="center"
-        data-value={value}
+        data-value={textValue}
         _after={{
           ...sty,
           content: 'attr(data-value) " "',
@@ -81,7 +86,7 @@ export const ChatTextBox = ({ value, isSendDisabled = false, onChange, onSend, .
           height="full"
           resize="none"
           overflow="auto"
-          value={value}
+          value={textValue}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           focusBorderColor="transparent"
@@ -100,7 +105,7 @@ export const ChatTextBox = ({ value, isSendDisabled = false, onChange, onSend, .
           bgColor="brand.500"
           color="brand.text.500"
           onClick={handleSend}
-          isDisabled={isSendDisabled}
+          isDisabled={isSending || textValue.trim() === ''}
         >
           <Icon as={IoSend} />
         </IconButton>
