@@ -34,8 +34,9 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
 
   const messageIconColor = useColorModeValue('green.600', 'green.400');
   const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');
-  const txtOverflowShade = useColorModeValue('#e5ebec', '#141414');
-  const txtOverflowShadeActive = useColorModeValue('#d7dbdb', '#262626');
+  const textOverflowShade = useColorModeValue('#ecf0f0', '#141414');
+  const textOverflowShadeActive = useColorModeValue('#dadfdf', '#262626');
+  const textOverflowShadeHover = useColorModeValue('#dce0e1', '#222222');
   const { blended_c, blended_bg, blended_active_bg, blended_hover_bg } = useThemeConstants();
 
   const conversations = usePagedNormalizer(data?.pages || []);
@@ -77,11 +78,15 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
 
           return (
             <Flex
-              key={conversation.id}
               width="full"
               alignItems="center"
+              key={conversation.id}
               bgColor={isActive ? blended_active_bg : undefined}
-              _hover={{ bgColor: blended_hover_bg }}
+              sx={{ '--text-overflow-shade': isActive ? textOverflowShadeActive : textOverflowShade }}
+              _hover={{
+                bgColor: isActive ? undefined : blended_hover_bg,
+                '--text-overflow-shade': isActive ? undefined : textOverflowShadeHover,
+              }}
               _active={{ bgColor: blended_active_bg }}
             >
               {idOfConversationToEdit !== conversation.id && (
@@ -98,20 +103,24 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
                   bgColor="transparent"
                   _hover={{ bgColor: 'transparent' }}
                   _active={{ bgColor: 'transparent' }}
-                  _after={{
-                    content: '""',
-                    height: 'full',
-                    width: '80px',
-                    position: 'absolute',
-                    top: 0,
-                    right: 0,
-                    bgGradient: `linear(to-l, ${
-                      isActive ? txtOverflowShadeActive : txtOverflowShade
-                    } 40%, transparent)`,
-                    zIndex: 1,
-                  }}
                 >
-                  <Typography ps={3} py={2} fontWeight="600" fontSize="sm" isTruncated={true} position="relative">
+                  <Typography
+                    ps={3}
+                    fontWeight="600"
+                    fontSize="sm"
+                    isTruncated={true}
+                    width="full"
+                    position="relative"
+                    _after={{
+                      top: 0,
+                      right: 0,
+                      content: '""',
+                      width: '50px',
+                      height: 'full',
+                      position: 'absolute',
+                      bgGradient: `linear(to-l, var(--text-overflow-shade) 20%, transparent)`,
+                    }}
+                  >
                     {conversation.subject}
                   </Typography>
                 </Button>
