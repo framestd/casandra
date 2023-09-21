@@ -14,7 +14,6 @@ uvicorn = {extras = ["standard"], version = "^0.23.2"}
 python-decouple = "^3.8"
 python-dotenv = "^1.0.0"
 sqlalchemy = "^2.0.20"
-pytz = "^2023.3"
 alembic = "^1.11.3"
 psycopg2-binary = "^2.9.7"
 pydantic = {extras = ["email"], version = "^2.2.1"}

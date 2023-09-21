@@ -1,11 +1,10 @@
 # Standard Library
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Callable, Iterator, TypeVar
 from uuid import UUID
 
 # Third Party
-import pytz
 from pydantic import ValidationError
 
 # First Party
@@ -22,7 +21,7 @@ iso_format_date: Callable[[datetime], str] = lambda x: x.strftime("%Y-%m-%dT%H:%
 
 def get_utc_time():
     """Get the current UTC time with timezone information"""
-    return datetime.now(tz=pytz.utc)
+    return datetime.now(tz=timezone.utc)
 
 
 def is_recursion_validation_error(exc: ValidationError) -> bool:
