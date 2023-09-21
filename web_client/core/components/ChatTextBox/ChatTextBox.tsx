@@ -6,7 +6,6 @@ import { Box, Flex, FlexProps, Icon, IconButton, SystemStyleObject, Textarea } f
 
 import { IoSend } from 'react-icons/io5';
 
-
 export interface ChatTextBoxProps extends Omit<FlexProps, 'onChange'> {
   value?: string;
   onSend?: (message: string) => void;

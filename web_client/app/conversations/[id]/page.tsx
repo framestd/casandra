@@ -1,9 +1,8 @@
 import { Flex } from '@/chakra-ui/react';
 
 import { PrivateRoute } from '@/core/components/Providers';
-import { ConversationLayout } from '@/core/composition/ConversationLayout';
-
 import { Conversation } from '@/core/composition/Conversation';
+import { ConversationLayout } from '@/core/composition/ConversationLayout';
 
 type PageProps<Params> = { params: Params; searchParams: { [x: string]: string | string[] | undefined } };
 

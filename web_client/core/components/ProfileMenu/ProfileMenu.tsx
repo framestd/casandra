@@ -4,12 +4,12 @@ import { useContext } from 'react';
 
 import { Avatar, HStack, StackProps } from '@/chakra-ui/react';
 
+import { useThemeConstants } from '@/core/composition/hooks';
 import { backdropFactory } from '@/core/theme';
 import { fullname } from '@/core/utils';
 
 import { ConfigContext } from '../Providers';
 import { Typography } from '../Typography';
-import { useThemeConstants } from '@/core/composition/hooks';
 
 export interface ProfileMenuProps extends StackProps {
   name?: string;

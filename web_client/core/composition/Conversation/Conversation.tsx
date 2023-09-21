@@ -1,18 +1,22 @@
 'use client';
 
+import { useCallback, useContext, useMemo } from 'react';
+
 import { Box, useColorModeValue } from '@/chakra-ui/react';
+
+import { useRouter } from 'next/navigation';
+
 import { ChatBox } from '@/core/components/ChatBox';
+import { ChatTextBox } from '@/core/components/ChatTextBox';
+import { ConfigContext } from '@/core/components/Providers';
 import {
   useConversationMessageSocket,
   usePublishMessageService,
   useReadMessagesByConversationIdService,
 } from '@/core/services/message';
 import { CONVERSATIONS } from '@/core/utils/routes';
-import { useRouter } from 'next/navigation';
-import { useCallback, useContext, useMemo } from 'react';
+
 import { usePagedNormalizerFn } from '../hooks';
-import { ConfigContext } from '@/core/components/Providers';
-import { ChatTextBox } from '@/core/components/ChatTextBox';
 import { ConversationMessageList } from './ConversationMessageList';
 
 export interface ConversationProps {

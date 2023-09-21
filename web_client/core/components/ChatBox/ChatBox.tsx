@@ -4,9 +4,9 @@ import { ReactNode } from 'react';
 
 import { Flex, FlexProps } from '@/chakra-ui/react';
 
+import { useThemeConstants } from '@/core/composition/hooks';
 import { backdropFactory } from '@/core/theme';
 import { APP_BAR_HEIGHT } from '@/core/utils';
-import { useThemeConstants } from '@/core/composition/hooks';
 
 export interface ChatBoxProps extends FlexProps {
   children: ReactNode;

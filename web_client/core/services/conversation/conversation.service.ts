@@ -1,9 +1,10 @@
+import { AxiosRequestConfig } from 'axios';
+
 import { ConversationUpdate } from '@/client';
 
 import { api } from '../base';
 import { BasePagedServiceParams } from '../types';
 import { conversationClient } from './client';
-import { AxiosRequestConfig } from 'axios';
 
 export interface ReadConversationsVariables extends BasePagedServiceParams {
   subject?: string;

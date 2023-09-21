@@ -1,7 +1,10 @@
 import { Box, HStack, Icon, IconButton, Input, Link, StackProps, useColorModeValue } from '@/chakra-ui/react';
+
+import { TbMessagePlus } from 'react-icons/tb';
+
 import { backdropFactory } from '@/core/theme';
 import { CONVERSATIONS } from '@/core/utils/routes';
-import { TbMessagePlus } from 'react-icons/tb';
+
 import { useThemeConstants } from '../hooks';
 
 export interface ConversationBarToolbarProps extends StackProps {
