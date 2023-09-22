@@ -15,7 +15,9 @@ type WriteInfo<R> = {
   written: InfiniteData<AxiosResponse<R>> | undefined;
 };
 
-export function writeOptimisticInfiniteData<
+export type PageParam = { pageCursor: string | null; pageForward: boolean };
+
+export async function writeOptimisticInfiniteData<
   R extends ResponseData<InferResponseDataT<R>>,
   T extends InferResponseDataT<R> = InferResponseDataT<R>,
 >(
@@ -23,10 +25,13 @@ export function writeOptimisticInfiniteData<
   partialQueryKey: QueryKey,
   incomingData: T,
   matcher: (draftData: Draft<InferResponseDataT<R>>) => boolean,
-): WriteInfo<R> | undefined {
+  initial: 'rpush' | 'lpush' = 'rpush',
+): Promise<WriteInfo<R> | undefined> {
   const queryKey = queryClient.getQueryCache().find(partialQueryKey, { exact: false, type: 'active' })?.queryKey;
 
   if (!queryKey) return;
+
+  await queryClient.cancelQueries({ queryKey, exact: false });
 
   const previous = queryClient.getQueryData<InfiniteData<AxiosResponse<R>>>(queryKey);
 
@@ -49,6 +54,9 @@ export function writeOptimisticInfiniteData<
       });
 
       if (indexOfPage === -1) {
+        if (initial === 'lpush') {
+          return void draft.pages.at(indexOfPage)!.data.data.unshift(incomingData as Draft<T>);
+        }
         return void draft.pages.at(indexOfPage)!.data.data.push(incomingData as Draft<T>);
       }
 
@@ -69,10 +77,18 @@ export const base64UrlEncode = (data: string) => {
   return btoa(data).replace(/\+/g, '-').replace(/\//g, '_');
 };
 
-export const getPreviousPageParam = <T extends ResponseDataMetadata<ResponseMetadata>>(lastPage: T) => {
-  return lastPage.data.metadata.page_info.has_prev ? lastPage.data.metadata.page_info.top_cursor : null;
+export const getPreviousPageParam = <T extends ResponseDataMetadata<ResponseMetadata>>(
+  lastPage: T,
+): PageParam | undefined => {
+  const pageInfo = lastPage.data.metadata.page_info;
+  const pageCursor = pageInfo.top_cursor!;
+  return pageInfo.has_prev ? { pageCursor, pageForward: false } : undefined;
 };
 
-export const getNextPageParam = <T extends ResponseDataMetadata<ResponseMetadata>>(lastPage: T) => {
-  return lastPage.data.metadata.page_info.has_next ? lastPage.data.metadata.page_info.bottom_cursor : null;
+export const getNextPageParam = <T extends ResponseDataMetadata<ResponseMetadata>>(
+  lastPage: T,
+): PageParam | undefined => {
+  const pageInfo = lastPage.data.metadata.page_info;
+  const pageCursor = pageInfo.bottom_cursor!;
+  return pageInfo.has_next ? { pageCursor, pageForward: true } : undefined;
 };
