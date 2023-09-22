@@ -329,10 +329,13 @@ def _resultant(
 
     response.id = response_chunk_id
 
+    message.created_at = data.created_at
+    message.updated_at = data.updated_at
+
     message.response_from_id = response.id
     response.response_to_id = message.id
 
-    result = _save_message_response_pair_service(
+    result = _save_message_response_pair(
         session=session,
         ctx=ctx,
         conversation=conversation,
@@ -342,21 +345,24 @@ def _resultant(
     return result
 
 
-def _save_message_response_pair_service(
+def _save_message_response_pair(
     session: Session,
     ctx: ServiceContext,
     conversation: ConversationModel,
     message_pair: tuple[ChatMessageModel, ChatMessageModel],
 ):
-    """Create a new chat message and attach it to a conversation. If no conversation
-    exists, yet, create a new conversation to attach the dangling message to
+    """Save a pair of message-response
 
     :param session: the database session to use to create a new account
 
-    :param ctx: the service context containing contextual data necessary for running
-        the service
+    :param ctx: the service context necessary for running the service
 
-    :param chat_message_create: the data to use to create a new message
+    :param conversation: the conversation the message pair objects belongs in
+
+    :param message_pair: the message-respose pair to save
+
+    :raise ForbiddenRequestException:
+        when the conversation wasn't started by the current user context
     """
 
     message, response = message_pair
