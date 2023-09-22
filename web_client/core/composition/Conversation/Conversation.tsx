@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useContext, useMemo } from 'react';
+import { useCallback, useContext, useId, useMemo } from 'react';
 
-import { Box, useColorModeValue } from '@/chakra-ui/react';
+import { Box, Flex, useColorModeValue } from '@/chakra-ui/react';
 
 import { useRouter } from 'next/navigation';
+import InfiniteScroll from 'react-infinite-scroll-component';
 
 import { ChatBox } from '@/core/components/ChatBox';
 import { ChatTextBox } from '@/core/components/ChatTextBox';
@@ -28,9 +29,15 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   const textboxBgColor = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
 
   const { config } = useContext(ConfigContext);
-  const { data, isSuccess, isLoading } = useReadMessagesByConversationIdService(conversation_id, {
+  const {
+    data,
+    isSuccess,
+    isLoading,
+    hasPreviousPage = false,
+    fetchPreviousPage,
+  } = useReadMessagesByConversationIdService(conversation_id, {
     trigger: conversation_id !== 'new',
-    variables: { sort: ['updated_at:asc'] },
+    variables: { sort: ['created_at:desc'], pageSize: 8 },
     select: (data) => {
       return { ...data, pages: data.pages.map((page) => page.data) };
     },
@@ -39,7 +46,7 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   const pagedNormalizer = usePagedNormalizerFn();
   const publishMessageHandler = usePublishMessageService();
   const messages = useMemo(
-    () => (!isSuccess || isLoading ? [] : pagedNormalizer(data.pages)),
+    () => (!isSuccess || isLoading ? [] : pagedNormalizer(data.pages.toReversed()).toReversed()),
     [data?.pages, isLoading, isSuccess, pagedNormalizer],
   );
 
@@ -64,12 +71,25 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   );
 
   const user = config.session.user_account?.user;
+  const scrollableTargetId = useId();
 
   if (!user) return null;
 
   return (
     <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column" overflow="hidden">
-      <ConversationMessageList messages={messages} user={user} />
+      <Flex id={scrollableTargetId} width="full" overflow="auto" marginBlockEnd="auto" flexDirection="column-reverse">
+        <InfiniteScroll
+          scrollableTarget={scrollableTargetId}
+          dataLength={messages.length}
+          hasMore={hasPreviousPage}
+          next={() => fetchPreviousPage()}
+          inverse={true}
+          loader={null}
+          style={{ display: 'flex', flexDirection: 'column-reverse' }}
+        >
+          <ConversationMessageList messages={messages} user={user} />
+        </InfiniteScroll>
+      </Flex>
 
       <Box px={3} width="full">
         <ChatTextBox
