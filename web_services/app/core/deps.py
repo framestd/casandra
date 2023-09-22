@@ -46,18 +46,18 @@ class ServiceContext:
 
 async def get_db():
     session_id = uuid4()
-    logger.info(f"Opening a database session (Session ID: {session_id.hex})...")
+    logger.info(f"Opening a database session (Session ID: {session_id})...")
     db = SessionLocal()
 
     try:
-        logger.info(f"Database session  (Session ID: {session_id.hex}) opened and provided!")
+        logger.info(f"Database session  (Session ID: {session_id}) opened and provided!")
         yield db
     except Exception:
         db.rollback()
     finally:
-        logger.info(f"Closing the database session  (Session ID: {session_id.hex})...")
+        logger.info(f"Closing the database session  (Session ID: {session_id})...")
         db.close()
-        logger.info(f"Database session  (Session ID: {session_id.hex}) closed!")
+        logger.info(f"Database session  (Session ID: {session_id}) closed!")
 
 
 async def get_redis_db():
