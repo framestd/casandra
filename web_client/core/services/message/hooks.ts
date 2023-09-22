@@ -3,7 +3,7 @@ import { useEffect, useMemo } from 'react';
 import Cookies from 'js-cookie';
 
 import { createId as cuid2 } from '@paralleldrive/cuid2';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { QueryFunctionContext, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { ChatMessageRoleEnum, Message, StandardPaginatedResponseMessage } from '@/client';
 import { useWebSocket } from '@/core/composition/hooks';
@@ -12,7 +12,7 @@ import { CONVERSATIONS } from '@/core/utils/routes';
 
 import { getSocketURL } from '../config';
 import { BaseInfiniteQueryServiceOptions } from '../types';
-import { getNextPageParam, getPreviousPageParam, writeOptimisticInfiniteData } from '../utils';
+import { PageParam, getNextPageParam, getPreviousPageParam, writeOptimisticInfiniteData } from '../utils';
 import { isDataStream } from '../websocket';
 import { readMessagesByConversationIdService, ReadMessagesVariables } from './message.service';
 import { publishMessageService } from './send.service';
@@ -34,8 +34,10 @@ export function useReadMessagesByConversationIdService<S>(
   const result = useInfiniteQuery({
     enabled: options.trigger !== false,
     queryKey,
-    staleTime: Infinity,
-    queryFn: async ({ signal }) => await readMessagesByConversationIdService(conversationId, variables, { signal }),
+    queryFn: async ({ signal, pageParam }: QueryFunctionContext<typeof queryKey, PageParam>) => {
+      const mergedVars = Object.assign(variables, pageParam);
+      return await readMessagesByConversationIdService(conversationId, mergedVars, { signal });
+    },
     select: options.select,
     getPreviousPageParam: getPreviousPageParam,
     getNextPageParam: getNextPageParam,
@@ -50,18 +52,19 @@ export function usePublishMessageService() {
   return useMutation({
     meta: { report_error: true, title: 'Send Message' },
     mutationFn: publishMessageService,
-    onMutate(variables) {
+    async onMutate(variables) {
       // <noop> message
       if (!variables.conversation_id) return;
 
       const partialQueryKey = [MessageKeysNS.READ_MESSAGES, variables.conversation_id];
       const partialMessage = { id: cuid2(), body: variables.body, role: ChatMessageRoleEnum.HUMAN } as Message;
 
-      const writeInfo = writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
+      const writeInfo = await writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
         queryClient,
         partialQueryKey,
         partialMessage,
         (_) => false, // its a new message can never be matched
+        'lpush',
       );
 
       if (!writeInfo) return;
@@ -111,9 +114,9 @@ export function useConversationMessageSocket(id: string) {
 
   const result = useWebSocket<Message>(sockurl, {
     connect: id !== 'new',
-    onStreamEnd: (s) => {
+    onStreamEnd: async (s) => {
       const conversationId = uuidToHex(s.channel.split(':').at(-1)!);
-      queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({
         queryKey: [MessageKeysNS.READ_MESSAGES, conversationId],
         exact: false,
       });
@@ -127,15 +130,14 @@ export function useConversationMessageSocket(id: string) {
     const conversationId = uuidToHex(stream.channel.split(':').at(-1)!);
     const partialQueryKey = [MessageKeysNS.READ_MESSAGES, conversationId];
 
-    queueMicrotask(() => {
-      isDataStream(stream) &&
-        writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
-          queryClient,
-          partialQueryKey,
-          stream.data,
-          (draft) => draft.id === stream.data.id,
-        );
-    });
+    isDataStream(stream) &&
+      writeOptimisticInfiniteData<StandardPaginatedResponseMessage>(
+        queryClient,
+        partialQueryKey,
+        stream.data,
+        (draft) => draft.id === stream.data.id,
+        'lpush',
+      ).then(() => void 0);
   }, [queryClient, result.isSuccess, result.message]);
 
   return result;

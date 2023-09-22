@@ -23,7 +23,6 @@ export function useReadConversationsService<S>(options: ReadConversationsService
   return useInfiniteQuery({
     enabled: options.trigger !== false,
     queryKey: [ConversationKeysNS.READ_CONVERSATIONS, variables],
-    staleTime: Infinity,
     queryFn: async ({ signal }) => await readConversationsService(variables, { signal }),
     select: options.select,
     getPreviousPageParam: getPreviousPageParam,
@@ -43,11 +42,11 @@ export function useReviseConversationService() {
       return response;
     },
 
-    onMutate(variables) {
+    async onMutate(variables) {
       const { id, ...update } = variables;
       const partialQueryKey = [ConversationKeysNS.READ_CONVERSATIONS];
 
-      const writeInfo = writeOptimisticInfiniteData<StandardPaginatedResponseConversation>(
+      const writeInfo = await writeOptimisticInfiniteData<StandardPaginatedResponseConversation>(
         queryClient,
         partialQueryKey,
         { id, ...update } as Conversation,
