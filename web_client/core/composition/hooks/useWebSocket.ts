@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { SignalStream, StreamSignalEnum, StreamTypeEnum, WebSocketStream } from '@/core/services/websocket';
 import { never } from '@/core/utils';
@@ -35,15 +35,22 @@ export function useWebSocket<MessageT>(
   urlOrOptions: string | URL | WithURL<UseWebSocketOptions>,
   options: UseWebSocketOptions = {},
 ): UseWebSocketManagerResult<WebSocketStream<MessageT>, WebSocketError> {
-  const { url, options: opts } = resolveUrlOrOptions(urlOrOptions, options);
+  const ref = useRef(resolveUrlOrOptions(urlOrOptions, options));
 
-  const { onStreamBegin, onStreamEnd, ...managerOptions } = opts;
-  const result = useWebSocketManager<WebSocketStream<MessageT>>(url.toString(), managerOptions);
+  useEffect(() => {
+    ref.current = resolveUrlOrOptions(urlOrOptions, options);
+  }, [options, urlOrOptions]);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { onStreamBegin: _onStreamBegin, onStreamEnd: _onStreamEnd, ...managerOptions } = ref.current.options;
+  const result = useWebSocketManager<WebSocketStream<MessageT>>(ref.current.url.toString(), managerOptions);
 
   useEffect(() => {
     if (!result.isSuccess) return;
 
+    const { onStreamBegin, onStreamEnd } = ref.current.options;
     const stream = result.message;
+
     if (stream.type === StreamTypeEnum.SIGNAL) {
       switch (stream.signal) {
         case StreamSignalEnum.BEGIN:
@@ -56,7 +63,7 @@ export function useWebSocket<MessageT>(
           never(stream.signal);
       }
     }
-  }, [onStreamBegin, onStreamEnd, result.isSuccess, result.message]);
+  }, [result.isSuccess, result.message]);
 
   return result;
 }
