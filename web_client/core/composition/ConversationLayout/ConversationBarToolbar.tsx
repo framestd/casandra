@@ -1,3 +1,5 @@
+'use client';
+
 import { Box, HStack, Icon, IconButton, Input, Link, StackProps, useColorModeValue } from '@/chakra-ui/react';
 
 import { TbMessagePlus } from 'react-icons/tb';
@@ -15,6 +17,10 @@ export interface ConversationBarToolbarProps extends StackProps {
 export const ConversationBarToolbar = ({ filter, onFilterChange, ...rest }: ConversationBarToolbarProps) => {
   const bgColor = useColorModeValue('whiteAlpha.500', 'whiteAlpha.200');
   const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');
+  // dark mode value is undefined 'cause the default dark mode one is visible enough
+  const lightModeVisibleBorderColor = useColorModeValue('gray.300', undefined);
+  const inputHoverBorderColor = useColorModeValue('gray.400', 'whiteAlpha.400');
+  const inputFocusBorderColor = useColorModeValue('gray.500', 'whiteAlpha.500');
   const { blended_c } = useThemeConstants();
 
   return (
@@ -28,18 +34,23 @@ export const ConversationBarToolbar = ({ filter, onFilterChange, ...rest }: Conv
       zIndex="banner"
       position="sticky"
       borderBottomWidth={1}
+      borderColor={lightModeVisibleBorderColor}
       {...backdropFactory({ bgColor })}
       {...rest}
     >
       <Box width="full">
         <Input
           size="xs"
+          type="search"
           borderRadius="lg"
-          placeholder="Search conversations"
+          name="conversation_subject"
           focusBorderColor="transparent"
+          placeholder="Search conversations"
+          borderColor={lightModeVisibleBorderColor}
           value={filter}
-          _focusVisible={{ borderColor: 'gray.500' }}
           onChange={(e) => onFilterChange?.(e.target.value || undefined)}
+          _hover={{ borderColor: inputHoverBorderColor }}
+          _focusVisible={{ borderColor: inputFocusBorderColor }}
         />
       </Box>
 
