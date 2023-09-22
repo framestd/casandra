@@ -2,7 +2,6 @@ import { AxiosRequestConfig } from 'axios';
 
 import { ConversationUpdate } from '@/client';
 
-import { api } from '../base';
 import { BasePagedServiceParams } from '../types';
 import { conversationClient } from './client';
 
@@ -14,24 +13,26 @@ export async function readConversationsService(
   variables: ReadConversationsVariables,
   axiosOptions?: AxiosRequestConfig,
 ) {
-  const readConversations = await conversationClient.readConversationsConversationsGet(
-    variables.sort?.join(','),
-    variables.subject,
-    variables.pageCursor,
-    variables.pageSize,
-    variables.pageForward,
+  const response = await conversationClient.readConversationsConversationsGet(
+    {
+      subject: variables.subject,
+      pageCursor: variables.pageCursor,
+      pageForward: variables.pageForward,
+      pageSize: variables.pageSize,
+      sort: variables.sort?.join(','),
+    },
+
     axiosOptions,
   );
-
-  const response = await readConversations(api);
 
   return response;
 }
 
 export async function reviseConversationService(id: string, update: ConversationUpdate) {
-  const reviseConversation = await conversationClient.reviseConversationConversationsIdPut(id, update);
-
-  const response = await reviseConversation(api);
+  const response = await conversationClient.reviseConversationConversationsIdPut({
+    id,
+    conversationUpdate: update,
+  });
 
   return response;
 }

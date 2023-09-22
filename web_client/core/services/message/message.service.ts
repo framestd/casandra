@@ -2,7 +2,6 @@ import { AxiosRequestConfig } from 'axios';
 
 import { ChatMessageRoleEnum } from '@/client';
 
-import { api } from '../base';
 import { BasePagedServiceParams } from '../types';
 import { messageClient } from './client';
 
@@ -13,10 +12,8 @@ export interface ReadMessagesVariables extends BasePagedServiceParams {
   responseToId?: string;
 }
 
-export async function readMessageByIdService(id: string) {
-  const readChatMessageById = await messageClient.readChatMessageByIdMessagesIdGet(id);
-
-  const response = await readChatMessageById(api);
+export async function readMessageByIdService(id: string, axiosOptions?: AxiosRequestConfig) {
+  const response = await messageClient.readChatMessageByIdMessagesIdGet({ id }, axiosOptions);
 
   return response;
 }
@@ -26,20 +23,20 @@ export async function readMessagesByConversationIdService(
   varialbles: ReadMessagesVariables,
   axiosOptions?: AxiosRequestConfig,
 ) {
-  const readMessagesByConversationId = await messageClient.readChatMessagesByConversationIdMessagesGet(
-    conversation_id,
-    varialbles.sort?.join(','),
-    varialbles.body,
-    varialbles.role,
-    varialbles.responseFromId,
-    varialbles.responseToId,
-    varialbles.pageCursor,
-    varialbles.pageSize,
-    varialbles.pageForward,
+  const response = await messageClient.readChatMessagesByConversationIdMessagesGet(
+    {
+      conversationId: conversation_id,
+      body: varialbles.body,
+      pageCursor: varialbles.pageCursor,
+      pageForward: varialbles.pageForward,
+      pageSize: varialbles.pageSize,
+      responseFromId: varialbles.responseFromId,
+      responseToId: varialbles.responseToId,
+      role: varialbles.role,
+      sort: varialbles.sort?.join(','),
+    },
     axiosOptions,
   );
-
-  const response = await readMessagesByConversationId(api);
 
   return response;
 }
