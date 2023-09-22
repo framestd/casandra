@@ -2,7 +2,7 @@
 from celery import Celery
 
 # Local Folder
-from ..settings import settings
+from .settings import worker_settings as settings
 
 celery = Celery(__name__)
 
