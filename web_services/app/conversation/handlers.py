@@ -135,23 +135,23 @@ async def recieve_message_reply_stream(
     """
 
     async def receiver_task(websocket: WebSocket):
-        try:
-            while True:
-                await websocket.receive_text()
-                await asyncio.sleep(0)
-        except WebSocketDisconnect as exc:
-            logger.info(
-                f"Socket disconnected for {websocket.url}"
-                f' with code={exc.code}, reason="{exc.reason}"'
-            )
-            # re-raise to cancel the task
-            raise exc
+        while True:
+            # raises WebSocketDisconnect Exception
+            await websocket.receive_text()
+            await asyncio.sleep(0)
 
     async def streamer(websocket: WebSocket):
         async with open_message_reply_stream(db, ctx, conversation_id) as message_reply_stream:
             async for stream in message_reply_stream():
                 await websocket.send_json(mode="binary", data=stream.model_dump(mode="json"))
 
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(receiver_task(websocket))
-        await tg.create_task(streamer(websocket))
+    try:
+        async with asyncio.TaskGroup() as tg:
+            tg.create_task(receiver_task(websocket))
+            await tg.create_task(streamer(websocket))
+    except* WebSocketDisconnect as eg:
+        exc = cast(WebSocketDisconnect, eg.exceptions[0])
+        logger.info(
+            f"Socket disconnected for {websocket.url}"
+            f' with code={exc.code}, reason="{exc.reason}"'
+        )
