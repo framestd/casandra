@@ -14,12 +14,8 @@ services:
     container_name: casandra_client
     expose:
       - ${CLIENT_PORT}
-      - 9339 # debug
-      - 49153 # webpack hot reload
     ports:
       - ${CLIENT_PORT}:${CLIENT_PORT}
-      - 9339:9339
-      - 49153:49153
     entrypoint: "yarn dev -p $CLIENT_PORT"
     depends_on:
       - web_server
@@ -27,7 +23,8 @@ services:
       - server
     volumes:
       - "./web_client:${CLIENT_WORKDIR}"
-      - "./web_client/node_modules:${CLIENT_WORKDIR}/node_modules"
+      - "node_modules:${CLIENT_WORKDIR}/node_modules"
+      - "nextjs_internals:${CLIENT_WORKDIR}/.next"
     environment:
       - APP_NAME=${APP_NAME} # the application name
       - PORT=${CLIENT_PORT} # Assign $CLIENT_PORT to $PORT env var in web_client
@@ -59,7 +56,8 @@ services:
     depends_on:
       - redis
       - postgres
-    environment:
+      - celery
+    environment: &server_env
       - APP_NAME=${APP_NAME} # the application name
       - APP_DESC=${APP_DESC} # a short description of the application
       - CLIENT_HOSTS=${CLIENT_ADDRESSES} # List of hosts to whitelist for CORS
@@ -68,6 +66,43 @@ services:
       - POSTGRES_USER=${POSTGRES_USER} # the database user
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # the database password
       - REDIS_URL=redis://casandra_services_cache:6379 # the name of the redis container as hostname
+      - CELERY_BROKER_URL=redis://casandra_services_cache:6379
+      - CELERY_RESULT_BACKEND=redis://casandra_services_cache:6379
+    restart: unless-stopped
+
+  celery:
+    build:
+      context: ./web_services
+      dockerfile: Dockerfile
+    container_name: casandra_celery
+    command: >-
+      watchfiles --filter python
+      'celery -A app.core.worker.celery.celery --config app.celeryconfig worker --loglevel=info'
+      ${SERVER_WORKDIR}/app/core/worker/
+    networks:
+      - server
+      - cache
+    volumes:
+      - "./web_services:${SERVER_WORKDIR}"
+      - "virtual_env:${SERVER_WORKDIR}/.venv"
+    depends_on:
+      - redis
+    environment: *server_env
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower
+    container_name: casandra_celery_flower
+    ports:
+      - 5556:5555
+    command: celery flower --port=5555
+    networks:
+      - cache
+    depends_on:
+      - celery
+    environment:
+      - CELERY_BROKER_URL=redis://casandra_services_cache:6379
+      - CELERY_RESULT_BACKEND=redis://casandra_services_cache:6379
     restart: unless-stopped
 
   redis:
@@ -113,7 +148,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  # node_modules:
+  node_modules:
+  nextjs_internals:
   postgres:
   pgadmin:
   virtual_env:
