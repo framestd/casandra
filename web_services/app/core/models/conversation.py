@@ -12,7 +12,7 @@ from .user import User
 
 if TYPE_CHECKING:
     # Local Folder
-    from .chat_message import ChatMessage
+    from .message import ConversationMessage
 
 
 class Conversation(Base):
@@ -34,11 +34,11 @@ class Conversation(Base):
         # Make more efficient using an innerjoin since references cannot be null, as specified in
         # the foreign key above, for a many-to-one.
         # https://docs.sqlalchemy.org/en/20/orm/queryguide/relationships.html#joined-eager-loading
-        innerjoin=True
+        innerjoin=True,
     )
 
-    chat_messages: Mapped[list["ChatMessage"]] = relationship(
-        "ChatMessage",
+    messages: Mapped[list["ConversationMessage"]] = relationship(
+        "ConversationMessage",
         back_populates="conversation",
         cascade="all, delete-orphan",
         lazy="selectin",
