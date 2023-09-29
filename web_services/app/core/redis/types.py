@@ -12,9 +12,8 @@ class PubSubMessageTypeEnum(str, Enum):
     pmessage = "pmessage"
 
 
-class PubSubMessage(TypedDict):
+class PubSubMessageDict(TypedDict):
     type: Literal["subscribe", "unsubscribe", "psubscribe", "punsubscribe", "message", "pmessage"]
     pattern: str | None
     channel: str
     data: str
-
