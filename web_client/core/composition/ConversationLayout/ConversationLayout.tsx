@@ -5,12 +5,16 @@ import { ReactNode, useContext } from 'react';
 import { Box, Flex, VStack } from '@/chakra-ui/react';
 
 import { useParams } from 'next/navigation';
+import { ErrorBoundary } from 'react-error-boundary';
 
 import { AppBar } from '@/core/components/AppBar';
 import { ProfileMenu } from '@/core/components/ProfileMenu';
 import { ConfigContext } from '@/core/components/Providers';
+import { backdropFactory } from '@/core/theme';
 import { APP_BAR_HEIGHT, fullname } from '@/core/utils';
 
+import { useFallbackUI } from '../ErrorStates';
+import { useThemeConstants } from '../hooks';
 import { ConversationBar } from './ConversationBar';
 
 export interface ChatLayoutProps {
@@ -22,6 +26,14 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
   const { config } = useContext(ConfigContext);
   const user = config.session.user_account?.user;
   const name = user ? fullname(user) : '';
+
+  const { blended_bg } = useThemeConstants();
+
+  const FallbackUI = useFallbackUI({
+    width: 700,
+    marginInline: 'auto',
+    ...backdropFactory({ bgColor: blended_bg }),
+  });
 
   return (
     <Box height="full">
@@ -38,15 +50,13 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
           width={{ base: 'auto', lg: 300 }}
           display={{ base: 'none', lg: 'flex' }}
         >
-          {/* TODO: Create and render error component */}
-
           <ConversationBar activeConversationId={params.id.toString()} flex="1 1 auto" />
 
           <ProfileMenu name={name} />
         </VStack>
 
-        <Box height="full" width="full">
-          {children}
+        <Box height="full" width="full" px={6}>
+          <ErrorBoundary fallbackRender={FallbackUI}>{children}</ErrorBoundary>
         </Box>
       </Flex>
     </Box>
