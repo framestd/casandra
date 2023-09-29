@@ -62,6 +62,8 @@ class ConversationMessagePartial(MessageBase):
     id: UUID4
     conversation_id: UUID4
     role: ConversationMessageRoleEnum
+    response_from_id: UUID4 | None = None
+    response_to_id: UUID4 | None = None
 
 
 class ConversationMessageOut(MessageBase, SchemaBase):
