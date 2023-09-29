@@ -2,37 +2,41 @@
 import asyncio
 import json
 from contextlib import asynccontextmanager
-from typing import Any, Generator, cast
+from operator import and_
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 # Third Party
-import openai
-from broadcaster import Event  # type: ignore
+from celery.result import AsyncResult
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 # First Party
 from app.core.deps import ServiceContext
 from app.core.exceptions.application import MissingResourceException
-from app.core.exceptions.http import ForbiddenRequestException
-from app.core.exceptions.http import ServiceUnavailableException
-from app.core.intelligence.basic import generate_prompt, generate_response
+from app.core.exceptions.code import ErrorContextType
+from app.core.exceptions.http import AppHTTPException, ForbiddenRequestException
+from app.core.intelligence.basic import create_aggregate_prompts
+from app.core.intelligence.basic import create_openai_message_prompt
 from app.core.logging.logger import get_app_logger
-from app.core.models.chat_message import ChatMessage as ChatMessageModel
-from app.core.models.chat_message import ChatMessageRoleEnum
-from app.core.models.conversation import Conversation as ConversationModel
+from app.core.models.conversation import Conversation
+from app.core.models.message import ConversationMessage, ConversationMessageRoleEnum
 from app.core.redis.channels import get_conversation_channel_for
 from app.core.redis.publisher import publisher
-from app.core.redis.types import PubSubMessage
-from app.core.schemas import message as schema
-from app.core.schemas.conversation import ConversationCreate
-from app.core.schemas.openai import ChatCompletionResponseStream
+from app.core.redis.types import PubSubMessageDict
+from app.core.schemas.account import AccountOut
+from app.core.schemas.message import ConversationMessageOut, ConversationMessagePartial
+from app.core.schemas.message import MessageCreate, MessageCreateCustomizations
+from app.core.schemas.message import MessageFilter, MessageFilterExtra
 from app.core.schemas.pagination import PageOptions
-from app.core.schemas.websocket import DataStream, MessageStream, SignalStream
-from app.core.schemas.websocket import StreamSignalEnum
-from app.core.services.pagination import PageBuilder
+from app.core.schemas.websocket import DataStream, SignalStream, StreamSignalEnum
+from app.core.utils import get_utc_time
+from app.core.worker.completion_tasks import MessageBuffDict, openai_completion_task
+from app.core.worker.completion_tasks import save_message_response_pair_task
 
 # Local Folder
-from .conversation import create_conversation_service, get_conversation_by_id
+from .conversation import get_conversation_by_id
+from .pagination import PageBuilder
 from .service_object import PagedServiceObject
 
 __all__ = (
