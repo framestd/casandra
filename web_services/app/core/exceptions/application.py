@@ -15,6 +15,7 @@ class MissingResourceException(AppHTTPException):
     def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
+            title='Missing Resource',
             status_code=status.HTTP_200_OK,
             code=ErrorCode.MISSING_RESOURCE,
             headers=headers,
@@ -27,6 +28,7 @@ class ChallengeFailedException(AppHTTPException):
     def __init__(self, message: str, *, headers: dict[str, str] | None = None):
         super().__init__(
             message,
+            title="Challenge Failed",
             status_code=status.HTTP_200_OK,
             code=ErrorCode.CHALLENGE_FAILED,
             headers=headers,
