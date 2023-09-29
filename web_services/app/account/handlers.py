@@ -11,7 +11,7 @@ from app.core.authentication.oauth2 import OAuth2PasswordAndRefreshRequestForm
 from app.core.authentication.token import JWTRS256Token
 from app.core.deps import get_current_account, get_db
 from app.core.logging.logger import get_app_logger
-from app.core.schemas.account import Account, AccountCreate, Token, TokenTypeEnum
+from app.core.schemas.account import AccountCreate, AccountOut, Token, TokenTypeEnum
 from app.core.schemas.response import StandardResponse, StatusResponse
 from app.core.services.account import authenticate_user_account_service
 from app.core.services.account import create_user_account_service
@@ -28,17 +28,17 @@ logger = get_app_logger(__name__)
 @router.post(
     "/create",
     status_code=201,
-    response_model=StatusResponse[Account],
+    response_model=StatusResponse[AccountOut],
     responses={419: responses.get("o419"), 422: responses.get("o422")},
 )
 def create_user_account(
     credentials: AccountCreate, db: Annotated[Session, Depends(get_db)]
-) -> StatusResponse[Account]:
+) -> StatusResponse[AccountOut]:
     """Create a user account"""
 
     account = create_user_account_service(session=db, credentials=credentials)
-    response = StatusResponse[Account](
-        data=cast(Account, account),
+    response = StatusResponse[AccountOut](
+        data=cast(AccountOut, account),
         message="User account created successfully",
         success=True,
     )
@@ -91,12 +91,12 @@ def authenticate_user_account(
     )
 
 
-@router.get("/me", response_model=StandardResponse[Account])
+@router.get("/me", response_model=StandardResponse[AccountOut])
 def identify_user_account(
-    current_account: Annotated[Account, Depends(get_current_account)]
-) -> StandardResponse[Account]:
+    current_account: Annotated[AccountOut, Depends(get_current_account)]
+) -> StandardResponse[AccountOut]:
     """Identify the current user and return the user account"""
 
-    response = StandardResponse[Account](data=current_account)
+    response = StandardResponse[AccountOut](data=current_account)
 
     return response

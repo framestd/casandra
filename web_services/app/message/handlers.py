@@ -2,7 +2,8 @@
 from typing import Annotated, cast
 
 # Third Party
-from fastapi import Depends, Response
+from fastapi import Depends
+from fastapi.responses import StreamingResponse
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 
@@ -10,12 +11,14 @@ from sqlalchemy.orm import Session
 from app.core.deps import ServiceContext, get_db, get_service_context
 from app.core.deps import preprocess_sort_param
 from app.core.logging.logger import get_app_logger
-from app.core.schemas.message import Message, MessageCreate, MessageFilter
+from app.core.schemas.message import ConversationMessageOut, MessageCreate
+from app.core.schemas.message import MessageCreateCustomizations, MessageFilter
 from app.core.schemas.pagination import PageInfo, PageOptions
 from app.core.schemas.response import ResponseMetadata, StandardPaginatedResponse
-from app.core.schemas.response import StandardResponse, StatusResponse
+from app.core.schemas.response import StandardResponse
 from app.core.services.message import get_message_by_id
-from app.core.services.message import get_messages_by_conversation_id, handle_message
+from app.core.services.message import get_messages_by_conversation_id
+from app.core.services.message import message_completion_streamer
 from app.core.specs.additional_responses import responses
 
 # Local Folder
@@ -26,15 +29,14 @@ logger = get_app_logger(__name__)
 
 @router.post(
     "/",
-    response_model=StatusResponse[Message],
     responses={401: responses.get("o401"), 422: responses.get("o422")},
 )
 async def publish_message(
-    response: Response,
     message: MessageCreate,
+    customizations: MessageCreateCustomizations,
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
     db: Annotated[Session, Depends(get_db)],
-) -> StatusResponse[Message]:
+) -> StreamingResponse:
     """
     Publish a prompt message to be handled by various connecting services.
 
@@ -42,18 +44,22 @@ async def publish_message(
     prompt message for a response stream to the prompt message itself.
     """
 
-    chat_message = await handle_message(session=db, ctx=ctx, message=message)
-
-    return StatusResponse[Message](
-        data=cast(Message, chat_message),
-        message="Message understood",
-        success=True,
+    message_completion_stremer_context = message_completion_streamer(
+        session=db,
+        ctx=ctx,
+        message_create=message,
+        customizations=customizations,
     )
+
+    async with message_completion_stremer_context as streamer:
+        response = StreamingResponse(streamer(), media_type="text/event-stream")
+
+        return response
 
 
 @router.get(
     "/{id}",
-    response_model=StandardResponse[Message],
+    response_model=StandardResponse[ConversationMessageOut],
     responses={
         401: responses.get("o401"),
         403: responses.get("o403"),
@@ -69,14 +75,16 @@ def read_chat_message_by_id(
 
     chat_message = get_message_by_id(session=db, ctx=ctx, id=id)
 
-    response = StandardResponse[Message](data=cast(Message, chat_message))
+    response = StandardResponse[ConversationMessageOut](
+        data=cast(ConversationMessageOut, chat_message)
+    )
 
     return response
 
 
 @router.get(
     "/",
-    response_model=StandardPaginatedResponse[Message],
+    response_model=StandardPaginatedResponse[ConversationMessageOut],
     responses={
         401: responses.get("o401"),
         403: responses.get("o403"),
@@ -86,7 +94,7 @@ def read_chat_message_by_id(
 def read_chat_messages_by_conversation_id(
     *,
     conversation_id: UUID4,
-    sort: Annotated[list[str], Depends(preprocess_sort_param(Message))],
+    sort: Annotated[list[str], Depends(preprocess_sort_param(ConversationMessageOut))],
     filter: Annotated[MessageFilter, Depends()],
     page: Annotated[PageOptions, Depends()],
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
@@ -105,7 +113,7 @@ def read_chat_messages_by_conversation_id(
     has_prev, has_next = message.has_prev, message.has_next
 
     response = StandardPaginatedResponse(
-        data=cast(list[Message], message.obj),
+        data=cast(list[ConversationMessageOut], message.edges),
         metadata=ResponseMetadata(
             total_objects=message.total_pages,
             page_info=PageInfo(
