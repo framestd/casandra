@@ -63,14 +63,14 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
       spacing={0}
       height="full"
       width="full"
-      borderRadius="3xl"
+      borderRadius="2xl"
       alignItems="flex-start"
       overflowY="auto"
       {...rest}
     >
       <ConversationBarToolbar filter={subjectFilter} onFilterChange={(filter) => setSubjectFilter(filter)} />
 
-      <VStack width="full" height="full" {...backdropFactory({ bgColor: blended_bg })}>
+      <VStack width="full" alignItems="flex-start" flex="1 1 auto" {...backdropFactory({ bgColor: blended_bg })}>
         {conversations.map((conversation) => {
           const isActive = activeConversationId === conversation.id;
           const isInEditState = conversation.id === idOfConversationToEdit;
@@ -112,15 +112,7 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
                     isTruncated={true}
                     width="full"
                     position="relative"
-                    _after={{
-                      top: 0,
-                      right: 0,
-                      content: '""',
-                      width: '50px',
-                      height: 'full',
-                      position: 'absolute',
-                      bgGradient: `linear(to-l, var(--text-overflow-shade) 20%, transparent)`,
-                    }}
+                    sx={{ maskImage: `linear-gradient(90deg, var(--text-overflow-shade) 50%, transparent)` }}
                   >
                     {conversation.subject}
                   </Typography>
