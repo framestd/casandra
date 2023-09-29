@@ -1,7 +1,8 @@
 'use client';
 
-import { Box, HStack, Icon, IconButton, Input, Link, StackProps, useColorModeValue } from '@/chakra-ui/react';
+import { Box, HStack, Icon, IconButton, Input, StackProps, useColorModeValue } from '@/chakra-ui/react';
 
+import Link from 'next/link';
 import { TbMessagePlus } from 'react-icons/tb';
 
 import { backdropFactory } from '@/core/theme';
