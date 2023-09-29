@@ -1,11 +1,16 @@
 # Standard Library
 from enum import Enum
+from typing import Literal
 
 # Third Party
-from pydantic import Field
+from pydantic import ConfigDict, Field
 
 # Local Folder
 from .base import BaseModel
+
+
+class CompletionBaseModel(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=False)
 
 
 class CompletionRoleEnum(str, Enum):
@@ -22,9 +27,10 @@ class CompletionObjectEnum(str, Enum):
     objects we make use of"""
 
     CHAT_COMPLETION = "chat.completion"
+    CHAT_COMPLETION_CHUNK = "chat.completion.chunk"
 
 
-class CompletionChoiceMessage(BaseModel):
+class CompletionChoiceMessage(CompletionBaseModel):
     """This is a representation of the buffered message content of an
     OpenAI chat completion response.
 
@@ -36,7 +42,7 @@ class CompletionChoiceMessage(BaseModel):
     content: str
 
 
-class CompletionChoiceDelta(BaseModel):
+class CompletionChoiceDelta(CompletionBaseModel):
     """This is a representation of the streamed message content of an
     OpenAI chat completion response.
 
@@ -50,14 +56,14 @@ class CompletionChoiceDelta(BaseModel):
     """
 
     role: CompletionRoleEnum | None = Field(default=CompletionRoleEnum.assistant)
-    content: str | None
+    content: str | None = Field(None)
 
 
-class ChatCompletionChoiceBase(BaseModel):
+class ChatCompletionChoiceBase(CompletionBaseModel):
     """Foundational, common, attributes"""
 
     index: int
-    finish_reason: str
+    finish_reason: str | None = Field(None)
 
 
 class ChatCompletionChoice(ChatCompletionChoiceBase):
@@ -73,7 +79,7 @@ class ChatCompletionChoiceChunk(ChatCompletionChoiceBase):
     delta: CompletionChoiceDelta
 
 
-class ChatCompletionUsage(BaseModel):
+class ChatCompletionUsage(CompletionBaseModel):
     """Meta attributes about the prompt and response or completion"""
 
     prompt_tokens: int
@@ -81,29 +87,25 @@ class ChatCompletionUsage(BaseModel):
     total_tokens: int
 
 
-class ChatCompletionResponseBodyBase(BaseModel):
+class ChatCompletionResponseBodyBase(CompletionBaseModel):
     """Foundational, common, attributes"""
 
     id: str
     object: CompletionObjectEnum
     created: int
     model: str
-    usage: ChatCompletionUsage
 
 
 class ChatCompletionResponseStream(ChatCompletionResponseBodyBase):
     """The chat completion streamed response attributes"""
 
     choices: list[ChatCompletionChoiceChunk]
+    object: Literal[CompletionObjectEnum.CHAT_COMPLETION_CHUNK]
 
 
 class ChatCompletionResponseBody(ChatCompletionResponseBodyBase):
     """The chat completion buffered response attributes"""
 
     choices: list[ChatCompletionChoice]
-
-
-class ChatCompletionResponse(BaseModel):
-    """ChatCompletionResponse inbound attributes"""
-
-    response: ChatCompletionResponseBody
+    object: Literal[CompletionObjectEnum.CHAT_COMPLETION]
+    usage: ChatCompletionUsage

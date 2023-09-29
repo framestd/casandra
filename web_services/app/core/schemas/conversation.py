@@ -9,14 +9,13 @@ from .base import BaseModel, SchemaBase
 
 if TYPE_CHECKING:
     # Local Folder
-    from .user import User
+    from .user import UserOut
 
 
 class ConversationBase(BaseModel):
     """Foundational, common attributes"""
 
     subject: str
-
 
 
 class ConversationFilter(BaseModel):
@@ -39,11 +38,12 @@ class ConversationCreate(ConversationBase):
 
 class ConversationUpdate(ConversationBase):
     """Updateable attributes for a Conversation object"""
+
     subject: str
 
 
-class Conversation(ConversationBase, SchemaBase):
+class ConversationOut(ConversationBase, SchemaBase):
     """Conversation outbound attributes"""
 
-    started_by: "User"
+    started_by: "UserOut"
     started_by_id: UUID4

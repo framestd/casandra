@@ -1,3 +1,6 @@
+# Standard Library
+from typing import Annotated
+
 # Third Party
 from pydantic import Field
 
@@ -6,9 +9,9 @@ from .base import BaseModel
 
 
 class PageOptions(BaseModel):
-    page_cursor: str | None = Field(None)
-    page_size: int = Field(100, gt=0, le=100)
-    page_forward: bool = Field(True)
+    page_cursor: Annotated[str | None, Field(None)] = None
+    page_size: Annotated[int, Field(100, gt=0, le=100)] = 100
+    page_forward: Annotated[bool, Field(True)] = True
 
 
 class PageInfo(BaseModel):

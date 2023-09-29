@@ -1,10 +1,10 @@
 # Local Folder
-from .account import Account
-from .conversation import Conversation
-from .message import Message
-from .user import User
+from .account import AccountOut
+from .conversation import ConversationOut
+from .message import ConversationMessageOut
+from .user import UserOut
 
-User.model_rebuild()
-Account.model_rebuild()
-Conversation.model_rebuild()
-Message.model_rebuild()
+UserOut.model_rebuild()
+AccountOut.model_rebuild()
+ConversationOut.model_rebuild()
+ConversationMessageOut.model_rebuild()

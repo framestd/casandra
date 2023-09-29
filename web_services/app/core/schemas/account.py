@@ -1,7 +1,7 @@
 # Standard Library
 from datetime import datetime
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 
 # Third Party
 from pydantic import UUID4, EmailStr, Field
@@ -15,7 +15,7 @@ from .user import UserCreate
 
 if TYPE_CHECKING:
     # Local Folder
-    from .user import User
+    from .user import UserOut
 
 
 class AccountBase(BaseModel):
@@ -31,14 +31,14 @@ class AccountCreate(AccountBase):
     user: UserCreate
 
 
-class Account(AccountBase, SchemaBase):
+class AccountOut(AccountBase, SchemaBase):
     """Account object representation with extra attributes to
     foundational attributes
     """
 
     active_at: datetime
     verified_at: datetime | None
-    user: Optional["User"]
+    user: "UserOut"
 
 
 class TokenData(BaseModel):
