@@ -51,7 +51,7 @@ export const createResponseErrorInterceptor = (api: AxiosInstance) => {
       return logout();
     }
 
-    if (error && error.error.code === ErrorCode.UNAUTHORIZED) {
+    if (error && error.code === ErrorCode.UNAUTHORIZED) {
       const access_token = getToken(ACCESS_TOKEN_KEY);
       const refresh_token = getToken(REFRESH_TOKEN_KEY);
 
