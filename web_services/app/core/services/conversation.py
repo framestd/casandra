@@ -5,13 +5,12 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 
 # First Party
-from app.core.deps import ServiceContext
+from app.core.deps import BaseServiceContext
 from app.core.exceptions.application import MissingResourceException
 from app.core.exceptions.http import ForbiddenRequestException
-from app.core.models.conversation import Conversation as ConversationModel
-from app.core.schemas import conversation as schema
-from app.core.schemas.conversation import ConversationFilter, ConversationFilterExtra
-from app.core.schemas.conversation import ConversationUpdate
+from app.core.models.conversation import Conversation
+from app.core.schemas.conversation import ConversationCreate, ConversationFilter
+from app.core.schemas.conversation import ConversationFilterExtra, ConversationUpdate
 from app.core.schemas.pagination import PageOptions
 from app.core.services.pagination import PageBuilder
 
@@ -20,17 +19,20 @@ from .service_object import PagedServiceObject
 
 
 def create_conversation_service(
+    *,
     session: Session,
-    conversation_create: schema.ConversationCreate,
+    ctx: BaseServiceContext,
+    conversation_id: UUID | None = None,
+    conversation_create: ConversationCreate,
 ):
-    subject = conversation_create.subject
-    user_id = conversation_create.started_by_id
-
-    conversation = ConversationModel(
-        subject=subject,
-        started_by_id=user_id,
-        chat_messages=[],
+    conversation = Conversation(
+        subject=conversation_create.subject,
+        started_by_id=ctx.user.id,
+        messages=[],
     )
+
+    if conversation_id is not None:
+        conversation.id = conversation_id
 
     session.add(conversation)
     session.commit()
@@ -41,7 +43,7 @@ def create_conversation_service(
 
 def update_conversation_service(
     session: Session,
-    ctx: ServiceContext,
+    ctx: BaseServiceContext,
     id: UUID,
     conversation_update: ConversationUpdate,
 ):
@@ -79,7 +81,7 @@ def update_conversation_service(
     return conversation
 
 
-def get_conversation_by_id(session: Session, ctx: ServiceContext, id: UUID):
+def get_conversation_by_id(session: Session, ctx: BaseServiceContext, id: UUID):
     """Get a conversation by ID
 
     :param session: the database session to use to get the conversation
@@ -95,7 +97,7 @@ def get_conversation_by_id(session: Session, ctx: ServiceContext, id: UUID):
         if there are not enough access rights to the conversation
     """
 
-    conversation = session.query(ConversationModel).filter(ConversationModel.id == id).one_or_none()
+    conversation = session.query(Conversation).filter(Conversation.id == id).one_or_none()
 
     if conversation is None:
         exception = MissingResourceException("Conversation not found!")
@@ -117,12 +119,12 @@ def get_conversation_by_id(session: Session, ctx: ServiceContext, id: UUID):
 def get_conversations(
     *,
     session: Session,
-    ctx: ServiceContext,
+    ctx: BaseServiceContext,
     filter: ConversationFilter,
     page_opts: PageOptions,
-    sorts: list[str]
+    sorts: list[str],
 ):
-    pagebuilder = PageBuilder[ConversationModel, ConversationFilterExtra]()
+    pagebuilder = PageBuilder[Conversation, ConversationFilterExtra]()
 
     after = page_opts.page_cursor if page_opts.page_forward else None
     before = page_opts.page_cursor if not page_opts.page_forward else None
@@ -133,7 +135,7 @@ def get_conversations(
     )
 
     page = (
-        pagebuilder.setup(session, ConversationModel)
+        pagebuilder.setup(session, Conversation)
         .go_to_edge_after(after)
         .go_to_edge_before(before)
         .skim_through(filter_extra)
