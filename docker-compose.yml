@@ -82,6 +82,7 @@ services:
     networks:
       - server
       - cache
+      - database
     volumes:
       - "./web_services:${SERVER_WORKDIR}"
       - "virtual_env:${SERVER_WORKDIR}/.venv"
