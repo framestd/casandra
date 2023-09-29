@@ -2,7 +2,6 @@
 import asyncio
 import json
 from contextlib import asynccontextmanager
-from operator import and_
 from typing import Any, cast
 from uuid import UUID, uuid4
 
@@ -152,56 +151,156 @@ def get_messages_by_conversation_id(
     return result
 
 
-async def handle_message(
+@asynccontextmanager
+async def message_completion_streamer(
+    *,
     session: Session,
     ctx: ServiceContext,
-    message: schema.MessageCreate,
+    message_create: MessageCreate,
+    customizations: MessageCreateCustomizations,
 ):
-    body = message.body
-    conversation_id = message.conversation_id
-    role = ChatMessageRoleEnum.human
+    body = message_create.body
+    conversation_id = message_create.conversation_id or uuid4()
+    user_message_id = uuid4()
+    assistant_message_id = uuid4()
+    role = ConversationMessageRoleEnum.human
 
-    # create a new conversation if no existing conversation was provided
-    if conversation_id is None:
-        conversation = create_conversation_service(
-            session=session,
-            conversation_create=ConversationCreate(
-                subject="New Conversation",
-                started_by_id=ctx.user.id,
-            ),
+    channel = get_conversation_channel_for(conversation_id=conversation_id)
+
+    if message_create.conversation_id is None:
+        context_messages = []
+    else:
+        """Load up contexts for this new message to be sent to OpenAI API for processing.
+
+        The way the context is loaded is based on the set customizations. The context length
+        specifies the amount of most recent previous messages to include in the prompt as context.
+
+        If quoted messages are present, the quoted messages are loaded by their IDs and sent as
+        context rather than loading (a max number x) most recent previous messages.
+        """
+
+        _context_size = customizations.context_length
+        filters = [
+            # Ensure the conversation was started or belongs to the user context
+            Conversation.started_by_id == ctx.user.id,
+            # Match only messages in the conversation specified by its ID
+            ConversationMessage.conversation_id == message_create.conversation_id,
+        ]
+
+        # If quoted message IDs are provided, load messages where their IDs are in the
+        # set of quoted message IDs provided
+        if customizations.quotes and len(customizations.quotes) != 0:
+            filters.append(ConversationMessage.id.in_(customizations.quotes))
+            # reassign:
+            _context_size = len(customizations.quotes)
+
+        # sort ascending to restore order of messages (or reverse)
+        context_messages = sorted(
+            # sort desc to enusre the most recent are selected
+            session.query(ConversationMessage)
+            .join(Conversation)  # we need a join irrespective of SQLAlchemy loading strategy
+            .filter(and_(*filters))
+            .order_by(ConversationMessage.created_at.desc())
+            .limit(_context_size)
+            .all(),
+            key=lambda x: x.created_at,
         )
 
-        # reassign
-        conversation_id = conversation.id
-    else:
-        conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
+        # check that all the quoted messages were matched, if not, then fail fast
+        if customizations.quotes and len(customizations.quotes) != len(context_messages):
+            found_ids = map(lambda x: x.id, context_messages)
+            missing_ids = list(filter(lambda x: x not in found_ids, customizations.quotes))
 
-    session.expunge(conversation)
+            exception = MissingResourceException("Some or all of the quoted contexts are missing")
+            exception.add_attributes(
+                context={"type": ErrorContextType.details},
+                path=("body", "quotes"),
+                value=missing_ids,
+                message=f"Missing qouted messages with ID: [{', '.join(map(str, missing_ids))}]",
+            )
+            raise exception
 
-    modeled_message = ChatMessageModel(
-        body=body,
-        conversation_id=conversation_id,
-        response_to_id=None,
-        response_from_id=None,
-        role=role,
-        _dangling=True,  # object has not been commited to db
-    )
+    message_prompts = [
+        create_openai_message_prompt(role=x.role, body=x.body) for x in context_messages
+    ]
 
-    modeled_message.conversation = conversation
+    message_prompts.append(create_openai_message_prompt(role=role, body=body))
 
-    json_message = schema.Message.model_validate(modeled_message).model_dump_json()
+    aggregate_prompts = create_aggregate_prompts(prompts=message_prompts)
 
-    # Only publish if message originally had a conversation attached
-    # If not, it was a <noop> message just to get a conversation going.
-    if message.conversation_id is not None:
-        channel = get_conversation_channel_for(conversation_id)
-        asyncio.create_task(publisher(ctx.rdb, channel, json_message))
+    async def run_celery_task():
+        root_task_signature = openai_completion_task.s(
+            conversation_id=conversation_id,
+            prompts=aggregate_prompts,
+            with_metadata=message_create.conversation_id is None,
+        )
 
-    return modeled_message
+        child_task_signature = save_message_response_pair_task.s(
+            conversation_id=conversation_id,
+            user_message_id=user_message_id,
+            assistant_message_id=assistant_message_id,
+            msg_create_dict=message_create.model_dump(),
+            msg_create_timestamp=get_utc_time(),
+            msg_customizations_dict=customizations.model_dump(),
+            user_account_dict=AccountOut.model_validate(ctx.account).model_dump(),
+        )
+
+        task = root_task_signature.apply_async(link=child_task_signature)
+
+        # task.get(...) is a blocking call so check that task is ready, first.
+        # If the task is ready, then task.get(...) can return fast enough, and
+        # other statements can be executed.
+        # Otherwise, await a coroutine (sleep) to give the event loop chance
+        # to do something else.
+        while not task.ready():
+            await asyncio.sleep(0)
+        task.get(propagate=True)
+
+        if task.children is None:
+            raise AppHTTPException("`save_message_response_pair_task` unresolved")
+        child_task = cast("AsyncResult[list[dict[str, Any]]]", task.children[0])
+
+        while not child_task.ready():
+            await asyncio.sleep(0)
+        child_result = child_task.get(propagate=True)
+
+        user_message, assistant_message = child_result
+
+        result = (
+            ConversationMessageOut(**user_message).model_dump(mode="json"),
+            ConversationMessageOut(**assistant_message).model_dump(mode="json"),
+        )
+
+        await asyncio.create_task(publisher(ctx.rdb, channel, json.dumps(result)))
+
+    async def streamer():
+        try:
+            open_message_reply_stream_context = open_message_reply_stream(
+                ctx=ctx,
+                conversation_id=conversation_id,
+                user_message_id=user_message_id,
+                assistant_message_id=assistant_message_id,
+            )
+
+            async with open_message_reply_stream_context as message_reply_stream:
+                asyncio.create_task(run_celery_task())
+                async for stream in message_reply_stream():
+                    yield stream.model_dump_json().encode()
+                    yield b"\x0A"  # EOL
+        except asyncio.CancelledError:
+            logger.error("Error occured while streaming", exc_info=True)
+
+    yield streamer
 
 
 @asynccontextmanager
-async def open_message_reply_stream(session: Session, ctx: ServiceContext, conversation_id: UUID):
+async def open_message_reply_stream(
+    *,
+    ctx: ServiceContext,
+    conversation_id: UUID,
+    user_message_id: UUID,
+    assistant_message_id: UUID,
+):
     pubsub = ctx.rdb.pubsub()  # type: ignore
     channel = get_conversation_channel_for(conversation_id)
 
@@ -211,100 +310,76 @@ async def open_message_reply_stream(session: Session, ctx: ServiceContext, conve
 
     logger.info(f"Subscribed to {channel} channel!")
 
-    websocket_begin_stream_signal = SignalStream(
+    stream_begin_signal = SignalStream(
         channel=channel,
         message="Data stream begins",
         signal=StreamSignalEnum.begin,
     )
 
-    websocket_end_stream_signal = SignalStream(
+    stream_end_signal = SignalStream(
         channel=channel,
         message="Data stream ends",
         signal=StreamSignalEnum.end,
     )
 
-    async def message_reply_stream():
-        while True:
-            message = cast(PubSubMessage | None, await pubsub.get_message())  # type: ignore
+    initial_data_stream = DataStream[ConversationMessagePartial](
+        channel=channel,
+        message="Streaming data...",
+        data=ConversationMessagePartial(
+            id=assistant_message_id,
+            body="",
+            conversation_id=conversation_id,
+            role=ConversationMessageRoleEnum.robot,
+            response_to_id=user_message_id
+        ),
+    )
 
-            if message is None:
+    async def message_reply_stream():
+        yield stream_begin_signal
+        yield initial_data_stream
+
+        # This is a blocking code block, so every chance we get, we call await asyncio.sleep(delay)
+        # This ensures that the blocking LOCs can return control to the event loop to handle other
+        # tasks, hence prevents it from blocking till it completes.
+        # Could be soon, could be late—God knows when!
+        while True:
+            pubsub_msg = cast(PubSubMessageDict | None, await pubsub.get_message())  # type: ignore
+
+            # if the published message is not of type "pmessage" or "message"
+            if pubsub_msg is None or not pubsub_msg.get("type").endswith("message"):
                 # Return control to the event loop giving it time to do something else
                 await asyncio.sleep(0)
                 continue
-            elif not message.get("type").endswith("message"):
-                websocket_message = MessageStream(channel=channel, message="Subscribed")
-                yield websocket_message
             else:
-                data = schema.Message.model_validate(json.loads(message.get("data")))
+                data: MessageBuffDict | list[dict[str, Any]] = json.loads(pubsub_msg.get("data"))
 
-                conversation = get_conversation_by_id(
-                    session=session,
-                    ctx=ctx,
-                    id=data.conversation_id,
-                )
+                if isinstance(data, list):
+                    try:
+                        for d in data:
+                            data_stream = DataStream[ConversationMessageOut](
+                                channel=channel,
+                                message="Streaming resulting data",
+                                data=ConversationMessageOut(**d),
+                            )
 
-                # Do not track changes, detach from the session
-                session.expunge(conversation)
-
-                prompt = generate_prompt(question=data.body)
-
-                openai_response: Generator[ChatCompletionResponseStream, Any, None]
-
-                try:
-                    # reassign
-                    openai_response = generate_response(prompt=prompt)
-                except openai.OpenAIError:
-                    logger.error("Failed to get completion from OpenAI", exc_info=True)
-
-                    raise ServiceUnavailableException("Failed to establish outbound communication")
-
-                completion = ""
-                chunk_id = uuid4()
-
-                yield websocket_begin_stream_signal
-
-                for chunk in openai_response:
-                    delta = chunk.choices[0].delta
-                    content = delta.content if hasattr(delta, "content") else None
-
-                    if content is None:
-                        continue
-
-                    completion += content
-
-                    response_chunk = ChatMessageModel(
-                        body=completion,
-                        role=ChatMessageRoleEnum.robot,
-                        conversation_id=data.conversation_id,
-                        response_to_id=data.id,
-                        response_from_id=None,
-                        _dangling=True,
-                    )
-
-                    response_chunk.id = chunk_id
-                    response_chunk.conversation = conversation
-
-                    websocket_data = DataStream[schema.Message](
+                            yield data_stream
+                        yield stream_end_signal
+                        break
+                    except:
+                        pass
+                else:
+                    content = data.get("content")
+                    data_stream = DataStream[ConversationMessagePartial](
                         channel=channel,
                         message="Streaming data...",
-                        data=cast(schema.Message, response_chunk),
+                        data=ConversationMessagePartial(
+                            id=assistant_message_id,
+                            body=content,
+                            conversation_id=conversation_id,
+                            role=ConversationMessageRoleEnum.robot,
+                        ),
                     )
-
-                    yield websocket_data
-
-                    await asyncio.sleep(0)
-                yield websocket_end_stream_signal
-
-                _resultant(
-                    session=session,
-                    ctx=ctx,
-                    data=data,
-                    conversation=conversation,
-                    response_chunk_id=chunk_id,
-                    completion=completion,
-                )
-
-            # Return control to the event loop giving it time to do something else
+                    yield data_stream
             await asyncio.sleep(0)
 
     try:
@@ -320,83 +395,3 @@ async def open_message_reply_stream(session: Session, ctx: ServiceContext, conve
         await pubsub.close()
 
         logger.info(f"Unsubscribed from {channel} channel and closed pubsub connection!")
-
-
-def _resultant(
-    *,
-    session: Session,
-    ctx: ServiceContext,
-    data: schema.Message,
-    conversation: ConversationModel,
-    response_chunk_id: UUID,
-    completion: str,
-):
-    message = ChatMessageModel(
-        body=data.body,
-        conversation_id=conversation.id,
-        response_from_id=None,
-        response_to_id=None,
-        role=data.role,
-        _dangling=False,
-    )
-
-    response = ChatMessageModel(
-        body=completion,
-        conversation_id=conversation.id,
-        response_from_id=None,
-        response_to_id=None,
-        role=ChatMessageRoleEnum.robot,
-        _dangling=False,
-    )
-
-    response.id = response_chunk_id
-
-    message.created_at = data.created_at
-    message.updated_at = data.updated_at
-
-    message.response_from_id = response.id
-    response.response_to_id = message.id
-
-    result = _save_message_response_pair(
-        session=session,
-        ctx=ctx,
-        conversation=conversation,
-        message_pair=(message, response),
-    )
-
-    return result
-
-
-def _save_message_response_pair(
-    session: Session,
-    ctx: ServiceContext,
-    conversation: ConversationModel,
-    message_pair: tuple[ChatMessageModel, ChatMessageModel],
-):
-    """Save a pair of message-response
-
-    :param session: the database session to use to create a new account
-
-    :param ctx: the service context necessary for running the service
-
-    :param conversation: the conversation the message pair objects belongs in
-
-    :param message_pair: the message-respose pair to save
-
-    :raise ForbiddenRequestException:
-        when the conversation wasn't started by the current user context
-    """
-
-    message, response = message_pair
-
-    # this shouldn't happen
-    if conversation.started_by_id != ctx.user.id:
-        raise ForbiddenRequestException("Conversation must be started by the current user")
-
-    session.add(message)
-    session.add(response)
-    session.commit()
-    session.refresh(message)
-    session.refresh(response)
-
-    return (message, response)
