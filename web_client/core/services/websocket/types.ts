@@ -53,4 +53,4 @@ export interface DataStream<DataT> extends Stream {
   data: DataT;
 }
 
-export type WebSocketStream<DataT = any> = MessageStream | SignalStream | StatusStream | DataStream<DataT>;
+export type SocketStream<DataT = any> = MessageStream | SignalStream | StatusStream | DataStream<DataT>;

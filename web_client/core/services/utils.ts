@@ -92,3 +92,12 @@ export const getNextPageParam = <T extends ResponseDataMetadata<ResponseMetadata
   const pageCursor = pageInfo.bottom_cursor!;
   return pageInfo.has_next ? { pageCursor, pageForward: true } : undefined;
 };
+
+export function readBinaryData(data: Blob): Promise<string> {
+  const reader = new FileReader();
+  return new Promise<string>((resolve, reject) => {
+    reader.addEventListener('load', () => resolve(reader.result as string));
+    reader.addEventListener('error', () => reject(reader.error));
+    reader.readAsText(data, 'utf-8');
+  });
+}
