@@ -11,6 +11,8 @@
     "format": "prettier --write \"{client,core,pages}/**/*.{ts,tsx}\"",
     "generate:client": "./generate_client.sh && yarn format",
     "generate:theme-typings": "chakra-cli tokens ./core/theme/theme.ts",
+    "generate:svg-to-react": "svgr --typescript --icon=1em --svg-props=\"fill=\"currentColor\"\" --svgo-config=\"svgo.config.js\" --out-dir ./core/components/Icons -- public/icons",
+    "generate:illustrations": "svgr --typescript --svg-props=\"fill=\"currentColor\"\" --svgo-config=\"svgo.config.js\" --out-dir ./core/components/Illustrations -- public/illustrations",
     "postinstall": "yarn generate:theme-typings"
   },
   "dependencies": {
