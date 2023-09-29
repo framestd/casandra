@@ -40,22 +40,23 @@ from .pagination import PageBuilder
 from .service_object import PagedServiceObject
 
 __all__ = (
-    "handle_message",
-    "open_message_reply_stream",
     "get_message_by_id",
+    "get_messages_by_conversation_id",
+    "message_completion_streamer",
+    "open_message_reply_stream",
 )
 
 logger = get_app_logger(__name__)
 
 
 def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
-    """Get a chat message by ID
+    """Get a conversation message by ID
 
     :params session: the database session to use to create a new account
 
     :params ctx: the service context necessary for running the service
 
-    :params id: the identifier to use to find the chat message
+    :params id: the identifier to use to find the conversation message
 
     :raises MissingResourceException:
         when no message by the giving resource identifier could be found
@@ -65,9 +66,9 @@ def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         to do so.
     """
 
-    chat_message = session.query(ChatMessageModel).filter(ChatMessageModel.id == id).one_or_none()
+    message = session.query(ConversationMessage).filter(ConversationMessage.id == id).one_or_none()
 
-    if chat_message is None:
+    if message is None:
         exception = MissingResourceException(f"There's no chat message with id {id}")
 
         exception.add_attributes(
@@ -80,10 +81,10 @@ def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         raise exception
 
     # TODO: revise when the feature to share conversations have been implemented
-    if chat_message.conversation.started_by.id != ctx.user.id:
+    if message.conversation.started_by.id != ctx.user.id:
         raise ForbiddenRequestException("You are not allowed to read this message")
 
-    return chat_message
+    return message
 
 
 def get_messages_by_conversation_id(
@@ -91,30 +92,47 @@ def get_messages_by_conversation_id(
     session: Session,
     ctx: ServiceContext,
     conversation_id: UUID,
-    filter: schema.MessageFilter,
+    filter: MessageFilter = MessageFilter(),
     sorts: list[str],
     page_opts: PageOptions,
 ):
+    """Get messages in a given conversation by the conversation ID as a paged service object
+    reading not more than 100 messages per session.
+
+    :params session: the database session to use to create a new account
+
+    :params ctx: the service context necessary for running the service
+
+    :params conversation_id: the ID of the conversation to read messages from
+
+    :raises MissingResourceException:
+        when no conversation by the giving resource identifier could be found
+
+    :raises ForbiddenRequestException:
+        when the user trying to read messages from a conversation doesn't have enough access
+        privileges to do so.
+    """
+
     conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
 
-    # TODO: revise when the feature to share conversations have been implemented
-    if conversation.started_by_id != ctx.user.id:
-        raise ForbiddenRequestException(
-            "You are not allowed to read messages from this conversation"
-        )
+    # # TODO: revise when the feature to share conversations have been implemented
+    # if conversation.started_by_id != ctx.user.id:
+    #     raise ForbiddenRequestException(
+    #         "You are not allowed to read messages from this conversation"
+    #     )
 
-    page_builder = PageBuilder[ChatMessageModel, schema.MessageFilterExtra]()
+    page_builder = PageBuilder[ConversationMessage, MessageFilterExtra]()
 
     after = page_opts.page_cursor if page_opts.page_forward else None
     before = page_opts.page_cursor if not page_opts.page_forward else None
 
-    filter_extra = schema.MessageFilterExtra(
-        conversation_id=conversation_id,
+    filter_extra = MessageFilterExtra(
+        conversation_id=conversation.id,
         **filter.model_dump(exclude_defaults=True),
     )
 
     page = (
-        page_builder.setup(session=session, model=ChatMessageModel)
+        page_builder.setup(session=session, model=ConversationMessage)
         .go_to_edge_before(before)
         .go_to_edge_after(after)
         .skim_through(filter=filter_extra)
