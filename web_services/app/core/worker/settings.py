@@ -8,6 +8,8 @@ class WorkerSettings(BaseSettings, extra="allow"):
 
     model_config = SettingsConfigDict(env_file=".env")
 
+    REDIS_URL: RedisDsn
+
     CELERY_BROKER_URL: RedisDsn
 
     CELERY_RESULT_BACKEND: RedisDsn
