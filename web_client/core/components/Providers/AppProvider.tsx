@@ -40,13 +40,13 @@ const queryClient = new QueryClient({
       const meta = mutation.meta;
       if (meta === undefined || meta.report_error === false || !isErrorResponse(error)) return;
 
-      if (Array.isArray(error.error.errors)) {
-        return error.error.errors.forEach((e, i) => {
-          toast.error({ title: i === 0 ? (meta.title as string) : undefined, message: e.message });
+      if (Array.isArray(error.errors)) {
+        return error.errors.forEach((e, i) => {
+          toast.error({ title: i === 0 ? (error.title as string) : undefined, message: e.message });
         });
       }
 
-      toast.error({ title: meta.title as string, message: error.message });
+      toast.error({ title: error.title as string, message: error.message });
     },
   }),
 
