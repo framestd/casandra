@@ -8,7 +8,7 @@ import { AppProvider } from '@/core/components/Providers';
 import { getApplicationInfo_Cached } from '@/core/services/build-props';
 import { CONFIG_SCRIPT_NAME } from '@/core/utils';
 
-const pjs = Plus_Jakarta_Sans({ subsets: ['latin'] });
+const pjs = Plus_Jakarta_Sans({ weight: 'variable', subsets: ['latin'] });
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const res = await getApplicationInfo_Cached();
