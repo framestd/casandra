@@ -1,3 +1,4 @@
+export * from './useGroupBy';
 export * from './usePagedNormalizer';
 export * from './useSocketStatusEvents';
 export * from './useThemeConstants';
