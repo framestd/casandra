@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import ServiceContext, get_db, get_service_context
 from app.core.deps import preprocess_sort_param
 from app.core.logging.logger import get_app_logger
-from app.core.schemas.message import ConversationMessageOut, MessageCreate
+from app.core.schemas.message import ConversationMessage, MessageCreate
 from app.core.schemas.message import MessageCreateCustomizations, MessageFilter
 from app.core.schemas.pagination import PageInfo, PageOptions
 from app.core.schemas.response import ResponseMetadata, StandardPaginatedResponse
@@ -53,13 +53,14 @@ async def publish_message(
 
     async with message_completion_stremer_context as streamer:
         response = StreamingResponse(streamer(), media_type="text/event-stream")
+        response.headers.append("X-Accel-Buffer", "no")  # https://stackoverflow.com/a/27960243
 
         return response
 
 
 @router.get(
     "/{id}",
-    response_model=StandardResponse[ConversationMessageOut],
+    response_model=StandardResponse[ConversationMessage],
     responses={
         401: responses.get("o401"),
         403: responses.get("o403"),
@@ -75,16 +76,14 @@ def read_chat_message_by_id(
 
     chat_message = get_message_by_id(session=db, ctx=ctx, id=id)
 
-    response = StandardResponse[ConversationMessageOut](
-        data=cast(ConversationMessageOut, chat_message)
-    )
+    response = StandardResponse[ConversationMessage](data=cast(ConversationMessage, chat_message))
 
     return response
 
 
 @router.get(
     "/",
-    response_model=StandardPaginatedResponse[ConversationMessageOut],
+    response_model=StandardPaginatedResponse[ConversationMessage],
     responses={
         401: responses.get("o401"),
         403: responses.get("o403"),
@@ -94,7 +93,7 @@ def read_chat_message_by_id(
 def read_chat_messages_by_conversation_id(
     *,
     conversation_id: UUID4,
-    sort: Annotated[list[str], Depends(preprocess_sort_param(ConversationMessageOut))],
+    sort: Annotated[list[str], Depends(preprocess_sort_param(ConversationMessage))],
     filter: Annotated[MessageFilter, Depends()],
     page: Annotated[PageOptions, Depends()],
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
@@ -113,7 +112,7 @@ def read_chat_messages_by_conversation_id(
     has_prev, has_next = message.has_prev, message.has_next
 
     response = StandardPaginatedResponse(
-        data=cast(list[ConversationMessageOut], message.edges),
+        data=cast(list[ConversationMessage], message.edges),
         metadata=ResponseMetadata(
             total_objects=message.total_pages,
             page_info=PageInfo(

@@ -15,7 +15,7 @@ from .user import UserCreate
 
 if TYPE_CHECKING:
     # Local Folder
-    from .user import UserOut
+    from .user import User
 
 
 class AccountBase(BaseModel):
@@ -31,14 +31,14 @@ class AccountCreate(AccountBase):
     user: UserCreate
 
 
-class AccountOut(AccountBase, SchemaBase):
+class Account(AccountBase, SchemaBase):
     """Account object representation with extra attributes to
     foundational attributes
     """
 
     active_at: datetime
     verified_at: datetime | None
-    user: "UserOut"
+    user: "User"
 
 
 class TokenData(BaseModel):

@@ -12,7 +12,7 @@ from .base import BaseModel, SchemaBase
 
 if TYPE_CHECKING:
     # Local Folder
-    from .conversation import ConversationOut
+    from .conversation import Conversation
 
 
 class MessageBase(BaseModel):
@@ -66,13 +66,13 @@ class ConversationMessagePartial(MessageBase):
     response_to_id: UUID4 | None = None
 
 
-class ConversationMessageOut(MessageBase, SchemaBase):
-    """ChatMessage outbound attributes"""
+class ConversationMessage(MessageBase, SchemaBase):
+    """ConversationMessage outbound attributes"""
 
     conversation_id: UUID4
-    conversation: "ConversationOut"
+    conversation: "Conversation"
     role: ConversationMessageRoleEnum
     response_from_id: UUID4 | None
     response_to_id: UUID4 | None
-    quoted_messages: list["ConversationMessageOut"]
+    quoted_messages: list["ConversationMessage"]
     context_length: int

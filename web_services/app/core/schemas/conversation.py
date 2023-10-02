@@ -1,4 +1,5 @@
 # Standard Library
+from datetime import datetime
 from typing import TYPE_CHECKING, Annotated
 
 # Third Party
@@ -9,7 +10,7 @@ from .base import BaseModel, SchemaBase
 
 if TYPE_CHECKING:
     # Local Folder
-    from .user import UserOut
+    from .user import User
 
 
 class ConversationBase(BaseModel):
@@ -42,8 +43,9 @@ class ConversationUpdate(ConversationBase):
     subject: str
 
 
-class ConversationOut(ConversationBase, SchemaBase):
+class Conversation(ConversationBase, SchemaBase):
     """Conversation outbound attributes"""
 
-    started_by: "UserOut"
+    started_by: "User"
     started_by_id: UUID4
+    last_active_at: datetime

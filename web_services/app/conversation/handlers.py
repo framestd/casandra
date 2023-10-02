@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import ServiceContext, get_db, get_service_context
 from app.core.deps import preprocess_sort_param
 from app.core.logging.logger import get_app_logger
-from app.core.schemas.conversation import ConversationFilter, ConversationOut
+from app.core.schemas.conversation import Conversation, ConversationFilter
 from app.core.schemas.conversation import ConversationUpdate
 from app.core.schemas.pagination import PageInfo, PageOptions
 from app.core.schemas.response import ResponseMetadata, StandardPaginatedResponse
@@ -27,7 +27,7 @@ logger = get_app_logger(__name__)
 
 @router.get(
     "/{id}",
-    response_model=StandardResponse[ConversationOut],
+    response_model=StandardResponse[Conversation],
     responses={
         401: responses.get("o401"),
         403: responses.get("o403"),
@@ -38,19 +38,19 @@ def read_conversation_by_id(
     id: UUID4,
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
     db: Annotated[Session, Depends(get_db)],
-) -> StandardResponse[ConversationOut]:
+) -> StandardResponse[Conversation]:
     """Read a conversation by a given ID."""
 
     conversation = get_conversation_by_id(session=db, ctx=ctx, id=id)
 
-    response = StandardResponse[ConversationOut](data=cast(ConversationOut, conversation))
+    response = StandardResponse[Conversation](data=cast(Conversation, conversation))
 
     return response
 
 
 @router.get(
     "/",
-    response_model=StandardPaginatedResponse[ConversationOut],
+    response_model=StandardPaginatedResponse[Conversation],
     responses={
         401: responses.get("o401"),
         422: responses.get("o422"),
@@ -58,12 +58,12 @@ def read_conversation_by_id(
 )
 def read_conversations(
     *,
-    sort: Annotated[list[str], Depends(preprocess_sort_param(ConversationOut))],
+    sort: Annotated[list[str], Depends(preprocess_sort_param(Conversation))],
     filter: Annotated[ConversationFilter, Depends()],
     page: Annotated[PageOptions, Depends()],
     ctx: Annotated[ServiceContext, Depends(get_service_context)],
     db: Annotated[Session, Depends(get_db)],
-) -> StandardPaginatedResponse[ConversationOut]:
+) -> StandardPaginatedResponse[Conversation]:
     """Read a page of conversations at any one time, with each page not containing
     more than 100 objects or edges"""
 
@@ -79,7 +79,7 @@ def read_conversations(
     has_prev, has_next = result.has_prev, result.has_next
 
     response = StandardPaginatedResponse(
-        data=cast(list[ConversationOut], result.edges),
+        data=cast(list[Conversation], result.edges),
         metadata=ResponseMetadata(
             total_objects=result.total_pages,
             page_info=PageInfo(
@@ -96,7 +96,7 @@ def read_conversations(
 
 @router.put(
     "/{id}",
-    response_model=StandardResponse[ConversationOut],
+    response_model=StandardResponse[Conversation],
     responses={
         401: responses.get("o401"),
         403: responses.get("o403"),
@@ -115,6 +115,6 @@ def revise_conversation(
         session=db, ctx=ctx, id=id, conversation_update=conversation_update
     )
 
-    response = StandardResponse[ConversationOut](data=cast(ConversationOut, conversation))
+    response = StandardResponse[Conversation](data=cast(Conversation, conversation))
 
     return response

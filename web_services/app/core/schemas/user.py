@@ -19,7 +19,9 @@ class UserCreate(UserBase):
     pass
 
 
-class UserOut(UserBase, SchemaBase):
+class User(UserBase, SchemaBase):
     """User outbound attributes"""
+
+    __name__ = "User"
 
     account_id: UUID4
