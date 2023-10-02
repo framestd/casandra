@@ -4,13 +4,13 @@ import { ReactNode } from 'react';
 
 import { Avatar, Box, HStack, StackProps, useColorModeValue } from '@/chakra-ui/react';
 
-import { ChatMessageRoleEnum } from '@/client';
+import { ConversationMessageRoleEnum } from '@/client';
 
 import { Typography } from '../Typography';
 
 export interface ChatMessageProps extends StackProps {
   message: ReactNode;
-  role: ChatMessageRoleEnum;
+  role: ConversationMessageRoleEnum;
   enitity: string;
   streaming?: boolean;
 }
@@ -24,7 +24,7 @@ export const ConversationMesssage = ({ message, enitity, role, ...rest }: ChatMe
       width="full"
       alignItems="baseline"
       borderBottomWidth={1}
-      bgColor={role === ChatMessageRoleEnum.ROBOT ? highlght : undefined}
+      bgColor={role === ConversationMessageRoleEnum.ROBOT ? highlght : undefined}
       {...rest}
     >
       <Avatar name={enitity} size="sm" position="sticky" top={0} userSelect="none" />
