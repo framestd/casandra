@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useContext, useId, useMemo } from 'react';
+import { useCallback, useContext, useEffect, useId, useMemo, useRef } from 'react';
 
 import { Box, Flex, useColorModeValue } from '@/chakra-ui/react';
 
@@ -10,11 +10,8 @@ import InfiniteScroll from 'react-infinite-scroll-component';
 import { ChatBox } from '@/core/components/ChatBox';
 import { ChatTextBox } from '@/core/components/ChatTextBox';
 import { ConfigContext } from '@/core/components/Providers';
-import {
-  useConversationMessageSocket,
-  usePublishMessageService,
-  useReadMessagesByConversationIdService,
-} from '@/core/services/message';
+import { usePublishMessageServiceStream, useReadMessagesByConversationIdService } from '@/core/services/message';
+import { uuidToHex } from '@/core/utils';
 import { CONVERSATIONS } from '@/core/utils/routes';
 
 import { usePagedNormalizerFn } from '../hooks';
@@ -24,51 +21,68 @@ export interface ConversationProps {
   conversation_id: string;
 }
 
+export const NEW_CONVERSATION_MARKER = 'new';
+
 export const Conversation = ({ conversation_id }: ConversationProps) => {
+  const isNewConversation = conversation_id === NEW_CONVERSATION_MARKER;
   const router = useRouter();
+  const abortControllerRef = useRef<AbortController>();
   const textboxBgColor = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
 
   const { config } = useContext(ConfigContext);
+
   const {
     data,
     isSuccess,
-    isLoading,
     hasPreviousPage = false,
     fetchPreviousPage,
   } = useReadMessagesByConversationIdService(conversation_id, {
-    trigger: conversation_id !== 'new',
+    // trigger: !isNewConversation,
+    newConversationMarker: NEW_CONVERSATION_MARKER,
+    useErrorBoundary: true,
     variables: { sort: ['created_at:desc'], pageSize: 8 },
     select: (data) => {
       return { ...data, pages: data.pages.map((page) => page.data) };
     },
   });
 
-  const pagedNormalizer = usePagedNormalizerFn();
-  const publishMessageHandler = usePublishMessageService();
-  const messages = useMemo(
-    () => (!isSuccess || isLoading ? [] : pagedNormalizer(data.pages.toReversed()).toReversed()),
-    [data?.pages, isLoading, isSuccess, pagedNormalizer],
-  );
+  useEffect(() => {
+    const handler = (_event: Event) => {
+      abortControllerRef.current!.signal.throwIfAborted();
+      abortControllerRef.current = new AbortController();
+    };
 
-  useConversationMessageSocket(conversation_id);
+    abortControllerRef.current = new AbortController();
+    abortControllerRef.current.signal.addEventListener('abort', handler);
+
+    return () => abortControllerRef.current?.signal.removeEventListener('abort', handler);
+  }, []);
+
+  const pagedNormalizer = usePagedNormalizerFn();
+
+  const publishMessageHandler = usePublishMessageServiceStream({
+    signal: abortControllerRef.current?.signal,
+    newConversationMarker: NEW_CONVERSATION_MARKER,
+    onStreamEnd: (stream) => {
+      isNewConversation && router.replace(`${CONVERSATIONS}/${uuidToHex(stream.channel.split(':').at(-1)!)}`);
+    },
+  });
 
   const publishMessageToConversation = useCallback(
-    async (conversation_id: string, message: string, router: ReturnType<typeof useRouter>) => {
+    async (conversation_id: string, message: string, is_new: boolean) => {
       const outboundMessage = message.trim();
 
-      if (conversation_id === 'new') {
-        const response = await publishMessageHandler.mutateAsync({ body: '<noop>' });
-        const data = response.data.data;
-
-        router.replace(`${CONVERSATIONS}/${data.conversation_id}`);
-
-        await publishMessageHandler.mutateAsync({ body: outboundMessage, conversation_id: data.conversation_id });
-      }
-
-      publishMessageHandler.mutateAsync({ body: outboundMessage, conversation_id });
+      await publishMessageHandler.mutateAsync({
+        message: { body: outboundMessage, conversation_id: is_new ? undefined : conversation_id },
+        customizations: { quotes: [], context_length: 2 },
+      });
     },
     [publishMessageHandler],
   );
+
+  const messages = useMemo(() => {
+    return !isSuccess ? [] : pagedNormalizer(data.pages.toReversed()).toReversed();
+  }, [data?.pages, isSuccess, pagedNormalizer]);
 
   const user = config.session.user_account?.user;
   const scrollableTargetId = useId();
@@ -95,8 +109,8 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
         <ChatTextBox
           my={8}
           bgColor={textboxBgColor}
-          onSend={async (message) => await publishMessageToConversation(conversation_id, message, router)}
           isSending={publishMessageHandler.isLoading}
+          onSend={async (message) => await publishMessageToConversation(conversation_id, message, isNewConversation)}
         />
       </Box>
     </ChatBox>
