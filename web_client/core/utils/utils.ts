@@ -50,3 +50,15 @@ export const uuidToHex = (uuid: string) => uuid.replace(/-/g, '');
 export const never = (_: never) => {
   throw new Error('Unreachable');
 };
+
+export function range(start: number): Generator<number>;
+export function range(start: number, end: number): Generator<number>;
+export function range(start: number, end: number, step: number): Generator<number>;
+export function range(start: number, end: number | undefined, step: number): Generator<number>;
+export function* range(start: number, end?: number, step: number = 1) {
+  if (end === undefined) [end, start] = [start, 0];
+
+  for (let i = start; i < end; i += step) {
+    yield i;
+  }
+}
