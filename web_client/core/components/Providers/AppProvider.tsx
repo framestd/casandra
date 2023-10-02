@@ -31,7 +31,7 @@ const queryClient = new QueryClient({
 
       if (!query.meta?.report_error || !isErrorResponse(error)) return;
 
-      toast.error({ message: error.message });
+      toast.error({ title: error.title, message: error.message });
     },
   }),
 
@@ -52,6 +52,7 @@ const queryClient = new QueryClient({
 
   defaultOptions: {
     queries: {
+      staleTime: 60 * 1000,
       queryKeyHashFn: (queryKey) => {
         return JSON.stringify(queryKey, (_, value) => {
           if (value instanceof Set) {
