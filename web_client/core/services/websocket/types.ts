@@ -18,6 +18,7 @@ export enum WSStatus {
 
 export enum StreamTypeEnum {
   SIGNAL = 'signal',
+  ERROR = 'error',
   DATA = 'data',
   STATUS = 'status',
   MESSAGE = 'message',
@@ -53,4 +54,14 @@ export interface DataStream<DataT> extends Stream {
   data: DataT;
 }
 
-export type SocketStream<DataT = any> = MessageStream | SignalStream | StatusStream | DataStream<DataT>;
+export interface ErrorStream<ErrorT> extends Stream {
+  type: StreamTypeEnum.ERROR;
+  error: ErrorT;
+}
+
+export type SocketStream<DataT = unknown, ErrorT = unknown> =
+  | MessageStream
+  | SignalStream
+  | StatusStream
+  | DataStream<DataT>
+  | ErrorStream<ErrorT>;
