@@ -1,6 +1,6 @@
 import { VStack } from '@/chakra-ui/react';
 
-import { ConversationMessageRoleEnum, ConversationMessage, User } from '@/client/api';
+import { ConversationMessage, ConversationMessageRoleEnum, User } from '@/client/api';
 import { ConversationMesssage } from '@/core/components/ConversationMessage';
 import { APP_NAME, fullname } from '@/core/utils';
 

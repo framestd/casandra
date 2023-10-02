@@ -1,5 +1,6 @@
-import { isFunction } from '@/core/utils';
 import { useCallback, useMemo } from 'react';
+
+import { isFunction } from '@/core/utils';
 
 export function useGroupByFn<T, K extends keyof T>(): (data: T[], key: K) => Map<T[K], T[]>;
 export function useGroupByFn<T, V extends T[keyof T]>(): (data: T[], key: (d: T) => V) => Map<V, T[]>;

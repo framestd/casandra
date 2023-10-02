@@ -7,12 +7,12 @@ import { Accordion, AccordionButton, AccordionItem, AccordionPanel, Box, StackPr
 import { Conversation } from '@/client';
 import { useGroupBy, usePagedNormalizer, useThemeConstants } from '@/core/composition/hooks';
 import { useReadConversationsService, useReviseConversationService } from '@/core/services/conversation';
+import { backdropFactory } from '@/core/theme';
+import { range } from '@/core/utils';
 import { timeAgo } from '@/core/utils/date';
 
 import { ConversationBarToolbar } from './ConversationBarToolbar';
 import { ConversationList, ConversationListProps } from './ConversationList';
-import { backdropFactory } from '@/core/theme';
-import { range } from '@/core/utils';
 
 export interface ConversationBarProps extends StackProps {
   activeConversationId: string;
