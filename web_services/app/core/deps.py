@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.authentication.oauth2 import oauth2_scheme
 from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
-from app.core.models.account import Account
+from app.core.models.account import AccountInDB
 from app.core.redis.client import appredis, appredis_sync
 from app.core.schemas.base import BaseModel
 from app.core.services.account import get_account_by_token
@@ -39,13 +39,13 @@ SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
 
 class BaseServiceContext:
-    def __init__(self, *, account: Account):
+    def __init__(self, *, account: AccountInDB):
         self.user = account.user
         self.account = account
 
 
 class ServiceContext(BaseServiceContext):
-    def __init__(self, *, account: Account):
+    def __init__(self, *, account: AccountInDB):
         super().__init__(account=account)
         self.rdb: aioredis.Redis[str]
         self.srdb: Redis[str]
@@ -115,7 +115,7 @@ def get_current_account(
 
 
 def get_service_context(
-    current_account: Annotated[Account, Depends(get_current_account)],
+    current_account: Annotated[AccountInDB, Depends(get_current_account)],
     rdb: Annotated["aioredis.Redis[str]", Depends(get_redis_db)],
     srdb: Annotated["Redis[str]", Depends(get_redis_sync_db)],
 ):
@@ -126,7 +126,7 @@ def get_service_context(
 
 
 def get_ws_service_context(
-    current_account: Annotated[Account, Depends(get_ws_current_account)],
+    current_account: Annotated[AccountInDB, Depends(get_ws_current_account)],
     rdb: Annotated["aioredis.Redis[str]", Depends(get_redis_db)],
     srdb: Annotated["Redis[str]", Depends(get_redis_sync_db)],
 ):
