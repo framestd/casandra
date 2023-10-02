@@ -12,11 +12,11 @@ from .base import Base
 
 if TYPE_CHECKING:
     # Local Folder
-    from .account import Account
-    from .conversation import Conversation
+    from .account import AccountInDB
+    from .conversation import ConversationInDB
 
 
-class User(Base):
+class UserInDB(Base):
     """The account user: this will mostly just be used
     to store information about the user like name, age,
     address, etc.
@@ -33,12 +33,9 @@ class User(Base):
         nullable=False,
     )
 
-    account: Mapped["Account"] = relationship(
-        "Account", back_populates="user", init=False
-    )
+    account: Mapped["AccountInDB"] = relationship(back_populates="user", init=False)
 
-    conversations: Mapped[list["Conversation"]] = relationship(
-        "Conversation",
+    conversations: Mapped[list["ConversationInDB"]] = relationship(
         back_populates="started_by",
         cascade="delete, delete-orphan",
         init=False,

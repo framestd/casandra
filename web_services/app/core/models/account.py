@@ -15,10 +15,10 @@ from .base import Base
 
 if TYPE_CHECKING:
     # Local Folder
-    from .user import User
+    from .user import UserInDB
 
 
-class Account(Base):
+class AccountInDB(Base):
     """The user account: this will mostly just be used
     to store credentials and authentication data and other
     user account related stuff
@@ -27,8 +27,7 @@ class Account(Base):
     email: Mapped[str] = mapped_column(CITEXT, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
 
-    user: Mapped["User"] = relationship(
-        "User",
+    user: Mapped["UserInDB"] = relationship(
         back_populates="account",
         cascade="all, delete-orphan",
     )

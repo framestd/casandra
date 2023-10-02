@@ -12,7 +12,7 @@ from .base import Base
 
 if TYPE_CHECKING:
     # Local Folder
-    from .conversation import Conversation
+    from .conversation import ConversationInDB
 
 QuotedMessagesToQuotingMessagesAssocTable = Table(
     "QuotedMessagesToQuotingMessagesAssocTable",
@@ -44,7 +44,7 @@ class ConversationMessageRoleEnum(str, enum.Enum):
     robot = "robot"
 
 
-class ConversationMessage(Base):
+class ConversationMessageInDB(Base):
     """Conversation messages belonging to a single conversation"""
 
     body: Mapped[str] = mapped_column(nullable=False)
@@ -75,8 +75,7 @@ class ConversationMessage(Base):
         nullable=False,
     )
 
-    conversation: Mapped["Conversation"] = relationship(
-        "Conversation",
+    conversation: Mapped["ConversationInDB"] = relationship(
         back_populates="messages",
         init=False,
         lazy="joined",
@@ -87,7 +86,7 @@ class ConversationMessage(Base):
     )
 
     # Messages that quoted this message
-    quoting_messages: Mapped[list["ConversationMessage"]] = relationship(
+    quoting_messages: Mapped[list["ConversationMessageInDB"]] = relationship(
         secondary=QuotedMessagesToQuotingMessagesAssocTable,
         foreign_keys=[cast(Column[Any], quoting_id_column)],
         back_populates="quoted_messages",
@@ -97,7 +96,7 @@ class ConversationMessage(Base):
     """Not loaded: have to manually load in execution options"""
 
     # Messages that this message qouted
-    quoted_messages: Mapped[list["ConversationMessage"]] = relationship(
+    quoted_messages: Mapped[list["ConversationMessageInDB"]] = relationship(
         secondary=QuotedMessagesToQuotingMessagesAssocTable,
         foreign_keys=[cast(Column[Any], quoted_id_column)],
         back_populates="quoting_messages",

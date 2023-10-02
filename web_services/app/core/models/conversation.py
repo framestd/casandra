@@ -1,21 +1,25 @@
 # Standard Library
+from datetime import datetime
 from typing import TYPE_CHECKING
 from uuid import UUID
 
 # Third Party
-from sqlalchemy import ForeignKey
+from sqlalchemy import DateTime, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+# First Party
+from app.core.utils import get_utc_time
 
 # Local Folder
 from .base import Base
-from .user import User
+from .user import UserInDB
 
 if TYPE_CHECKING:
     # Local Folder
-    from .message import ConversationMessage
+    from .message import ConversationMessageInDB
 
 
-class Conversation(Base):
+class ConversationInDB(Base):
     """A conversation object to which all the messages in a
     particular chat are attached to"""
 
@@ -26,8 +30,7 @@ class Conversation(Base):
         nullable=False,
     )
 
-    started_by: Mapped["User"] = relationship(
-        "User",
+    started_by: Mapped["UserInDB"] = relationship(
         back_populates="conversations",
         init=False,
         lazy="joined",
@@ -37,10 +40,16 @@ class Conversation(Base):
         innerjoin=True,
     )
 
-    messages: Mapped[list["ConversationMessage"]] = relationship(
-        "ConversationMessage",
+    messages: Mapped[list["ConversationMessageInDB"]] = relationship(
         back_populates="conversation",
         cascade="all, delete-orphan",
         lazy="selectin",
         single_parent=True,
+    )
+
+    last_active_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        index=True,
+        default_factory=get_utc_time,
     )

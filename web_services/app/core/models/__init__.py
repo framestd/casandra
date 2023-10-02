@@ -1,8 +1,8 @@
 # type: ignore
 
 # Local Folder
-from .account import Account
+from .account import AccountInDB
 from .base import Base
-from .message import ConversationMessage
-from .conversation import Conversation
-from .user import User
+from .conversation import ConversationInDB
+from .message import ConversationMessageInDB
+from .user import UserInDB
