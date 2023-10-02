@@ -12,19 +12,21 @@ from app.core.schemas.openai import ChatCompletionResponseStream
 
 logger = get_app_logger(__name__)
 
-METADATA_PROMPT = """Reply to the following message from a user and using the markdown front matter format, you'll suggest a topic and generate a short description of not more than 15 words for the ensuing conversation. Then go ahead and respond to the message after suggesting a topic and description
+METADATA_PROMPT = """Reply to the following message from a user. Also using the markdown front matter format, you'll suggest a topic of not more than 5 to 10 words, and generate a short description of not more than 15 words for the resulting conversation. Then go ahead and respond to the message after suggesting a topic and description.
 ###
-The desired format for suggesting a topic and description is given below:
+Enusre to format the frontatter accordingly with no extraneous line breaks than is in the desired format. The desired format for suggesting a topic and description is given below:
 ---
 topic: <YOUR SUGGESTED TOPIC>
 description: <YOUR SUGGESTED DESCRIPTION>
 ---
 ###
-<YOUR REPLY HERE>
+<YOUR RESPONSE HERE>
 ###
 
 Message:
 """
+
+FRONTMATTER_LINE_LENGTH = 4
 
 
 class OpenAIMessagePromptDict(TypedDict):
@@ -64,7 +66,7 @@ def create_aggregate_prompts(
 
     """
 
-    system = f"You are a savage assistant, with great humor and sarcasm."
+    system = f"You are a study assistant, with great humor and vast knowledge."
 
     return (OpenAISystemPromptDict(role="system", content=system), prompts)
 
@@ -81,7 +83,6 @@ def generate_completion_stream(
     The prompt that awards this personality to the GPT is in fact
     itself a message with a "system" role while a user and/or assistant
     message follows it.
-
     """
 
     system_prompt, message_prompts = aggregate_prompts
@@ -89,8 +90,6 @@ def generate_completion_stream(
     if with_metadata is True:
         end = message_prompts[-1:][0]
         end.update({"content": METADATA_PROMPT + " " + end.get("content")})
-
-    logger.debug(message_prompts)
 
     response = openai.ChatCompletion.create(  # type: ignore
         model="gpt-3.5-turbo",
