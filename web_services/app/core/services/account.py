@@ -14,9 +14,9 @@ from app.core.exceptions.code import ErrorContextType
 from app.core.exceptions.http import AppHTTPException, ConflictException
 from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
-from app.core.models.account import Account as AccountModel
-from app.core.models.user import User as UserModel
-from app.core.schemas import account as schema
+from app.core.models.account import AccountInDB
+from app.core.models.user import UserInDB
+from app.core.schemas.account import AccountCreate, TokenData
 
 # Local Folder
 from .user import get_user_by_username
@@ -24,7 +24,7 @@ from .user import get_user_by_username
 logger = get_app_logger(__name__)
 
 
-def create_user_account_service(session: Session, credentials: schema.AccountCreate):
+def create_user_account_service(session: Session, credentials: AccountCreate):
     """Create a user account that will be used for authentication and will serve
     as the user's identification through the entire system
 
@@ -39,11 +39,11 @@ def create_user_account_service(session: Session, credentials: schema.AccountCre
 
     hashed = Password(credentials.password).get_hash()
 
-    user = UserModel(**credentials.user.model_dump())
-    account = AccountModel(email=credentials.email, password=hashed, user=user)
+    user = UserInDB(**credentials.user.model_dump())
+    account = AccountInDB(email=credentials.email, password=hashed, user=user)
 
-    existing_account: AccountModel | None = None
-    existing_user: UserModel | None = None
+    existing_account: AccountInDB | None = None
+    existing_user: UserInDB | None = None
 
     email, username = credentials.email, credentials.user.username
 
@@ -127,9 +127,7 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
 
     if not challenge.compare(hashed=account.password) is True:
         # debug log:
-        logger.debug(
-            f"Access to account with email {identifier} was tried with a wrong password"
-        )
+        logger.debug(f"Access to account with email {identifier} was tried with a wrong password")
 
         exception = ChallengeFailedException("Incorrect password")
 
@@ -172,7 +170,7 @@ def reauthenticate_user_account_service(session: Session, refresh_token: str):
 
         _, account_id = split_prefix_from_sub(sub)
 
-        token_data = schema.TokenData(account_id=account_id)  # type: ignore
+        token_data = TokenData(account_id=account_id)  # type: ignore
     except JWTError:
         # error log:
         logger.error("Failed to verify refresh token", exc_info=True)
@@ -215,7 +213,7 @@ def get_account_by_id(session: Session, id: UUID):
         if account with the specified id couldn't be found
     """
 
-    account = session.query(AccountModel).filter(AccountModel.id == id).one_or_none()
+    account = session.query(AccountInDB).filter(AccountInDB.id == id).one_or_none()
 
     if account is None:
         # debug log:
@@ -246,17 +244,13 @@ def get_account_by_email(session: Session, email: str):
         if account with the specified email address couldn't be found
     """
 
-    account = (
-        session.query(AccountModel).filter(AccountModel.email == email).one_or_none()
-    )
+    account = session.query(AccountInDB).filter(AccountInDB.email == email).one_or_none()
 
     if account is None:
         # debug log:
         logger.debug(f"Account with email address {email} does not exist")
 
-        exception = MissingResourceException(
-            f"Account with email address {email} not found"
-        )
+        exception = MissingResourceException(f"Account with email address {email} not found")
 
         exception.add_attributes(
             context=None,
@@ -293,7 +287,7 @@ def get_account_by_token(
 
         _, account_id = split_prefix_from_sub(sub)
 
-        token_data = schema.TokenData(account_id=account_id)  # type: ignore
+        token_data = TokenData(account_id=account_id)  # type: ignore
 
     except JWTError as exc:
         # debug log:

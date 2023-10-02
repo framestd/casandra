@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import BaseServiceContext
 from app.core.exceptions.application import MissingResourceException
 from app.core.exceptions.http import ForbiddenRequestException
-from app.core.models.conversation import Conversation
+from app.core.models.conversation import ConversationInDB
 from app.core.schemas.conversation import ConversationCreate, ConversationFilter
 from app.core.schemas.conversation import ConversationFilterExtra, ConversationUpdate
 from app.core.schemas.pagination import PageOptions
@@ -25,7 +25,7 @@ def create_conversation_service(
     conversation_id: UUID | None = None,
     conversation_create: ConversationCreate,
 ):
-    conversation = Conversation(
+    conversation = ConversationInDB(
         subject=conversation_create.subject,
         started_by_id=ctx.user.id,
         messages=[],
@@ -97,7 +97,7 @@ def get_conversation_by_id(session: Session, ctx: BaseServiceContext, id: UUID):
         if there are not enough access rights to the conversation
     """
 
-    conversation = session.query(Conversation).filter(Conversation.id == id).one_or_none()
+    conversation = session.query(ConversationInDB).filter(ConversationInDB.id == id).one_or_none()
 
     if conversation is None:
         exception = MissingResourceException("Conversation not found!")
@@ -124,7 +124,7 @@ def get_conversations(
     page_opts: PageOptions,
     sorts: list[str],
 ):
-    pagebuilder = PageBuilder[Conversation, ConversationFilterExtra]()
+    pagebuilder = PageBuilder[ConversationInDB, ConversationFilterExtra]()
 
     after = page_opts.page_cursor if page_opts.page_forward else None
     before = page_opts.page_cursor if not page_opts.page_forward else None
@@ -135,7 +135,7 @@ def get_conversations(
     )
 
     page = (
-        pagebuilder.setup(session, Conversation)
+        pagebuilder.setup(session, ConversationInDB)
         .go_to_edge_after(after)
         .go_to_edge_before(before)
         .skim_through(filter_extra)

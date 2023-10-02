@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 # First Party
 from app.core.exceptions.application import MissingResourceException
 from app.core.logging.logger import get_app_logger
-from app.core.models.user import User as UserModel
+from app.core.models.user import UserInDB
 
 logger = get_app_logger(__name__)
 
@@ -20,7 +20,7 @@ def get_user_by_id(session: Session, id: UUID4):
         if no user with the specified identifier or ID is found
     """
 
-    user = session.query(UserModel).filter(UserModel.id == id).one_or_none()
+    user = session.query(UserInDB).filter(UserInDB.id == id).one_or_none()
 
     if not user:
         # info log:
@@ -50,7 +50,7 @@ def get_user_by_username(session: Session, username: str):
         if no user that goes by a username is found
     """
 
-    user = session.query(UserModel).filter(UserModel.username == username).one_or_none()
+    user = session.query(UserInDB).filter(UserInDB.username == username).one_or_none()
 
     if not user:
         # info log:
