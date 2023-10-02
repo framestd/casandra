@@ -5,6 +5,8 @@ from typing import Generic, Literal, TypeVar
 
 # Third Party
 from pydantic import Field
+from app.core.exceptions.http import AppHTTPException
+from app.core.schemas.response import ErrorResponse
 
 # First Party
 from app.core.utils import get_utc_time
@@ -13,10 +15,12 @@ from app.core.utils import get_utc_time
 from .base import BaseModel
 
 DataT = TypeVar("DataT")
+ErrorT = TypeVar("ErrorT", bound=AppHTTPException)
 
 
 class StreamTypeEnum(str, Enum):
     signal = "signal"
+    error = "error"
     data = "data"
     status = "status"
     message = "message"
@@ -52,3 +56,7 @@ class StatusStream(Stream):
 class DataStream(Stream, Generic[DataT]):
     type: Literal[StreamTypeEnum.data] = StreamTypeEnum.data
     data: DataT
+
+class ErrorStream(Stream, Generic[ErrorT]):
+    type: Literal[StreamTypeEnum.error] = StreamTypeEnum.error
+    error: ErrorResponse[ErrorT]
