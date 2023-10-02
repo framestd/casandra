@@ -7,23 +7,17 @@ from time import gmtime
 # Third Party
 from colorlog import ColoredFormatter
 
-logging.config
-
-
 logging.Formatter.converter = gmtime
+
+_fmt = "%(asctime)s,%(msecs)03d - %(levelname)s (%(process)d) [%(name)s:%(lineno)d] %(message)s"
+_datefmt = "%Y-%m-%dT%H:%M:%S"
 
 
 class AppLogger(object):
     _console_handler = logging.StreamHandler(sys.stdout)
-
-    _formatter = logging.Formatter(
-        fmt="%(asctime)s,%(msecs)03d - %(levelname)s (%(process)d) [%(name)s:%(lineno)d] %(message)s",
-        datefmt="%Y-%m-%dT%H:%M:%S",
-    )
-
     _colored_formatter = ColoredFormatter(
-        fmt="%(log_color)s{}".format(_formatter._fmt),
-        datefmt=_formatter.datefmt,
+        fmt="%(log_color)s{}".format(_fmt),
+        datefmt=_datefmt,
         log_colors={
             "DEBUG": "cyan",
             "INFO": "green",
