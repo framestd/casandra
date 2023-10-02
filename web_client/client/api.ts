@@ -87,7 +87,7 @@ export interface Account {
    * @type {User}
    * @memberof Account
    */
-  user: User | null;
+  user: User;
 }
 /**
  * Attributes necessary for creating an Account object
@@ -148,14 +148,22 @@ export interface Body {}
 /**
  *
  * @export
- * @enum {string}
+ * @interface BodyPublishMessageMessagesPost
  */
-
-export enum ChatMessageRoleEnum {
-  HUMAN = 'human',
-  ROBOT = 'robot',
+export interface BodyPublishMessageMessagesPost {
+  /**
+   *
+   * @type {MessageCreate}
+   * @memberof BodyPublishMessageMessagesPost
+   */
+  message: MessageCreate;
+  /**
+   *
+   * @type {MessageCreateCustomizations}
+   * @memberof BodyPublishMessageMessagesPost
+   */
+  customizations: MessageCreateCustomizations;
 }
-
 /**
  * Conversation outbound attributes
  * @export
@@ -204,7 +212,104 @@ export interface Conversation {
    * @memberof Conversation
    */
   started_by_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Conversation
+   */
+  last_active_at: string;
 }
+/**
+ * ConversationMessage outbound attributes
+ * @export
+ * @interface ConversationMessage
+ */
+export interface ConversationMessage {
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  deleted_at: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  body: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  conversation_id: string;
+  /**
+   *
+   * @type {Conversation}
+   * @memberof ConversationMessage
+   */
+  conversation: Conversation;
+  /**
+   *
+   * @type {ConversationMessageRoleEnum}
+   * @memberof ConversationMessage
+   */
+  role: ConversationMessageRoleEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  response_from_id: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ConversationMessage
+   */
+  response_to_id: string | null;
+  /**
+   *
+   * @type {Array<ConversationMessage>}
+   * @memberof ConversationMessage
+   */
+  quoted_messages: Array<ConversationMessage>;
+  /**
+   *
+   * @type {number}
+   * @memberof ConversationMessage
+   */
+  context_length: number;
+}
+
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+
+export enum ConversationMessageRoleEnum {
+  HUMAN = 'human',
+  ROBOT = 'robot',
+}
+
 /**
  * Updateable attributes for a Conversation object
  * @export
@@ -287,11 +392,24 @@ export interface ErrorResponseConflictException {
   success?: boolean;
   /**
    *
-   * @type {ErrorSpec}
+   * @type {string}
    * @memberof ErrorResponseConflictException
    */
-  error: ErrorSpec;
+  title: string;
+  /**
+   *
+   * @type {ErrorCode}
+   * @memberof ErrorResponseConflictException
+   */
+  code: ErrorCode;
+  /**
+   *
+   * @type {Array<ErrorAttributes>}
+   * @memberof ErrorResponseConflictException
+   */
+  errors: Array<ErrorAttributes>;
 }
+
 /**
  *
  * @export
@@ -312,11 +430,24 @@ export interface ErrorResponseForbiddenRequestException {
   success?: boolean;
   /**
    *
-   * @type {ErrorSpec}
+   * @type {string}
    * @memberof ErrorResponseForbiddenRequestException
    */
-  error: ErrorSpec;
+  title: string;
+  /**
+   *
+   * @type {ErrorCode}
+   * @memberof ErrorResponseForbiddenRequestException
+   */
+  code: ErrorCode;
+  /**
+   *
+   * @type {Array<ErrorAttributes>}
+   * @memberof ErrorResponseForbiddenRequestException
+   */
+  errors: Array<ErrorAttributes>;
 }
+
 /**
  *
  * @export
@@ -337,11 +468,24 @@ export interface ErrorResponseUnauthorizedException {
   success?: boolean;
   /**
    *
-   * @type {ErrorSpec}
+   * @type {string}
    * @memberof ErrorResponseUnauthorizedException
    */
-  error: ErrorSpec;
+  title: string;
+  /**
+   *
+   * @type {ErrorCode}
+   * @memberof ErrorResponseUnauthorizedException
+   */
+  code: ErrorCode;
+  /**
+   *
+   * @type {Array<ErrorAttributes>}
+   * @memberof ErrorResponseUnauthorizedException
+   */
+  errors: Array<ErrorAttributes>;
 }
+
 /**
  *
  * @export
@@ -362,99 +506,37 @@ export interface ErrorResponseUnprocessableEntityException {
   success?: boolean;
   /**
    *
-   * @type {ErrorSpec}
+   * @type {string}
    * @memberof ErrorResponseUnprocessableEntityException
    */
-  error: ErrorSpec;
-}
-/**
- *
- * @export
- * @interface ErrorSpec
- */
-export interface ErrorSpec {
+  title: string;
   /**
    *
    * @type {ErrorCode}
-   * @memberof ErrorSpec
+   * @memberof ErrorResponseUnprocessableEntityException
    */
   code: ErrorCode;
   /**
    *
    * @type {Array<ErrorAttributes>}
-   * @memberof ErrorSpec
+   * @memberof ErrorResponseUnprocessableEntityException
    */
   errors: Array<ErrorAttributes>;
 }
 
 /**
- * ChatMessage outbound attributes
+ * This class serves as a convenient representation     of a JWT RS256 Token, and also a valid Pydantic model     for representing this type of JWT token.      The signing algorithm used is an RS256 algorithm with     asymmetric key-pairs for signing and verifying, or encoding     and decoding.      It\'s safe to pass this object as a FastAPI or Pydantic     response model. It will be correctly represented as the     token string it wraps around, since it implements a     Pydantic model serializer.      To encode or sign a token from a regular Python data, dict,     you do not need to create this class object directly—the use     of `JWTRS256Token.from_data` covers this case.      The class object itself is used to wrap or represent an     already signed token string and can be used for decoding     the wrapped token.
  * @export
- * @interface Message
+ * @interface JWTRS256Token
  */
-export interface Message {
+export interface JWTRS256Token {
   /**
    *
    * @type {string}
-   * @memberof Message
+   * @memberof JWTRS256Token
    */
-  id: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  created_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  updated_at: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  deleted_at: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  body: string;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  conversation_id: string;
-  /**
-   *
-   * @type {Conversation}
-   * @memberof Message
-   */
-  conversation: Conversation;
-  /**
-   *
-   * @type {ChatMessageRoleEnum}
-   * @memberof Message
-   */
-  role: ChatMessageRoleEnum;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  response_from_id: string | null;
-  /**
-   *
-   * @type {string}
-   * @memberof Message
-   */
-  response_to_id: string | null;
+  root: string;
 }
-
 /**
  * Attributes necessary for creating a ChatMessage object
  * @export
@@ -473,6 +555,25 @@ export interface MessageCreate {
    * @memberof MessageCreate
    */
   conversation_id?: string | null;
+}
+/**
+ *      A couple of options used to customize message completion.      Attributes:         quotes: The IDs of quoted previous messages to include to provide context for the new         message. Note that \"quotes\" takes precedence over \"context_length\" when quotes is provided          context_length: The number of previous messages to include to provide context for the new         message
+ * @export
+ * @interface MessageCreateCustomizations
+ */
+export interface MessageCreateCustomizations {
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof MessageCreateCustomizations
+   */
+  quotes?: Array<string>;
+  /**
+   *
+   * @type {number}
+   * @memberof MessageCreateCustomizations
+   */
+  context_length?: number;
 }
 /**
  *
@@ -555,13 +656,13 @@ export interface ResponseToId {}
  */
 export interface Role {}
 /**
- * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+ * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
  * @export
  * @interface Sort
  */
 export interface Sort {}
 /**
- * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
+ * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
  * @export
  * @interface Sort1
  */
@@ -594,25 +695,25 @@ export interface StandardPaginatedResponseConversation {
 /**
  *
  * @export
- * @interface StandardPaginatedResponseMessage
+ * @interface StandardPaginatedResponseConversationMessage
  */
-export interface StandardPaginatedResponseMessage {
+export interface StandardPaginatedResponseConversationMessage {
   /**
    *
-   * @type {Array<Message>}
-   * @memberof StandardPaginatedResponseMessage
+   * @type {Array<ConversationMessage>}
+   * @memberof StandardPaginatedResponseConversationMessage
    */
-  data: Array<Message>;
+  data: Array<ConversationMessage>;
   /**
    *
    * @type {ResponseMetadata}
-   * @memberof StandardPaginatedResponseMessage
+   * @memberof StandardPaginatedResponseConversationMessage
    */
   metadata: ResponseMetadata;
   /**
    *
    * @type {string}
-   * @memberof StandardPaginatedResponseMessage
+   * @memberof StandardPaginatedResponseConversationMessage
    */
   typename: string;
 }
@@ -657,19 +758,19 @@ export interface StandardResponseConversation {
 /**
  *
  * @export
- * @interface StandardResponseMessage
+ * @interface StandardResponseConversationMessage
  */
-export interface StandardResponseMessage {
+export interface StandardResponseConversationMessage {
   /**
    *
-   * @type {Message}
-   * @memberof StandardResponseMessage
+   * @type {ConversationMessage}
+   * @memberof StandardResponseConversationMessage
    */
-  data: Message;
+  data: ConversationMessage;
   /**
    *
    * @type {string}
-   * @memberof StandardResponseMessage
+   * @memberof StandardResponseConversationMessage
    */
   typename: string;
 }
@@ -726,37 +827,6 @@ export interface StatusResponseAccount {
 /**
  *
  * @export
- * @interface StatusResponseMessage
- */
-export interface StatusResponseMessage {
-  /**
-   *
-   * @type {string}
-   * @memberof StatusResponseMessage
-   */
-  message: string;
-  /**
-   *
-   * @type {boolean}
-   * @memberof StatusResponseMessage
-   */
-  success: boolean;
-  /**
-   *
-   * @type {Message}
-   * @memberof StatusResponseMessage
-   */
-  data: Message;
-  /**
-   *
-   * @type {string}
-   * @memberof StatusResponseMessage
-   */
-  typename: string;
-}
-/**
- *
- * @export
  * @interface Subject
  */
 export interface Subject {}
@@ -767,17 +837,17 @@ export interface Subject {}
  */
 export interface Token {
   /**
-   * This class serves as a convenient representation     of a JWT RS256 Token, and also a valid Pydantic model     for representing this type of JWT token.      The signing algorithm used is an RS256 algorithm with     asymmetric key-pairs for signing and verifying, or encoding     and decoding.      It\'s safe to pass this object as a FastAPI or Pydantic     response model. It will be correctly represented as the     token string it wraps around, since it implements a     Pydantic model serializer.      To encode or sign a token from a regular Python data, dict,     you do not need to create this class object directly—the use     of `JWTRS256Token.from_data` covers this case.      The class object itself is used to wrap or represent an     already signed token string and can be used for decoding     the wrapped token.
-   * @type {object}
+   *
+   * @type {JWTRS256Token}
    * @memberof Token
    */
-  access_token: object;
+  access_token: JWTRS256Token;
   /**
-   * This class serves as a convenient representation     of a JWT RS256 Token, and also a valid Pydantic model     for representing this type of JWT token.      The signing algorithm used is an RS256 algorithm with     asymmetric key-pairs for signing and verifying, or encoding     and decoding.      It\'s safe to pass this object as a FastAPI or Pydantic     response model. It will be correctly represented as the     token string it wraps around, since it implements a     Pydantic model serializer.      To encode or sign a token from a regular Python data, dict,     you do not need to create this class object directly—the use     of `JWTRS256Token.from_data` covers this case.      The class object itself is used to wrap or represent an     already signed token string and can be used for decoding     the wrapped token.
-   * @type {object}
+   *
+   * @type {JWTRS256Token}
    * @memberof Token
    */
-  refresh_token: object;
+  refresh_token: JWTRS256Token;
   /**
    *
    * @type {string}
@@ -1335,7 +1405,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
     /**
      * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
-     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
+     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
      * @param {Subject | null} [subject]
      * @param {PageCursor | null} [pageCursor]
      * @param {number} [pageSize]
@@ -1468,7 +1538,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
     /**
      * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
-     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
+     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
      * @param {Subject | null} [subject]
      * @param {PageCursor | null} [pageCursor]
      * @param {number} [pageSize]
@@ -1604,7 +1674,7 @@ export interface ConversationApiReadConversationByIdConversationsIdGetRequest {
  */
 export interface ConversationApiReadConversationsConversationsGetRequest {
   /**
-   * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id (e.g, id:asc)
+   * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
    * @type {Sort1}
    * @memberof ConversationApiReadConversationsConversationsGet
    */
@@ -1735,16 +1805,16 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
     /**
      * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
      * @summary Publish Message
-     * @param {MessageCreate} messageCreate
+     * @param {BodyPublishMessageMessagesPost} bodyPublishMessageMessagesPost
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     publishMessageMessagesPost: async (
-      messageCreate: MessageCreate,
+      bodyPublishMessageMessagesPost: BodyPublishMessageMessagesPost,
       options: AxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
-      // verify required parameter 'messageCreate' is not null or undefined
-      assertParamExists('publishMessageMessagesPost', 'messageCreate', messageCreate);
+      // verify required parameter 'bodyPublishMessageMessagesPost' is not null or undefined
+      assertParamExists('publishMessageMessagesPost', 'bodyPublishMessageMessagesPost', bodyPublishMessageMessagesPost);
       const localVarPath = `/messages/`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -1766,7 +1836,11 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
       setSearchParams(localVarUrlObj, localVarQueryParameter);
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
       localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
-      localVarRequestOptions.data = serializeDataIfNeeded(messageCreate, localVarRequestOptions, configuration);
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        bodyPublishMessageMessagesPost,
+        localVarRequestOptions,
+        configuration,
+      );
 
       return {
         url: toPathString(localVarUrlObj),
@@ -1812,7 +1886,7 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
      *
      * @summary Read Chat Messages By Conversation Id
      * @param {string} conversationId
-     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
      * @param {Body | null} [body]
      * @param {Role | null} [role]
      * @param {ResponseFromId | null} [responseFromId]
@@ -1911,15 +1985,18 @@ export const MessageApiFp = function (configuration?: Configuration) {
     /**
      * Publish a prompt message to be handled by various connecting services.  Pre-listen on a websocket connection with the conversation id of the published prompt message for a response stream to the prompt message itself.
      * @summary Publish Message
-     * @param {MessageCreate} messageCreate
+     * @param {BodyPublishMessageMessagesPost} bodyPublishMessageMessagesPost
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async publishMessageMessagesPost(
-      messageCreate: MessageCreate,
+      bodyPublishMessageMessagesPost: BodyPublishMessageMessagesPost,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseMessage>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.publishMessageMessagesPost(messageCreate, options);
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.publishMessageMessagesPost(
+        bodyPublishMessageMessagesPost,
+        options,
+      );
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
@@ -1932,7 +2009,7 @@ export const MessageApiFp = function (configuration?: Configuration) {
     async readChatMessageByIdMessagesIdGet(
       id: string,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseMessage>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseConversationMessage>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessageByIdMessagesIdGet(id, options);
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
@@ -1940,7 +2017,7 @@ export const MessageApiFp = function (configuration?: Configuration) {
      *
      * @summary Read Chat Messages By Conversation Id
      * @param {string} conversationId
-     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
      * @param {Body | null} [body]
      * @param {Role | null} [role]
      * @param {ResponseFromId | null} [responseFromId]
@@ -1962,7 +2039,9 @@ export const MessageApiFp = function (configuration?: Configuration) {
       pageSize?: number,
       pageForward?: boolean,
       options?: AxiosRequestConfig,
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardPaginatedResponseMessage>> {
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardPaginatedResponseConversationMessage>
+    > {
       const localVarAxiosArgs = await localVarAxiosParamCreator.readChatMessagesByConversationIdMessagesGet(
         conversationId,
         sort,
@@ -1997,9 +2076,9 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
     publishMessageMessagesPost(
       requestParameters: MessageApiPublishMessageMessagesPostRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<StatusResponseMessage> {
+    ): AxiosPromise<any> {
       return localVarFp
-        .publishMessageMessagesPost(requestParameters.messageCreate, options)
+        .publishMessageMessagesPost(requestParameters.bodyPublishMessageMessagesPost, options)
         .then((request) => request(axios, basePath));
     },
     /**
@@ -2012,7 +2091,7 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
     readChatMessageByIdMessagesIdGet(
       requestParameters: MessageApiReadChatMessageByIdMessagesIdGetRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<StandardResponseMessage> {
+    ): AxiosPromise<StandardResponseConversationMessage> {
       return localVarFp
         .readChatMessageByIdMessagesIdGet(requestParameters.id, options)
         .then((request) => request(axios, basePath));
@@ -2027,7 +2106,7 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
     readChatMessagesByConversationIdMessagesGet(
       requestParameters: MessageApiReadChatMessagesByConversationIdMessagesGetRequest,
       options?: AxiosRequestConfig,
-    ): AxiosPromise<StandardPaginatedResponseMessage> {
+    ): AxiosPromise<StandardPaginatedResponseConversationMessage> {
       return localVarFp
         .readChatMessagesByConversationIdMessagesGet(
           requestParameters.conversationId,
@@ -2054,10 +2133,10 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
 export interface MessageApiPublishMessageMessagesPostRequest {
   /**
    *
-   * @type {MessageCreate}
+   * @type {BodyPublishMessageMessagesPost}
    * @memberof MessageApiPublishMessageMessagesPost
    */
-  readonly messageCreate: MessageCreate;
+  readonly bodyPublishMessageMessagesPost: BodyPublishMessageMessagesPost;
 }
 
 /**
@@ -2088,7 +2167,7 @@ export interface MessageApiReadChatMessagesByConversationIdMessagesGetRequest {
   readonly conversationId: string;
 
   /**
-   * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id (e.g, id:asc)
+   * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
    * @type {Sort}
    * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
    */
@@ -2164,7 +2243,7 @@ export class MessageApi extends BaseAPI {
     options?: AxiosRequestConfig,
   ) {
     return MessageApiFp(this.configuration)
-      .publishMessageMessagesPost(requestParameters.messageCreate, options)
+      .publishMessageMessagesPost(requestParameters.bodyPublishMessageMessagesPost, options)
       .then((request) => request(this.axios, this.basePath));
   }
 
