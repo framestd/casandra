@@ -1,8 +1,8 @@
 import { messageClient } from './client';
-import { ChatMessageCreateConcrete } from './dto';
+import { CustomizedMessageCreate } from './dto';
 
-export async function publishMessageService(message: ChatMessageCreateConcrete) {
-  const response = await messageClient.publishMessageMessagesPost({ messageCreate: message });
+export async function publishMessageService(message: CustomizedMessageCreate) {
+  const response = await messageClient.publishMessageMessagesPost({ bodyPublishMessageMessagesPost: message });
 
   return response;
 }
