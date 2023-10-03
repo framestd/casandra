@@ -27,8 +27,6 @@ async def publisher(rdb: "aioredis.Redis[Any]", channel: str, json_message: str)
 
     if subscribers_count == 0:
         logger.info(f'There are currently no subscribers on "{channel}" channel')
-        logger.info(f'Queueing message to "{channel}" list')
-        await rdb.lpush(channel, json_message)
 
 
 def publisher_sync(rdb: "Redis[Any]", channel: str, json_message: str):
@@ -41,5 +39,3 @@ def publisher_sync(rdb: "Redis[Any]", channel: str, json_message: str):
 
     if subscribers_count == 0:
         logger.info(f'There are currently no subscribers on "{channel}" channel')
-        logger.info(f'Queueing message to "{channel}" list')
-        rdb.lpush(channel, json_message)
