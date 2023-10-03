@@ -90,7 +90,7 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   if (!user) return null;
 
   return (
-    <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column" overflow="hidden">
+    <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column" overflow="hidden" width={768}>
       <Flex id={scrollableTargetId} width="full" overflow="auto" marginBlockEnd="auto" flexDirection="column-reverse">
         <InfiniteScroll
           scrollableTarget={scrollableTargetId}
@@ -99,7 +99,7 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
           next={() => fetchPreviousPage()}
           inverse={true}
           loader={null}
-          style={{ display: 'flex', flexDirection: 'column-reverse' }}
+          style={{ display: 'flex', overflow: 'initial', flexDirection: 'column-reverse' }}
         >
           <ConversationMessageList messages={messages} user={user} />
         </InfiniteScroll>
