@@ -1,0 +1,26 @@
+@use 'sass:meta';
+
+html[data-theme=light] {
+  @include meta.load-css('../../../node_modules/highlight.js/styles/magula.css');
+}
+
+html[data-theme=dark] {
+  @include meta.load-css('../../../node_modules/highlight.js/styles/an-old-hope.css');
+}
+
+html[data-theme=light],
+html[data-theme=dark] {
+  pre.hljs {
+    background-color: transparent;
+    color: inherit;
+    overflow-x: auto;
+  }
+
+  code:not(pre > code) {
+    font-weight: 600;
+  }
+  code:not(pre > code)::before,
+  code:not(pre > code)::after {
+    content: '`';
+  }
+}
