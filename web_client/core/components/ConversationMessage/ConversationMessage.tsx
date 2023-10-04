@@ -28,13 +28,19 @@ export const ConversationMesssage = ({ message, enitity, role, ...rest }: ChatMe
       bgColor={isAssistant ? highlght : undefined}
       {...rest}
     >
-      <Avatar name={enitity} size="sm" position="sticky" top={0} userSelect="none" />
+      <Avatar name={enitity} size="sm" position="sticky" top={3} userSelect="none" />
 
       <Typography
         width="0"
         flex="1 1 auto"
-        whiteSpace="pre-wrap"
-        sx={{ '& > *:not(pre.hljs)': { whiteSpace: 'pre-wrap', width: 'full' } }}
+        sx={{
+          '& pre:not(:last-child)': { mb: 8 },
+          '& p:not(:last-of-type)': {
+            whiteSpace: 'pre-wrap',
+            width: 'full',
+            mb: 8,
+          },
+        }}
       >
         {isAssistant ? <Markdown markdown={message} /> : message}
       </Typography>

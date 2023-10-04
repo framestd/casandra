@@ -90,7 +90,7 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   if (!user) return null;
 
   return (
-    <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column" overflow="hidden" width={768}>
+    <ChatBox justifyContent="center" alignItems="flex-end" flexDirection="column" overflow="hidden" width="inherit">
       <Flex id={scrollableTargetId} width="full" overflow="auto" marginBlockEnd="auto" flexDirection="column-reverse">
         <InfiniteScroll
           scrollableTarget={scrollableTargetId}

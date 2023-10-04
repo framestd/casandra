@@ -1,6 +1,6 @@
 'use client';
 
-import { Box, HStack, Icon, IconButton, Input, StackProps, useColorModeValue } from '@/chakra-ui/react';
+import { Box, HStack, Icon, IconButton, Input, StackProps, forwardRef, useColorModeValue } from '@/chakra-ui/react';
 
 import Link from 'next/link';
 import { TbMessagePlus } from 'react-icons/tb';
@@ -15,56 +15,59 @@ export interface ConversationBarToolbarProps extends StackProps {
   onFilterChange?(filter: string | undefined): void;
 }
 
-export const ConversationBarToolbar = ({ filter, onFilterChange, ...rest }: ConversationBarToolbarProps) => {
-  const bgColor = useColorModeValue('whiteAlpha.500', 'whiteAlpha.200');
-  const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');
-  // dark mode value is undefined 'cause the default dark mode one is visible enough
-  const lightModeVisibleBorderColor = useColorModeValue('gray.300', undefined);
-  const inputHoverBorderColor = useColorModeValue('gray.400', 'whiteAlpha.400');
-  const inputFocusBorderColor = useColorModeValue('gray.500', 'whiteAlpha.500');
-  const { blended_c } = useThemeConstants();
+export const ConversationBarToolbar = forwardRef(
+  ({ filter, onFilterChange, ...rest }: ConversationBarToolbarProps, ref) => {
+    const bgColor = useColorModeValue('whiteAlpha.500', 'whiteAlpha.200');
+    const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');
+    // dark mode value is undefined 'cause the default dark mode one is visible enough
+    const lightModeVisibleBorderColor = useColorModeValue('gray.300', undefined);
+    const inputHoverBorderColor = useColorModeValue('gray.400', 'whiteAlpha.400');
+    const inputFocusBorderColor = useColorModeValue('gray.500', 'whiteAlpha.500');
+    const { blended_c } = useThemeConstants();
 
-  return (
-    <HStack
-      ps={4}
-      pe={2}
-      pt={8}
-      pb={2}
-      top={0}
-      width="full"
-      zIndex="banner"
-      position="sticky"
-      borderBottomWidth={1}
-      borderColor={lightModeVisibleBorderColor}
-      {...backdropFactory({ bgColor })}
-      {...rest}
-    >
-      <Box width="full">
-        <Input
-          size="xs"
-          type="search"
-          borderRadius="lg"
-          name="conversation_subject"
-          focusBorderColor="transparent"
-          placeholder="Search conversations"
-          borderColor={lightModeVisibleBorderColor}
-          value={filter}
-          onChange={(e) => onFilterChange?.(e.target.value || undefined)}
-          _hover={{ borderColor: inputHoverBorderColor }}
-          _focusVisible={{ borderColor: inputFocusBorderColor }}
+    return (
+      <HStack
+        ps={4}
+        pe={2}
+        pt={8}
+        pb={2}
+        top={0}
+        ref={ref}
+        width="full"
+        zIndex="banner"
+        position="sticky"
+        borderBottomWidth={1}
+        borderColor={lightModeVisibleBorderColor}
+        {...backdropFactory({ bgColor })}
+        {...rest}
+      >
+        <Box width="full">
+          <Input
+            size="xs"
+            type="search"
+            borderRadius="lg"
+            name="conversation_subject"
+            focusBorderColor="transparent"
+            placeholder="Search conversations"
+            borderColor={lightModeVisibleBorderColor}
+            value={filter}
+            onChange={(e) => onFilterChange?.(e.target.value || undefined)}
+            _hover={{ borderColor: inputHoverBorderColor }}
+            _focusVisible={{ borderColor: inputFocusBorderColor }}
+          />
+        </Box>
+
+        <IconButton
+          as={Link}
+          aria-label="New conversation"
+          size="sm"
+          variant="ghost"
+          color={blended_c}
+          colorScheme={buttonColorScheme}
+          href={`${CONVERSATIONS}/new`}
+          icon={<Icon as={TbMessagePlus} fontSize="lg" />}
         />
-      </Box>
-
-      <IconButton
-        as={Link}
-        aria-label="New conversation"
-        size="sm"
-        variant="ghost"
-        color={blended_c}
-        colorScheme={buttonColorScheme}
-        href={`${CONVERSATIONS}/new`}
-        icon={<Icon as={TbMessagePlus} fontSize="lg" />}
-      />
-    </HStack>
-  );
-};
+      </HStack>
+    );
+  },
+);

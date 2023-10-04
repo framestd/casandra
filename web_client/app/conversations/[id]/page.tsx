@@ -1,5 +1,3 @@
-import { Flex } from '@/chakra-ui/react';
-
 import { PrivateRoute } from '@/core/components/Providers';
 import { Conversation } from '@/core/composition/Conversation';
 import { ConversationLayout } from '@/core/composition/ConversationLayout';
@@ -14,9 +12,7 @@ const Conversations = ({ params }: ChatProps) => {
   return (
     <PrivateRoute>
       <ConversationLayout>
-        <Flex justifyContent="center" height="full">
-          <Conversation conversation_id={conversation_id} />
-        </Flex>
+        <Conversation conversation_id={conversation_id} />
       </ConversationLayout>
     </PrivateRoute>
   );

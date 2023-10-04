@@ -20,6 +20,9 @@ export interface ConversationListProps extends StackProps {
   onReviseTopic?: (revision: WithId<ConversationUpdate>) => void;
 }
 
+export const itemToId = (item: string) => `item-${item.replace(/\s+/g, '-')}`;
+
+
 export const ConversationList = ({ conversations, activeConversationId, onReviseTopic }: ConversationListProps) => {
   const messageIconColor = useColorModeValue('green.600', 'green.400');
   const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');
@@ -73,6 +76,7 @@ export const ConversationList = ({ conversations, activeConversationId, onRevise
                 bgColor="transparent"
                 justifyContent="flex-start"
                 title={conversation.subject}
+                data-item={itemToId(conversation.id)}
                 colorScheme={buttonColorScheme}
                 href={`${CONVERSATIONS}/${conversation.id}`}
                 leftIcon={<Icon as={TbMessage} fontSize="lg" color={messageIconColor} />}

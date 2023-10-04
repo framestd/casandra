@@ -19,7 +19,7 @@ export const ChatBox = ({ children, ...rest }: ChatBoxProps) => {
     <Flex
       position="absolute"
       borderTopRadius="2xl"
-      maxWidth="full"
+      flex="1 1 auto"
       height={`calc(100% - ${APP_BAR_HEIGHT}px)`}
       top={`${APP_BAR_HEIGHT}px`}
       {...backdropFactory({ bgColor: blended_bg })}
