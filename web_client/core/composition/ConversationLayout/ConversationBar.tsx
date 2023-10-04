@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { Accordion, AccordionButton, AccordionItem, AccordionPanel, Box, StackProps, VStack } from '@/chakra-ui/react';
 
@@ -12,14 +12,22 @@ import { range } from '@/core/utils';
 import { timeAgo } from '@/core/utils/date';
 
 import { ConversationBarToolbar } from './ConversationBarToolbar';
-import { ConversationList, ConversationListProps } from './ConversationList';
+import { ConversationList, ConversationListProps, itemToId } from './ConversationList';
+import { Typography } from '@/core/components/Typography';
 
 export interface ConversationBarProps extends StackProps {
   activeConversationId: string;
 }
 
+export const groupToId = (group: string) => `group-${group.replace(/\s+/g, '-')}`;
+
 export const ConversationBar = ({ activeConversationId, ...rest }: ConversationBarProps) => {
+  const frame = useRef(-1);
+  const containerRef = useRef<HTMLDivElement>();
+  const toolbarRef = useRef<HTMLDivElement>();
+
   const { blended_bg } = useThemeConstants();
+
   const [subjectFilter, setSubjectFilter] = useState<string>();
   const { data, dataUpdatedAt } = useReadConversationsService({
     variables: { sort: ['last_active_at:desc'], subject: subjectFilter },
@@ -50,6 +58,29 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
     [reviseConversationHandler],
   );
 
+  useEffect(() => {
+    frame.current = window.requestAnimationFrame(() => {
+      const container = containerRef.current;
+      const toolbar = toolbarRef.current;
+      const entry = entries.find(([_, conversations]) => conversations.some((c) => c.id === activeConversationId));
+
+      if (!entry) return;
+
+      const [group] = entry;
+      const activeGroup = document.querySelector<HTMLDivElement>(`[data-group=${groupToId(group)}]`);
+      const activeItem = document.querySelector<HTMLAnchorElement>(`[data-item=${itemToId(activeConversationId)}]`);
+
+
+      if (!activeGroup || !activeItem || !container || !toolbar) return;
+
+      container.scrollTo({
+        top: activeGroup.offsetTop + activeItem.offsetTop - toolbar.offsetHeight,
+        behavior: 'instant',
+      });
+    });
+    () => window.cancelAnimationFrame(frame.current);
+  }, [activeConversationId, entries]);
+
   return (
     <VStack
       spacing={0}
@@ -58,27 +89,41 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
       overflowY="auto"
       borderRadius="2xl"
       alignItems="flex-start"
+      position="relative"
+      ref={containerRef}
       {...rest}
     >
-      <ConversationBarToolbar filter={subjectFilter} onFilterChange={(filter) => setSubjectFilter(filter)} />
+      <ConversationBarToolbar
+        ref={toolbarRef}
+        filter={subjectFilter}
+        onFilterChange={(filter) => setSubjectFilter(filter)}
+      />
 
       <Accordion
         width="full"
+        display="flex"
+        flexDirection="column"
         flex="1 1 auto"
         key={dataUpdatedAt}
         allowMultiple={true}
         defaultIndex={activeIndices}
-        {...backdropFactory({ bgColor: blended_bg })}
       >
         {entries.map(([group, conversations]) => {
           return (
-            <AccordionItem mt={4} key={group} borderWidth={0} _first={{ borderWidth: 0 }} _last={{ borderWidth: 0 }}>
-              <h2>
-                <AccordionButton px={4} py={0} mb={2} fontSize="sm">
+            <AccordionItem
+              borderWidth={0}
+              data-group={groupToId(group)}
+              key={groupToId(group)}
+              _first={{ borderWidth: 0 }}
+              _last={{ borderWidth: 0 }}
+            >
+              <Typography as="h2" position="sticky" top={73} zIndex={1} {...backdropFactory({ bgColor: blended_bg })}>
+                <AccordionButton px={4} py={1} fontSize="sm">
                   <Box opacity={0.6}>{group}</Box>
                 </AccordionButton>
-              </h2>
-              <AccordionPanel px={0} py={0}>
+              </Typography>
+
+              <AccordionPanel px={0} py={0} {...backdropFactory({ bgColor: blended_bg })}>
                 <ConversationList
                   conversations={conversations}
                   activeConversationId={activeConversationId}
@@ -88,6 +133,20 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
             </AccordionItem>
           );
         })}
+        {/* Don't touch it: It's a hack to fill up space with a background when other items are collapsed. */}
+        {/* It's all just to make the backdrop (backdrop-filter: blur) work well as we can't have nested backdrops. */}
+        {/* The Group heading, which is the AccordionItem collapse button, has it's own backdrop because it's sticky */}
+        {/* and would require a quite opaque background when it sticks. AccordionPanel has it's own backdrop too, */}
+        {/* because AcordionItem has no background and is transparent. So these child elements make up their parent */}
+        {/* background and define a visual bounding rect for the AccordionItem */}
+        <AccordionItem
+          height="full"
+          flex="1 1 auto"
+          borderWidth={0}
+          _first={{ borderWidth: 0 }}
+          _last={{ borderWidth: 0 }}
+          {...backdropFactory({ bgColor: blended_bg })}
+        />
       </Accordion>
     </VStack>
   );
