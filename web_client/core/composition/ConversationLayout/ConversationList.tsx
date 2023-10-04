@@ -22,7 +22,6 @@ export interface ConversationListProps extends StackProps {
 
 export const itemToId = (item: string) => `item-${item.replace(/\s+/g, '-')}`;
 
-
 export const ConversationList = ({ conversations, activeConversationId, onReviseTopic }: ConversationListProps) => {
   const messageIconColor = useColorModeValue('green.600', 'green.400');
   const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');

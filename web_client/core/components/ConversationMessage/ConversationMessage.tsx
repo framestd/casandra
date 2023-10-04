@@ -4,8 +4,8 @@ import { Avatar, HStack, StackProps, useColorModeValue } from '@/chakra-ui/react
 
 import { ConversationMessageRoleEnum } from '@/client';
 
-import { Typography } from '../Typography';
 import { Markdown } from '../Markdown/Markdown';
+import { Typography } from '../Typography';
 
 export interface ChatMessageProps extends StackProps {
   message: string;

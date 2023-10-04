@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Accordion, AccordionButton, AccordionItem, AccordionPanel, Box, StackProps, VStack } from '@/chakra-ui/react';
 
 import { Conversation } from '@/client';
+import { Typography } from '@/core/components/Typography';
 import { useGroupBy, usePagedNormalizer, useThemeConstants } from '@/core/composition/hooks';
 import { useReadConversationsService, useReviseConversationService } from '@/core/services/conversation';
 import { backdropFactory } from '@/core/theme';
@@ -13,7 +14,6 @@ import { timeAgo } from '@/core/utils/date';
 
 import { ConversationBarToolbar } from './ConversationBarToolbar';
 import { ConversationList, ConversationListProps, itemToId } from './ConversationList';
-import { Typography } from '@/core/components/Typography';
 
 export interface ConversationBarProps extends StackProps {
   activeConversationId: string;
@@ -69,7 +69,6 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
       const [group] = entry;
       const activeGroup = document.querySelector<HTMLDivElement>(`[data-group=${groupToId(group)}]`);
       const activeItem = document.querySelector<HTMLAnchorElement>(`[data-item=${itemToId(activeConversationId)}]`);
-
 
       if (!activeGroup || !activeItem || !container || !toolbar) return;
 
