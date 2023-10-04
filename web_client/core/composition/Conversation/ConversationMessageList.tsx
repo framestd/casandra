@@ -12,10 +12,18 @@ export interface ConversationMessagesProps {
 export const ConversationMessageList = ({ messages, user }: ConversationMessagesProps) => {
   return (
     <VStack spacing={0} width="full" height="full" alignItems="flex-start" py={4} fontSize="md">
-      {messages.map((c) => {
-        const entity = c.role === ConversationMessageRoleEnum.ROBOT ? APP_NAME : fullname(user);
+      {messages.map((message) => {
+        const entity = message.role === ConversationMessageRoleEnum.ROBOT ? APP_NAME : fullname(user);
 
-        return <ConversationMesssage key={c.id} enitity={entity} message={c.body} role={c.role} />;
+        return (
+          <ConversationMesssage
+            key={message.id}
+            enitity={entity}
+            message={message.body}
+            message_id={message.id}
+            role={message.role}
+          />
+        );
       })}
     </VStack>
   );

@@ -19,11 +19,7 @@ export const ConversationBarToolbar = forwardRef(
   ({ filter, onFilterChange, ...rest }: ConversationBarToolbarProps, ref) => {
     const bgColor = useColorModeValue('whiteAlpha.500', 'whiteAlpha.200');
     const buttonColorScheme = useColorModeValue('blackAlpha', 'whiteAlpha');
-    // dark mode value is undefined 'cause the default dark mode one is visible enough
-    const lightModeVisibleBorderColor = useColorModeValue('gray.300', undefined);
-    const inputHoverBorderColor = useColorModeValue('gray.400', 'whiteAlpha.400');
-    const inputFocusBorderColor = useColorModeValue('gray.500', 'whiteAlpha.500');
-    const { blended_c } = useThemeConstants();
+    const { blended_c, input_focus_br_c, input_hover_br_c, light_mode_visible_br_c } = useThemeConstants();
 
     return (
       <HStack
@@ -37,7 +33,7 @@ export const ConversationBarToolbar = forwardRef(
         zIndex="banner"
         position="sticky"
         borderBottomWidth={1}
-        borderColor={lightModeVisibleBorderColor}
+        borderColor={light_mode_visible_br_c}
         {...backdropFactory({ bgColor })}
         {...rest}
       >
@@ -49,11 +45,11 @@ export const ConversationBarToolbar = forwardRef(
             name="conversation_subject"
             focusBorderColor="transparent"
             placeholder="Search conversations"
-            borderColor={lightModeVisibleBorderColor}
+            borderColor={light_mode_visible_br_c}
             value={filter}
             onChange={(e) => onFilterChange?.(e.target.value || undefined)}
-            _hover={{ borderColor: inputHoverBorderColor }}
-            _focusVisible={{ borderColor: inputFocusBorderColor }}
+            _hover={{ borderColor: input_focus_br_c }}
+            _focusVisible={{ borderColor: input_hover_br_c }}
           />
         </Box>
 

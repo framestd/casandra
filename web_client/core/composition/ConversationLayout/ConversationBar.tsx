@@ -116,7 +116,14 @@ export const ConversationBar = ({ activeConversationId, ...rest }: ConversationB
               _first={{ borderWidth: 0 }}
               _last={{ borderWidth: 0 }}
             >
-              <Typography as="h2" position="sticky" top={73} zIndex={1} {...backdropFactory({ bgColor: blended_bg })}>
+              <Typography
+                as="h2"
+                top={73}
+                zIndex={1}
+                position="sticky"
+                userSelect="none"
+                {...backdropFactory({ bgColor: blended_bg })}
+              >
                 <AccordionButton px={4} py={1} fontSize="sm">
                   <Box opacity={0.6}>{group}</Box>
                 </AccordionButton>
