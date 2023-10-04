@@ -16,6 +16,7 @@ import { APP_BAR_HEIGHT, fullname } from '@/core/utils';
 import { useFallbackUI } from '../ErrorStates';
 import { useThemeConstants } from '../hooks';
 import { ConversationBar } from './ConversationBar';
+import { ConversationCustomizer } from './ConversationCustomizer';
 
 export interface ChatLayoutProps {
   children?: ReactNode;
@@ -44,7 +45,7 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
           px={6}
           pb={8}
           spacing={4}
-          flexShrink={0}
+          flexShrink={1}
           alignSelf="flex-end"
           height="full"
           width={{ base: 'auto', lg: 300 }}
@@ -55,8 +56,18 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
           <ProfileMenu name={name} />
         </VStack>
 
-        <Box height="full" width="full" px={6}>
+        <Flex
+          px={6}
+          mx="auto"
+          justifyContent="center"
+          height="full"
+          width={{ base: 'full', md: '48em', lg: "40em", '2xl': '48em' }} // md: 768, lg: 640, 2xl: 768
+        >
           <ErrorBoundary fallbackRender={FallbackUI}>{children}</ErrorBoundary>
+        </Flex>
+
+        <Box px={6} pb={8} width={{ base: 'auto', xl: 250, '2xl': 300 }} display={{ base: 'none', xl: 'flex' }}>
+          <ConversationCustomizer />
         </Box>
       </Flex>
     </Box>
