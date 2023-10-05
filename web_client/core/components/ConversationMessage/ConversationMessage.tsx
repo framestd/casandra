@@ -1,12 +1,13 @@
 'use client';
 
-import { Avatar, HStack, Icon, IconButton, StackProps, VStack, useColorModeValue } from '@/chakra-ui/react';
+import { Avatar, HStack, Icon, IconButton, StackProps, useColorModeValue, VStack } from '@/chakra-ui/react';
+
+import { IoArrowUndoOutline } from 'react-icons/io5';
 
 import { ConversationMessageRoleEnum } from '@/client';
 
-import { Markdown } from '../Markdown/Markdown';
+import { Markdown } from '../Markdown';
 import { Typography } from '../Typography';
-import { IoArrowUndoOutline } from 'react-icons/io5';
 
 export interface ConversationMessageProps extends StackProps {
   message_id: string;
@@ -14,18 +15,27 @@ export interface ConversationMessageProps extends StackProps {
   role: ConversationMessageRoleEnum;
   enitity: string;
   streaming?: boolean;
+  parsed?: boolean;
 }
 
-export const messageToId = (message: string) => `message-${message.replace(/\s+/g, '-')}`
+export const messageToId = (message: string) => `message-${message.replace(/\s+/g, '-')}`;
 
-export const ConversationMesssage = ({ message_id, message, enitity, role, ...rest }: ConversationMessageProps) => {
+export const ConversationMesssage = ({
+  message_id,
+  message,
+  enitity,
+  role,
+  parsed = false,
+  ...rest
+}: ConversationMessageProps) => {
   const highlght = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
   const isAssistant = role === ConversationMessageRoleEnum.ROBOT;
+
   return (
     <HStack
       px={3}
       py={8}
-      spacing={4}
+      spacing={6}
       width="full"
       id={messageToId(message_id)}
       alignItems="baseline"
@@ -58,7 +68,15 @@ export const ConversationMesssage = ({ message_id, message, enitity, role, ...re
           },
         }}
       >
-        {isAssistant ? <Markdown markdown={message} /> : message}
+        {isAssistant ? (
+          parsed ? (
+            <div dangerouslySetInnerHTML={{ __html: message }} />
+          ) : (
+            <Markdown content={message} useWorker={false} />
+          )
+        ) : (
+          message
+        )}
       </Typography>
     </HStack>
   );

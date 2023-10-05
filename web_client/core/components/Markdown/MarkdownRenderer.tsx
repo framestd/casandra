@@ -1,35 +1,41 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+
 import DOMPurify from 'dompurify';
 
+import { markdown } from '@/core/utils/markdown';
+
 export interface MarkdownRendererProps {
-  markdown: string;
+  content: string;
+  useWorker?: boolean;
 }
 
-export const MarkdownRenderer = ({ markdown }: MarkdownRendererProps) => {
-  const workerRef = useRef<Worker>();
+const getMarkdownWorker = () => new Worker(new URL('./renderer.ts', import.meta.url));
+
+export const createMarkdownWorkerMessageHandler = <T,>(callback: (res: T) => void) => {
+  const markdownWorkerMessageHandler = (event: MessageEvent<T>) => callback(event.data);
+
+  return markdownWorkerMessageHandler;
+};
+
+export const MarkdownRenderer = ({ content, useWorker = false }: MarkdownRendererProps) => {
   const [renderedHtml, setRenderedHtml] = useState('');
 
   useEffect(() => {
-    workerRef.current = new Worker(new URL('./renderer.ts', import.meta.url));
-  }, []);
+    if (useWorker) {
+      const worker = getMarkdownWorker();
+      const handleMessageFromWorker = createMarkdownWorkerMessageHandler<string>((result) => {
+        const purify = DOMPurify(window);
+        return setRenderedHtml(purify.sanitize(result));
+      });
 
-  useEffect(() => {
-    const worker = workerRef.current;
+      worker.addEventListener('message', handleMessageFromWorker);
+      worker.postMessage(content);
 
-    if (!worker) return;
+      return () => worker.terminate();
+    }
 
-    const handleMessageFromWorker = (event: MessageEvent<string>) => {
-      const purify = DOMPurify(window);
-      const sanitizedHtml = purify.sanitize(event.data);
-
-      setRenderedHtml(sanitizedHtml);
-    };
-
-    worker.addEventListener('message', handleMessageFromWorker);
-    worker.postMessage(markdown);
-
-    return () => worker.terminate();
-  }, [markdown]);
+    return queueMicrotask(() => setRenderedHtml(markdown(content)));
+  }, [content, useWorker]);
 
   return <div dangerouslySetInnerHTML={{ __html: renderedHtml }} />;
 };
