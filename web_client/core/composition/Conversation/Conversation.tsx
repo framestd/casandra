@@ -101,7 +101,7 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
           loader={null}
           style={{ display: 'flex', overflow: 'initial', flexDirection: 'column-reverse' }}
         >
-          <ConversationMessageList messages={messages} user={user} />
+          <ConversationMessageList messages={messages} user={user} useWorker={false} />
         </InfiniteScroll>
       </Flex>
 
