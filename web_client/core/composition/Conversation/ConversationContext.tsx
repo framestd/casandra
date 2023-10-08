@@ -94,16 +94,6 @@ function reducer(state: ConversationCustomization, action: Actions) {
   }
 }
 
-export const ConversationContext = createContext<ConversationContext>(defaultContext);
-
-export const ConversationCustomizationProvider = (props: ConversationContextProps) => {
-  const [state, dispacth] = useReducer(reducer, defaultContext);
-
-  const context = useMemo(() => ({ ...state, updateCustomizations: dispacth }), [state]);
-
-  return <ConversationContext.Provider value={context}>{props.children}</ConversationContext.Provider>;
-};
-
 export const setContextSize = (size: number): SetContextSizeAction => {
   return { payload: size, type: ActionType.SET_CONTEXT_SIZE };
 };
@@ -118,4 +108,14 @@ export const removeQuotedMessage = (message_id: string): RemoveQuotedMessageActi
 
 export const toggleIncognito = (on?: boolean): ToggleIncognitoAction => {
   return { type: ActionType.TOGGLE_INCOGNITO, payload: on };
+};
+
+export const ConversationContext = createContext<ConversationContext>(defaultContext);
+
+export const ConversationContextProvider = (props: ConversationContextProps) => {
+  const [state, dispacth] = useReducer(reducer, defaultContext);
+
+  const context = useMemo(() => ({ ...state, updateCustomizations: dispacth }), [state]);
+
+  return <ConversationContext.Provider value={context}>{props.children}</ConversationContext.Provider>;
 };
