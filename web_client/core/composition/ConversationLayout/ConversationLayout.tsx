@@ -13,6 +13,7 @@ import { ConfigContext } from '@/core/components/Providers';
 import { backdropFactory } from '@/core/theme';
 import { APP_BAR_HEIGHT, fullname } from '@/core/utils';
 
+import { ConversationContextProvider } from '../Conversation';
 import { useFallbackUI } from '../ErrorStates';
 import { useThemeConstants } from '../hooks';
 import { ConversationBar } from './ConversationBar';
@@ -38,38 +39,40 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
 
   return (
     <Box height="full">
-      <AppBar type="tool" title={config.application_config.name} />
+      <ConversationContextProvider>
+        <AppBar type="tool" title={config.application_config.name} />
 
-      <Flex height={`calc(100% - ${APP_BAR_HEIGHT}px)`} width="full">
-        <VStack
-          px={6}
-          pb={8}
-          spacing={4}
-          flexShrink={1}
-          alignSelf="flex-end"
-          height="full"
-          width={{ base: 'auto', lg: 300 }}
-          display={{ base: 'none', lg: 'flex' }}
-        >
-          <ConversationBar activeConversationId={params.id.toString()} flex="1 1 auto" />
+        <Flex height={`calc(100% - ${APP_BAR_HEIGHT}px)`} width="full">
+          <VStack
+            px={6}
+            pb={8}
+            spacing={4}
+            flexShrink={1}
+            alignSelf="flex-end"
+            height="full"
+            width={{ base: 'auto', lg: 300 }}
+            display={{ base: 'none', lg: 'flex' }}
+          >
+            <ConversationBar activeConversationId={params.id.toString()} flex="1 1 auto" />
 
-          <ProfileMenu name={name} />
-        </VStack>
+            <ProfileMenu name={name} />
+          </VStack>
 
-        <Flex
-          px={6}
-          mx="auto"
-          justifyContent="center"
-          height="full"
-          width={{ base: 'full', md: '48em', lg: "40em", '2xl': '48em' }} // md: 768, lg: 640, 2xl: 768
-        >
-          <ErrorBoundary fallbackRender={FallbackUI}>{children}</ErrorBoundary>
+          <Flex
+            px={6}
+            mx="auto"
+            justifyContent="center"
+            height="full"
+            width={{ base: 'full', md: '48em', lg: '40em', '2xl': '48em' }} // md: 768, lg: 640, 2xl: 768
+          >
+            <ErrorBoundary fallbackRender={FallbackUI}>{children}</ErrorBoundary>
+          </Flex>
+
+          <Box px={6} pb={8} width={{ base: 'auto', xl: 250, '2xl': 300 }} display={{ base: 'none', xl: 'flex' }}>
+            <ConversationCustomizer />
+          </Box>
         </Flex>
-
-        <Box px={6} pb={8} width={{ base: 'auto', xl: 250, '2xl': 300 }} display={{ base: 'none', xl: 'flex' }}>
-          <ConversationCustomizer />
-        </Box>
-      </Flex>
+      </ConversationContextProvider>
     </Box>
   );
 };
