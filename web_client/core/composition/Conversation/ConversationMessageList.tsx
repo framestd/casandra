@@ -1,15 +1,19 @@
 import '@/core/components/Markdown/markdown.scss';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 
 import { VStack } from '@/chakra-ui/react';
 
 import DOMPurify from 'dompurify';
+import { ToastOptions } from 'react-toastify';
 
 import { ConversationMessage, ConversationMessageRoleEnum, User } from '@/client/api';
+import { toast } from '@/core/components/AppToast';
 import { ConversationMesssage } from '@/core/components/ConversationMessage';
 import { createMarkdownWorkerMessageHandler } from '@/core/components/Markdown';
-import { APP_NAME, fullname } from '@/core/utils';
+import { APP_NAME, fullname, MAX_ALLOWED_QUOTED_MESSAGES } from '@/core/utils';
+
+import { addQuotedMessage, ConversationContext, removeQuotedMessage } from './ConversationContext';
 
 export interface ConversationMessagesProps {
   messages: ConversationMessage[];
@@ -23,6 +27,26 @@ export const ConversationMessageList = ({
   useWorker = false,
 }: ConversationMessagesProps) => {
   const [parsedMessages, setParsedMessages] = useState<ConversationMessage[]>([]);
+  const { updateCustomizations, quoted_messages } = useContext(ConversationContext);
+
+  const quoteMessage = useCallback(
+    (message_id: string) => {
+      const toastOpts: ToastOptions = { position: 'top-center' };
+      const limitMessage = {
+        title: 'Quote Limit Exceeded',
+        message: `You can only quote up to ${MAX_ALLOWED_QUOTED_MESSAGES} messages`,
+      };
+
+      if (quoted_messages.has(message_id)) {
+        return updateCustomizations(removeQuotedMessage(message_id));
+      } else if (quoted_messages.size === MAX_ALLOWED_QUOTED_MESSAGES) {
+        return void toast.info(limitMessage, toastOpts);
+      }
+
+      updateCustomizations(addQuotedMessage(message_id));
+    },
+    [quoted_messages, updateCustomizations],
+  );
 
   useEffect(() => {
     if (!useWorker) return;
@@ -55,10 +79,12 @@ export const ConversationMessageList = ({
           <ConversationMesssage
             key={message.id}
             enitity={entity}
+            role={message.role}
             message={message.body}
             message_id={message.id}
-            role={message.role}
-            parsed={useWorker}
+            isParsed={useWorker}
+            isQuouted={quoted_messages.has(message.id)}
+            onQuote={quoteMessage}
           />
         );
       })}
