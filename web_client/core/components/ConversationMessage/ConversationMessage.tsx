@@ -5,6 +5,7 @@ import { Avatar, HStack, Icon, IconButton, StackProps, useColorModeValue, VStack
 import { IoArrowUndoOutline } from 'react-icons/io5';
 
 import { ConversationMessageRoleEnum } from '@/client';
+import { isFunction } from '@/core/utils';
 
 import { Markdown } from '../Markdown';
 import { Typography } from '../Typography';
@@ -14,8 +15,10 @@ export interface ConversationMessageProps extends StackProps {
   message: string;
   role: ConversationMessageRoleEnum;
   enitity: string;
-  streaming?: boolean;
-  parsed?: boolean;
+  isStreaming?: boolean;
+  isParsed?: boolean;
+  isQuouted: boolean;
+  onQuote?: (message_id: string) => void;
 }
 
 export const messageToId = (message: string) => `message-${message.replace(/\s+/g, '-')}`;
@@ -25,7 +28,10 @@ export const ConversationMesssage = ({
   message,
   enitity,
   role,
-  parsed = false,
+  isQuouted,
+  isParsed = false,
+  onQuote,
+  noOfLines,
   ...rest
 }: ConversationMessageProps) => {
   const highlght = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
@@ -46,19 +52,27 @@ export const ConversationMesssage = ({
       <VStack spacing={4} height="full" position="sticky" top={3}>
         <Avatar name={enitity} size="sm" userSelect="none" />
 
-        <IconButton
-          aria-label="quote"
-          size="sm"
-          colorScheme="blue"
-          variant="ghost"
-          borderRadius="full"
-          icon={<Icon as={IoArrowUndoOutline} fontSize="md" />}
-        />
+        {isFunction(onQuote) && (
+          <IconButton
+            size="sm"
+            aria-label="quote"
+            colorScheme="blue"
+            borderRadius="full"
+            onClick={() => onQuote(message_id)}
+            variant={isQuouted ? 'solid' : 'ghost'}
+            color={isQuouted ? 'blue.100' : undefined}
+            bgColor={isQuouted ? 'blue.600' : undefined}
+            icon={<Icon as={IoArrowUndoOutline} fontSize="md" />}
+            _hover={isQuouted ? { bgColor: 'blue.700' } : undefined}
+            _active={isQuouted ? { bgColor: 'blue.500' } : undefined}
+          />
+        )}
       </VStack>
 
       <Typography
         width="0"
         flex="1 1 auto"
+        noOfLines={noOfLines}
         sx={{
           '& pre:not(:last-child)': { mb: 8 },
           '& p:not(:last-child)': {
@@ -69,7 +83,7 @@ export const ConversationMesssage = ({
         }}
       >
         {isAssistant ? (
-          parsed ? (
+          isParsed ? (
             <div dangerouslySetInnerHTML={{ __html: message }} />
           ) : (
             <Markdown content={message} useWorker={false} />
