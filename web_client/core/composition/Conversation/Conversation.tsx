@@ -2,7 +2,7 @@
 
 import { useCallback, useContext, useEffect, useId, useMemo, useRef } from 'react';
 
-import { Box, Flex, useColorModeValue } from '@/chakra-ui/react';
+import { Box, Flex, Portal, useColorModeValue, usePopper } from '@/chakra-ui/react';
 
 import { useRouter } from 'next/navigation';
 import InfiniteScroll from 'react-infinite-scroll-component';
@@ -15,7 +15,9 @@ import { uuidToHex } from '@/core/utils';
 import { CONVERSATIONS } from '@/core/utils/routes';
 
 import { usePagedNormalizerFn } from '../hooks';
+import { ConversationContext } from './ConversationContext';
 import { ConversationMessageList } from './ConversationMessageList';
+import { QuotedMessages } from './QuotedMessage';
 
 export interface ConversationProps {
   conversation_id: string;
@@ -29,7 +31,10 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   const abortControllerRef = useRef<AbortController>();
   const textboxBgColor = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
 
+  const customizations = useContext(ConversationContext);
   const { config } = useContext(ConfigContext);
+
+  const { popperRef, referenceRef } = usePopper({ placement: 'left' });
 
   const {
     data,
@@ -69,15 +74,25 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
   });
 
   const publishMessageToConversation = useCallback(
-    async (conversation_id: string, message: string, is_new: boolean) => {
+    async (conversation_id: string, message: string, is_new: boolean, customizations: ConversationContext) => {
       const outboundMessage = message.trim();
 
       await publishMessageHandler.mutateAsync({
         message: { body: outboundMessage, conversation_id: is_new ? undefined : conversation_id },
-        customizations: { quotes: [], context_length: 2 },
+        customizations: {
+          quotes: Array.from(customizations.quoted_messages),
+          context_length: customizations.context_size,
+        },
       });
     },
     [publishMessageHandler],
+  );
+
+  const handleSend = useCallback(
+    async (message: string) => {
+      await publishMessageToConversation(conversation_id, message, isNewConversation, customizations);
+    },
+    [conversation_id, customizations, isNewConversation, publishMessageToConversation],
   );
 
   const messages = useMemo(() => {
@@ -105,13 +120,11 @@ export const Conversation = ({ conversation_id }: ConversationProps) => {
         </InfiniteScroll>
       </Flex>
 
-      <Box px={3} width="full">
-        <ChatTextBox
-          my={8}
-          bgColor={textboxBgColor}
-          isSending={publishMessageHandler.isLoading}
-          onSend={async (message) => await publishMessageToConversation(conversation_id, message, isNewConversation)}
-        />
+      <Box px={3} my={8} width="full" position="relative" ref={referenceRef}>
+        <Portal>
+          <QuotedMessages user={user} messages={messages} ref={popperRef} />
+        </Portal>
+        <ChatTextBox onSend={handleSend} bgColor={textboxBgColor} isSending={publishMessageHandler.isLoading} />
       </Box>
     </ChatBox>
   );
