@@ -51,7 +51,7 @@ export const ConversationMessageList = ({
   useEffect(() => {
     if (!useWorker) return;
 
-    const worker = new Worker(new URL('./renderer.ts', import.meta.url));
+    const worker = new Worker(new URL('./renderer.worker.ts', import.meta.url));
 
     const handleMessageFromWorker = createMarkdownWorkerMessageHandler<ConversationMessage[]>((data) => {
       const purify = DOMPurify(window);
