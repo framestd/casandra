@@ -11,6 +11,9 @@ export const APP_BAR_HEIGHT = 50;
 export const USERNAME_REGEX = /^[A-Za-z]+(?:[_.]?[A-Za-z0-9]+)*$/;
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
+// Conversation customizations
+export const MAX_ALLOWED_QUOTED_MESSAGES = 6;
+export const MAX_ALLOWED_CONTEXT_SIZE = 6;
 
 export const getThemeColor = <T = unknown, L extends Choose<ThemeTypings, 'colors'> = string>(label: L) => {
   const field = get(theme.colors, label);
