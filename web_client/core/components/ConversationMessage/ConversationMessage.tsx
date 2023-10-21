@@ -1,12 +1,13 @@
 'use client';
 
-import { Avatar, HStack, Icon, IconButton, StackProps, useColorModeValue, VStack } from '@/chakra-ui/react';
+import { HStack, Icon, IconButton, StackProps, useColorModeValue, VStack } from '@/chakra-ui/react';
 
 import { IoArrowUndoOutline } from 'react-icons/io5';
 
 import { ConversationMessageRoleEnum } from '@/client';
 import { isFunction } from '@/core/utils';
 
+import { AppAvatar, UserAvatar } from '../Avatars';
 import { Markdown } from '../Markdown';
 import { Typography } from '../Typography';
 
@@ -14,7 +15,7 @@ export interface ConversationMessageProps extends StackProps {
   message_id: string;
   message: string;
   role: ConversationMessageRoleEnum;
-  enitity: string;
+  entity: string;
   isStreaming?: boolean;
   isParsed?: boolean;
   isQuouted: boolean;
@@ -26,7 +27,7 @@ export const messageToId = (message: string) => `message-${message.replace(/\s+/
 export const ConversationMesssage = ({
   message_id,
   message,
-  enitity,
+  entity,
   role,
   isQuouted,
   isParsed = false,
@@ -50,7 +51,7 @@ export const ConversationMesssage = ({
       {...rest}
     >
       <VStack spacing={4} height="full" position="sticky" top={3}>
-        <Avatar name={enitity} size="sm" userSelect="none" />
+        {isAssistant ? <AppAvatar size="sm" /> : <UserAvatar name={entity} size="sm" />}
 
         {isFunction(onQuote) && (
           <IconButton
