@@ -11,7 +11,7 @@ import { ConversationMessage, ConversationMessageRoleEnum, User } from '@/client
 import { toast } from '@/core/components/AppToast';
 import { ConversationMesssage } from '@/core/components/ConversationMessage';
 import { createMarkdownWorkerMessageHandler } from '@/core/components/Markdown';
-import { APP_NAME, fullname, MAX_ALLOWED_QUOTED_MESSAGES } from '@/core/utils';
+import { APP_NAME, MAX_ALLOWED_QUOTED_MESSAGES } from '@/core/utils';
 
 import { addQuotedMessage, ConversationContext, removeQuotedMessage } from './ConversationContext';
 
@@ -73,12 +73,12 @@ export const ConversationMessageList = ({
   return (
     <VStack spacing={0} width="full" height="full" alignItems="flex-start" py={4} fontSize="md">
       {messages.map((message) => {
-        const entity = message.role === ConversationMessageRoleEnum.ROBOT ? APP_NAME : fullname(user);
+        const entity = message.role === ConversationMessageRoleEnum.ROBOT ? APP_NAME : user.fullname;
 
         return (
           <ConversationMesssage
             key={message.id}
-            enitity={entity}
+            entity={entity}
             role={message.role}
             message={message.body}
             message_id={message.id}

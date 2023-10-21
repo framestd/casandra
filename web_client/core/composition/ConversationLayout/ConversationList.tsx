@@ -9,7 +9,7 @@ import { TbMessage } from 'react-icons/tb';
 import { Conversation, ConversationUpdate } from '@/client';
 import { EmbeddableRevisionInput } from '@/core/components/Input';
 import { Typography } from '@/core/components/Typography';
-import { WithId } from '@/core/services';
+import { WithId } from '@/core/services/types';
 import { CONVERSATIONS } from '@/core/utils/routes';
 
 import { useThemeConstants } from '../hooks';

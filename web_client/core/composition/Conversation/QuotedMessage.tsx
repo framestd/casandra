@@ -72,7 +72,7 @@ export const QuotedMessages = forwardRef(({ user, messages }: QuotedMessagesProp
                 return (
                   <Box key={quotedMessage.id} width="full" borderRadius="xl" overflowX="visible">
                     <ConversationMesssage
-                      enitity={entity}
+                      entity={entity}
                       role={quotedMessage.role}
                       message={quotedMessage.body}
                       message_id={quotedMessage.id}
