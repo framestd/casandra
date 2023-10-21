@@ -11,13 +11,14 @@ import { AppBar } from '@/core/components/AppBar';
 import { ProfileMenu } from '@/core/components/ProfileMenu';
 import { ConfigContext } from '@/core/components/Providers';
 import { backdropFactory } from '@/core/theme';
-import { APP_BAR_HEIGHT, fullname } from '@/core/utils';
+import { APP_BAR_HEIGHT } from '@/core/utils';
 
 import { ConversationContextProvider } from '../Conversation';
 import { useFallbackUI } from '../ErrorStates';
-import { useThemeConstants } from '../hooks';
+import { useAppSession, useThemeConstants } from '../hooks';
 import { ConversationBar } from './ConversationBar';
 import { ConversationCustomizer } from './ConversationCustomizer';
+import { SplashScreen } from '@/core/components/Loader';
 
 export interface ChatLayoutProps {
   children?: ReactNode;
@@ -25,10 +26,8 @@ export interface ChatLayoutProps {
 
 export const ConversationLayout = ({ children }: ChatLayoutProps) => {
   const params = useParams();
+  const session = useAppSession({ required: true });
   const { config } = useContext(ConfigContext);
-  const user = config.session.user_account?.user;
-  const name = user ? fullname(user) : '';
-
   const { blended_bg } = useThemeConstants();
 
   const FallbackUI = useFallbackUI({
@@ -37,10 +36,17 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
     ...backdropFactory({ bgColor: blended_bg }),
   });
 
+  const app_name = config.application_config.name;
+
+  if (session.status !== 'authenticated') return <SplashScreen title={app_name} />;
+
+  const name = session.data.user.name;
+  const image = session.data.user.image;
+
   return (
-    <Box height="full">
+    <Box height="full" bg="var(--root-bg)">
       <ConversationContextProvider>
-        <AppBar type="tool" title={config.application_config.name} />
+        <AppBar type="tool" title={app_name} />
 
         <Flex height={`calc(100% - ${APP_BAR_HEIGHT}px)`} width="full">
           <VStack
@@ -55,7 +61,7 @@ export const ConversationLayout = ({ children }: ChatLayoutProps) => {
           >
             <ConversationBar activeConversationId={params.id.toString()} flex="1 1 auto" />
 
-            <ProfileMenu name={name} />
+            <ProfileMenu name={name} image={image} />
           </VStack>
 
           <Flex
