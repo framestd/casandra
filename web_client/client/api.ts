@@ -115,6 +115,70 @@ export interface AccountCreate {
   user: UserCreate;
 }
 /**
+ * Attributes necessary for creating an account object using an existing OAuth 2.0 client and     OpenID Connect (OIDC)
+ * @export
+ * @interface AccountCreateOIDC
+ */
+export interface AccountCreateOIDC {
+  /**
+   *
+   * @type {AccountProviderEnum}
+   * @memberof AccountCreateOIDC
+   */
+  provider: AccountProviderEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountCreateOIDC
+   */
+  id_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountCreateOIDC
+   */
+  access_token: string;
+}
+
+/**
+ * Attributes necessary for signing in to a user account using an existing OAuth 2.0 client     and OpenID Connect (OIDC)
+ * @export
+ * @interface AccountCredentialsOIDC
+ */
+export interface AccountCredentialsOIDC {
+  /**
+   *
+   * @type {AccountProviderEnum}
+   * @memberof AccountCredentialsOIDC
+   */
+  provider: AccountProviderEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountCredentialsOIDC
+   */
+  id_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountCredentialsOIDC
+   */
+  access_token: string;
+}
+
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+
+export enum AccountProviderEnum {
+  GOOGLE = 'google',
+  APPLE = 'apple',
+  SELF = 'self',
+}
+
+/**
  *
  * @export
  * @interface ApplicationInfo
@@ -838,6 +902,12 @@ export interface Subject {}
 export interface Token {
   /**
    *
+   * @type {string}
+   * @memberof Token
+   */
+  id: string;
+  /**
+   *
    * @type {JWTRS256Token}
    * @memberof Token
    */
@@ -902,13 +972,19 @@ export interface User {
    * @type {string}
    * @memberof User
    */
-  username: string;
+  username: string | null;
   /**
    *
    * @type {string}
    * @memberof User
    */
   account_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof User
+   */
+  fullname: string;
 }
 /**
  * Attributes necessary for creating a User object
@@ -943,7 +1019,7 @@ export interface UserCreate {
 export const AccountApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
+     * Basic OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
      * @summary Authenticate User Account
      * @param {string} username
      * @param {string | null} [grantType]
@@ -1021,6 +1097,51 @@ export const AccountApiAxiosParamCreator = function (configuration?: Configurati
       };
     },
     /**
+     *
+     * @summary Authenticate User Account Oidc
+     * @param {AccountCredentialsOIDC} accountCredentialsOIDC
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    authenticateUserAccountOidcAccountsAuthenticateOidcPost: async (
+      accountCredentialsOIDC: AccountCredentialsOIDC,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'accountCredentialsOIDC' is not null or undefined
+      assertParamExists(
+        'authenticateUserAccountOidcAccountsAuthenticateOidcPost',
+        'accountCredentialsOIDC',
+        accountCredentialsOIDC,
+      );
+      const localVarPath = `/accounts/authenticate/oidc`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        accountCredentialsOIDC,
+        localVarRequestOptions,
+        configuration,
+      );
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
      * Create a user account
      * @summary Create User Account
      * @param {AccountCreate} accountCreate
@@ -1051,6 +1172,43 @@ export const AccountApiAxiosParamCreator = function (configuration?: Configurati
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
       localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
       localVarRequestOptions.data = serializeDataIfNeeded(accountCreate, localVarRequestOptions, configuration);
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     * Create a user account from an OpenID Connect client
+     * @summary Create User Account Oidc
+     * @param {AccountCreateOIDC} accountCreateOIDC
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUserAccountOidcAccountsCreateOidcPost: async (
+      accountCreateOIDC: AccountCreateOIDC,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'accountCreateOIDC' is not null or undefined
+      assertParamExists('createUserAccountOidcAccountsCreateOidcPost', 'accountCreateOIDC', accountCreateOIDC);
+      const localVarPath = `/accounts/create/oidc`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(accountCreateOIDC, localVarRequestOptions, configuration);
 
       return {
         url: toPathString(localVarUrlObj),
@@ -1100,7 +1258,7 @@ export const AccountApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = AccountApiAxiosParamCreator(configuration);
   return {
     /**
-     * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
+     * Basic OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
      * @summary Authenticate User Account
      * @param {string} username
      * @param {string | null} [grantType]
@@ -1135,6 +1293,23 @@ export const AccountApiFp = function (configuration?: Configuration) {
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
     },
     /**
+     *
+     * @summary Authenticate User Account Oidc
+     * @param {AccountCredentialsOIDC} accountCredentialsOIDC
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async authenticateUserAccountOidcAccountsAuthenticateOidcPost(
+      accountCredentialsOIDC: AccountCredentialsOIDC,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Token>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.authenticateUserAccountOidcAccountsAuthenticateOidcPost(
+        accountCredentialsOIDC,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
      * Create a user account
      * @summary Create User Account
      * @param {AccountCreate} accountCreate
@@ -1147,6 +1322,23 @@ export const AccountApiFp = function (configuration?: Configuration) {
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseAccount>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createUserAccountAccountsCreatePost(
         accountCreate,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     * Create a user account from an OpenID Connect client
+     * @summary Create User Account Oidc
+     * @param {AccountCreateOIDC} accountCreateOIDC
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createUserAccountOidcAccountsCreateOidcPost(
+      accountCreateOIDC: AccountCreateOIDC,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseAccount>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createUserAccountOidcAccountsCreateOidcPost(
+        accountCreateOIDC,
         options,
       );
       return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
@@ -1174,7 +1366,7 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
   const localVarFp = AccountApiFp(configuration);
   return {
     /**
-     * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
+     * Basic OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
      * @summary Authenticate User Account
      * @param {AccountApiAuthenticateUserAccountAccountsAuthenticatePostRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1198,6 +1390,21 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
         .then((request) => request(axios, basePath));
     },
     /**
+     *
+     * @summary Authenticate User Account Oidc
+     * @param {AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    authenticateUserAccountOidcAccountsAuthenticateOidcPost(
+      requestParameters: AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPostRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<Token> {
+      return localVarFp
+        .authenticateUserAccountOidcAccountsAuthenticateOidcPost(requestParameters.accountCredentialsOIDC, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
      * Create a user account
      * @summary Create User Account
      * @param {AccountApiCreateUserAccountAccountsCreatePostRequest} requestParameters Request parameters.
@@ -1210,6 +1417,21 @@ export const AccountApiFactory = function (configuration?: Configuration, basePa
     ): AxiosPromise<StatusResponseAccount> {
       return localVarFp
         .createUserAccountAccountsCreatePost(requestParameters.accountCreate, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     * Create a user account from an OpenID Connect client
+     * @summary Create User Account Oidc
+     * @param {AccountApiCreateUserAccountOidcAccountsCreateOidcPostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createUserAccountOidcAccountsCreateOidcPost(
+      requestParameters: AccountApiCreateUserAccountOidcAccountsCreateOidcPostRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StatusResponseAccount> {
+      return localVarFp
+        .createUserAccountOidcAccountsCreateOidcPost(requestParameters.accountCreateOIDC, options)
         .then((request) => request(axios, basePath));
     },
     /**
@@ -1281,6 +1503,20 @@ export interface AccountApiAuthenticateUserAccountAccountsAuthenticatePostReques
 }
 
 /**
+ * Request parameters for authenticateUserAccountOidcAccountsAuthenticateOidcPost operation in AccountApi.
+ * @export
+ * @interface AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPostRequest
+ */
+export interface AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPostRequest {
+  /**
+   *
+   * @type {AccountCredentialsOIDC}
+   * @memberof AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPost
+   */
+  readonly accountCredentialsOIDC: AccountCredentialsOIDC;
+}
+
+/**
  * Request parameters for createUserAccountAccountsCreatePost operation in AccountApi.
  * @export
  * @interface AccountApiCreateUserAccountAccountsCreatePostRequest
@@ -1295,6 +1531,20 @@ export interface AccountApiCreateUserAccountAccountsCreatePostRequest {
 }
 
 /**
+ * Request parameters for createUserAccountOidcAccountsCreateOidcPost operation in AccountApi.
+ * @export
+ * @interface AccountApiCreateUserAccountOidcAccountsCreateOidcPostRequest
+ */
+export interface AccountApiCreateUserAccountOidcAccountsCreateOidcPostRequest {
+  /**
+   *
+   * @type {AccountCreateOIDC}
+   * @memberof AccountApiCreateUserAccountOidcAccountsCreateOidcPost
+   */
+  readonly accountCreateOIDC: AccountCreateOIDC;
+}
+
+/**
  * AccountApi - object-oriented interface
  * @export
  * @class AccountApi
@@ -1302,7 +1552,7 @@ export interface AccountApiCreateUserAccountAccountsCreatePostRequest {
  */
 export class AccountApi extends BaseAPI {
   /**
-   * OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
+   * Basic OAuth2 authentication for clients.  Provides an access and refresh token. The access token can be used to request resources requiring authorization, while the refresh token can be used to re-authenticate, providing a fresh token when the previous access token expires.  Request form body takes username and password, essentially, to authenticate; where username can be anything, an email address or a \"username\". In this case the application expects it to be an email address.  A refresh_token is expected in lieu of a username and password, with a grant_type of \"refresh_token\" for a reauthentication request.
    * @summary Authenticate User Account
    * @param {AccountApiAuthenticateUserAccountAccountsAuthenticatePostRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
@@ -1328,6 +1578,23 @@ export class AccountApi extends BaseAPI {
   }
 
   /**
+   *
+   * @summary Authenticate User Account Oidc
+   * @param {AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPostRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof AccountApi
+   */
+  public authenticateUserAccountOidcAccountsAuthenticateOidcPost(
+    requestParameters: AccountApiAuthenticateUserAccountOidcAccountsAuthenticateOidcPostRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return AccountApiFp(this.configuration)
+      .authenticateUserAccountOidcAccountsAuthenticateOidcPost(requestParameters.accountCredentialsOIDC, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
    * Create a user account
    * @summary Create User Account
    * @param {AccountApiCreateUserAccountAccountsCreatePostRequest} requestParameters Request parameters.
@@ -1341,6 +1608,23 @@ export class AccountApi extends BaseAPI {
   ) {
     return AccountApiFp(this.configuration)
       .createUserAccountAccountsCreatePost(requestParameters.accountCreate, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   * Create a user account from an OpenID Connect client
+   * @summary Create User Account Oidc
+   * @param {AccountApiCreateUserAccountOidcAccountsCreateOidcPostRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof AccountApi
+   */
+  public createUserAccountOidcAccountsCreateOidcPost(
+    requestParameters: AccountApiCreateUserAccountOidcAccountsCreateOidcPostRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return AccountApiFp(this.configuration)
+      .createUserAccountOidcAccountsCreateOidcPost(requestParameters.accountCreateOIDC, options)
       .then((request) => request(this.axios, this.basePath));
   }
 
