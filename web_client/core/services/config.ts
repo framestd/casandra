@@ -1,6 +1,7 @@
 import { Configuration } from '@/client/configuration';
 
-import { getToken, SERVER_BASE_URL, SERVER_INTERNAL_ADDRESS } from '../utils';
+import { SERVER_BASE_URL, SERVER_INTERNAL_ADDRESS } from '../utils';
+import { getAccessToken as getAccessTokenFromRegistry } from './next-auth/registry';
 
 export class MissingAccessTokenException extends Error {
   name = MissingAccessTokenException.name;
@@ -28,9 +29,9 @@ export const getSocketURL = (pathname: string, base = getServerBaseURL()) => {
 };
 
 function getAccessToken() {
-  const token = getToken();
+  const token = getAccessTokenFromRegistry();
 
-  if (!token) return Promise.reject(new MissingAccessTokenException('No access token!'));
+  if (!token) return Promise.resolve('');
 
   return Promise.resolve(token);
 }
