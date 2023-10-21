@@ -13,6 +13,7 @@
     "generate:theme-typings": "chakra-cli tokens ./core/theme/theme.ts",
     "generate:svg-to-react": "svgr --typescript --icon=1em --svg-props=\"fill=\"currentColor\"\" --svgo-config=\"svgo.config.js\" --out-dir ./core/components/Icons -- public/icons",
     "generate:illustrations": "svgr --typescript --svg-props=\"fill=\"currentColor\"\" --svgo-config=\"svgo.config.js\" --out-dir ./core/components/Illustrations -- public/illustrations",
+    "generate:logos": "svgr --typescript --svg-props=\"fill=\"currentColor\"\" --svgo-config=\"svgo.config.js\" --out-dir ./core/components/Logos -- public/logos",
     "postinstall": "yarn generate:theme-typings"
   },
   "dependencies": {
@@ -40,7 +41,8 @@
     "js-cookie": "^3.0.5",
     "lodash.get": "^4.4.2",
     "markdown-it": "^13.0.2",
-    "next": "13.4.12",
+    "next": "^13.5.6",
+    "next-auth": "^4.23.2",
     "polished": "^4.2.2",
     "react": "18.2.0",
     "react-dom": "18.2.0",
