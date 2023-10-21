@@ -13,7 +13,7 @@ import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 import { AppleButton, GoogleButton, PrimaryButton } from '@/core/components/Button';
 import { InputErrorMessage } from '@/core/components/InputErrorMessage';
 import { InputLabel } from '@/core/components/InputLabel';
-import { PasswordInput } from '@/core/components/PasswordInput';
+import { PasswordInput } from '@/core/components/Input';
 import { AuthForm } from '@/core/composition/AuthLayout';
 import { SigninCredentials, useAuthenticateAccountService } from '@/core/services/account';
 import { resetAuthIntent, setAuthIntent } from '@/core/services/next-auth';

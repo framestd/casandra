@@ -32,7 +32,7 @@ export const PasswordInput = forwardRef<PasswordInputProps, 'input'>(
         <Input type={passwordVisible ? 'text' : 'password'} {...rest} ref={ref} />
 
         {showControls && (
-          <InputRightElement height={size === 'sm' ? 8 : 10}>
+          <InputRightElement>
             <IconButton
               aria-label={passwordVisible ? 'hide password' : 'show password'}
               variant="ghost"

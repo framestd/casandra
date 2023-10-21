@@ -14,7 +14,7 @@ import { toast } from '@/core/components/AppToast';
 import { AppleButton, GoogleButton, PrimaryButton } from '@/core/components/Button';
 import { InputErrorMessage } from '@/core/components/InputErrorMessage';
 import { InputLabel } from '@/core/components/InputLabel';
-import { PasswordInput } from '@/core/components/PasswordInput';
+import { PasswordInput } from '@/core/components/Input';
 import { actions, ConfigContext } from '@/core/components/Providers';
 import { AuthForm } from '@/core/composition/AuthLayout';
 import { SignupCredentials, useAuthenticateAccountService, useCreateAccountService } from '@/core/services/account';
