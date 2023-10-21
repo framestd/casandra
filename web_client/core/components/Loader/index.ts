@@ -1,3 +1,5 @@
 export * from './FlowBalls';
 export * from './SplashScreen';
-export * from './SplashScreenStyles';
+import styles from './style.module.scss';
+
+export { styles };
