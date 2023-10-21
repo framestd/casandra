@@ -3,8 +3,9 @@ export type Merge<P, T> = Omit<P, keyof T> & T;
 export type ExcludeArrayKeys<T> = T extends ArrayLike<any> ? Exclude<keyof T, keyof any[]> : keyof T;
 
 export type IsAny<T> = unknown extends T ? ([keyof T] extends [never] ? false : true) : false;
+export type NonNullableMembers<T extends Record<string, any>> = { [P in keyof T]: NonNullable<T[P]> };
 
-type PathImpl<T, Key extends keyof T> = Key extends string
+export type PathImpl<T, Key extends keyof T> = Key extends string
   ? IsAny<T[Key]> extends true
     ? never
     : NonNullable<T[Key]> extends Record<string, any>

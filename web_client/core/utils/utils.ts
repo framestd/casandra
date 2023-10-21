@@ -2,6 +2,8 @@ import { ThemeTypings } from '@/chakra-ui/react';
 
 import get from 'lodash.get';
 
+import { Token } from '@/client/api';
+
 import { theme } from '../theme';
 import { Choose } from './types';
 
@@ -11,26 +13,26 @@ export const APP_BAR_HEIGHT = 50;
 export const USERNAME_REGEX = /^[A-Za-z]+(?:[_.]?[A-Za-z0-9]+)*$/;
 export const ACCESS_TOKEN_KEY = 'access_token';
 export const REFRESH_TOKEN_KEY = 'refresh_token';
-// Conversation customizations
-export const MAX_ALLOWED_QUOTED_MESSAGES = 6;
-export const MAX_ALLOWED_CONTEXT_SIZE = 6;
+
+export const getAuthorization = (token: Token | null) =>
+  token ? `${token.token_type} ${token.access_token}` : undefined;
 
 export const getThemeColor = <T = unknown, L extends Choose<ThemeTypings, 'colors'> = string>(label: L) => {
   const field = get(theme.colors, label);
   return field ? (field as T) : label;
 };
 
-export const storeToken = (token: string, key = ACCESS_TOKEN_KEY) => {
+export const addTokenToStorage = (token: string, key = ACCESS_TOKEN_KEY) => {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(key, token);
+  window.localStorage.setItem(key, token);
 };
 
-export const getToken = (key = ACCESS_TOKEN_KEY) => {
+export const getTokenFromStorage = (key = ACCESS_TOKEN_KEY) => {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(key);
+  return window.localStorage.getItem(key);
 };
 
-export const removeToken = (key = ACCESS_TOKEN_KEY) => {
+export const removeTokenFromStorage = (key = ACCESS_TOKEN_KEY) => {
   if (typeof window === 'undefined') return;
   return localStorage.removeItem(key);
 };
@@ -51,7 +53,7 @@ export const isURL = <T extends URL | string = URL | string>(v: any): v is T => 
 export const uuidToHex = (uuid: string) => uuid.replace(/-/g, '');
 
 export const never = (_: never) => {
-  throw new Error('Unreachable');
+  throw new Error(`Unhandled case: ${_}`);
 };
 
 export function range(start: number): Generator<number>;
