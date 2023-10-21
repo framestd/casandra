@@ -16,7 +16,7 @@
   "[typescriptreact]": {
     "editor.wordWrapColumn": 120
   },
-  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvironment": false,
   "python.defaultInterpreterPath": "./web_services/.venv",
   "python.analysis.typeCheckingMode": "strict",
   "python.analysis.autoImportCompletions": true,
