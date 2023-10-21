@@ -6,6 +6,8 @@ import { InfiniteData, QueryClient, QueryFilters, QueryKey } from '@tanstack/rea
 
 import { ResponseMetadata } from '@/client';
 
+import { ErrorPayload } from './types';
+
 type ResponseData<T> = Record<'data', T[]>;
 type ResponseDataMetadata<T> = AxiosResponse<Record<'metadata', T>>;
 type InferResponseDataT<ResponseDataT> = ResponseDataT extends ResponseData<infer T> ? T : never;
@@ -25,6 +27,18 @@ type InfiniteWriteInfo<R> = {
 type WriteMockedAxiosResponseResult<T, IsInfinite> = IsInfinite extends true ? InfiniteWriteInfo<T> : WriteInfo<T>;
 
 export type PageParam = { pageCursor: string | null; pageForward: boolean };
+
+export function isErrorResponse(value: unknown): value is ErrorPayload {
+  if (!value) return false;
+
+  if (typeof value === 'object' && 'message' in value && 'errors' in value && 'success' in value) {
+    const err = value as ErrorPayload;
+
+    return err.success === false;
+  }
+
+  return false;
+}
 
 export async function writeMockedAxiosResponse<T, IsInfinite extends boolean = true>(
   queryClient: QueryClient,
