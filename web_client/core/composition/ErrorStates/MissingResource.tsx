@@ -5,7 +5,7 @@ import { Tag, TagLabel, VStack } from '@/chakra-ui/react';
 import { ErrorCode } from '@/client';
 import { NotFoundIllustration } from '@/core/components/Illustrations';
 import { Typography } from '@/core/components/Typography';
-import { isErrorResponse } from '@/core/services';
+import { isErrorResponse } from '@/core/services/utils';
 
 import { ErrorStateProps } from './types';
 
