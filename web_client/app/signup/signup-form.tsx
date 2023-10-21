@@ -1,27 +1,26 @@
 'use client';
 
-import { useContext } from 'react';
+import { useContext, useEffect } from 'react';
 
-import { Link } from '@/chakra-ui/next-js';
 import { FormControl, HStack, Input, InputGroup, VStack } from '@/chakra-ui/react';
 
+import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 
 import { toast } from '@/core/components/AppToast';
-import { PrimaryButton } from '@/core/components/Button';
-import { Form } from '@/core/components/Form';
+import { AppleButton, GoogleButton, PrimaryButton } from '@/core/components/Button';
 import { InputErrorMessage } from '@/core/components/InputErrorMessage';
 import { InputLabel } from '@/core/components/InputLabel';
 import { PasswordInput } from '@/core/components/PasswordInput';
 import { actions, ConfigContext } from '@/core/components/Providers';
-import { Typography } from '@/core/components/Typography';
-import { SignupCredentials } from '@/core/services';
-import { useAuthenticateAccountService, useCreateAccountService } from '@/core/services/account';
-import { REFRESH_TOKEN_KEY, storeToken } from '@/core/utils';
-import { CONVERSATIONS } from '@/core/utils/routes';
+import { AuthForm } from '@/core/composition/AuthLayout';
+import { SignupCredentials, useAuthenticateAccountService, useCreateAccountService } from '@/core/services/account';
+import { resetAuthIntent, setAuthIntent } from '@/core/services/next-auth';
+import { REFRESH_TOKEN_KEY, addTokenToStorage } from '@/core/utils';
+import { Routes } from '@/core/utils/routes';
 
 export const SignupForm = () => {
   const router = useRouter();
@@ -39,8 +38,8 @@ export const SignupForm = () => {
     const { data: account } = await signupHandler.mutateAsync(data);
     const response = await signinHandler.mutateAsync({ email: data.email, password: data.password });
 
-    storeToken(response.data.access_token + '');
-    storeToken(response.data.refresh_token + '', REFRESH_TOKEN_KEY);
+    addTokenToStorage(response.data.access_token + '');
+    addTokenToStorage(response.data.refresh_token + '', REFRESH_TOKEN_KEY);
 
     updateConfig(actions.createHasActiveSessionUpdateAction(true));
     updateConfig(actions.createUserAccountUpdateAction(account.data));
@@ -48,28 +47,31 @@ export const SignupForm = () => {
     toast.success({ title: 'Account Created', message: `You just successfully created an account!` });
 
     // TODO: change 'new' to user's most recent conversation's id
-    router.replace(`${CONVERSATIONS}/new`);
+    router.replace(Routes.CONVERSATIONS_NEW);
   };
 
+  useEffect(() => {
+    setAuthIntent('register');
+    return () => resetAuthIntent();
+  }, []);
+
   return (
-    <Form
-      px={{ base: 6, md: 16, xl: 32 }}
-      py={{ base: 16, xl: 32 }}
-      maxWidth="full"
-      borderRadius={{ md: '2xl' }}
-      width={{ base: 'full', md: 480, lg: 675 }}
-      bgColor="whiteAlpha.100"
-      onSubmit={handleSubmit(signup)}
-    >
-      <Typography mb={10} textStyle="h4" textAlign="center">
-        Create your account
-      </Typography>
+    <AuthForm type="signup" title="Create your account" onSubmit={handleSubmit(signup)}>
+      <VStack mb={8} spacing={6} width="full">
+        <GoogleButton type="button" width="full" onClick={() => signIn('google')}>
+          Sign up with Google
+        </GoogleButton>
+
+        <AppleButton type="button" width="full" onClick={() => signIn('apple')}>
+          Sign up with Apple
+        </AppleButton>
+      </VStack>
 
       <VStack spacing={8} justifyContent="flex-start" alignItems="flex-start">
         <HStack spacing={4} width="full">
           <FormControl variant="floating" isInvalid={Boolean(errors.first_name)}>
             <InputGroup>
-              <Input placeholder=" " fontSize="sm" {...register('first_name')} />
+              <Input size="lg" placeholder=" " fontSize="sm" {...register('first_name')} />
             </InputGroup>
 
             <InputLabel>First name</InputLabel>
@@ -79,7 +81,7 @@ export const SignupForm = () => {
 
           <FormControl variant="floating" isInvalid={Boolean(errors.last_name)}>
             <InputGroup>
-              <Input placeholder=" " fontSize="sm" {...register('last_name')} />
+              <Input size="lg" placeholder=" " fontSize="sm" {...register('last_name')} />
             </InputGroup>
 
             <InputLabel>Last name</InputLabel>
@@ -90,7 +92,7 @@ export const SignupForm = () => {
 
         <FormControl variant="floating" isInvalid={Boolean(errors.username)}>
           <InputGroup>
-            <Input placeholder=" " fontSize="sm" {...register('username')} />
+            <Input size="lg" placeholder=" " fontSize="sm" {...register('username')} />
           </InputGroup>
 
           <InputLabel>Username</InputLabel>
@@ -100,7 +102,7 @@ export const SignupForm = () => {
 
         <FormControl variant="floating" isInvalid={Boolean(errors.email)}>
           <InputGroup>
-            <Input placeholder=" " fontSize="sm" {...register('email')} />
+            <Input size="lg" placeholder=" " fontSize="sm" {...register('email')} />
           </InputGroup>
 
           <InputLabel>Email address</InputLabel>
@@ -109,7 +111,7 @@ export const SignupForm = () => {
         </FormControl>
 
         <FormControl variant="floating" isInvalid={Boolean(errors.password)}>
-          <PasswordInput placeholder=" " fontSize="sm" {...register('password')} />
+          <PasswordInput size="lg" placeholder=" " fontSize="sm" {...register('password')} />
 
           <InputLabel>Password</InputLabel>
 
@@ -120,12 +122,6 @@ export const SignupForm = () => {
           Create account
         </PrimaryButton>
       </VStack>
-
-      <VStack mt={4} alignItems="center">
-        <Link color="brand.500" fontSize="sm" href="/signin">
-          Sign in to your account
-        </Link>
-      </VStack>
-    </Form>
+    </AuthForm>
   );
 };
