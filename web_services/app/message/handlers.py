@@ -53,7 +53,7 @@ async def publish_message(
 
     async with message_completion_stremer_context as streamer:
         response = StreamingResponse(streamer(), media_type="text/event-stream")
-        response.headers.append("X-Accel-Buffer", "no")  # https://stackoverflow.com/a/27960243
+        response.headers.append("X-Accel-Buffering", "no")  # https://stackoverflow.com/a/27960243
 
         return response
 
