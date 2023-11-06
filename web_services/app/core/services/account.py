@@ -6,6 +6,7 @@ from jose import JWTError
 from sqlalchemy.orm import Session
 
 # First Party
+from app.core.authentication.oauth2 import oauth2_provider_tokeninfo
 from app.core.authentication.password import Password
 from app.core.authentication.token import JWTRS256Token, split_prefix_from_sub
 from app.core.exceptions.application import ChallengeFailedException
@@ -14,9 +15,11 @@ from app.core.exceptions.code import ErrorContextType
 from app.core.exceptions.http import AppHTTPException, ConflictException
 from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
-from app.core.models.account import AccountInDB
+from app.core.models.account import AccountInDB, AccountMetaInDB, AccountPasswordInDB
+from app.core.models.account import AccountProviderEnum
 from app.core.models.user import UserInDB
-from app.core.schemas.account import AccountCreate, TokenData
+from app.core.schemas.account import AccountCreate, AccountCreateOIDC
+from app.core.schemas.account import AccountCredentialsOIDC, TokenData
 
 # Local Folder
 from .user import get_user_by_username
@@ -40,7 +43,14 @@ def create_user_account_service(session: Session, credentials: AccountCreate):
     hashed = Password(credentials.password).get_hash()
 
     user = UserInDB(**credentials.user.model_dump())
-    account = AccountInDB(email=credentials.email, password=hashed, user=user)
+    account_meta = AccountMetaInDB(provider=AccountProviderEnum.self, scopes=None)
+    account_password = AccountPasswordInDB(hashed=hashed)
+    account = AccountInDB(
+        email=credentials.email,
+        user=user,
+        meta=account_meta,
+        password=account_password,
+    )
 
     existing_account: AccountInDB | None = None
     existing_user: UserInDB | None = None
@@ -53,10 +63,10 @@ def create_user_account_service(session: Session, credentials: AccountCreate):
     except MissingResourceException:
         pass
 
-    if not existing_account is None or not existing_user is None:
+    if existing_account is not None or existing_user is not None:
         exception = ConflictException("Some of the details provided are already in use")
 
-        if not existing_account is None:
+        if existing_account is not None:
             # debug log
             logger.debug(f'Email address "{email}" is already taken')
 
@@ -67,7 +77,7 @@ def create_user_account_service(session: Session, credentials: AccountCreate):
                 value=email,
             )
 
-        if not existing_user is None:
+        if existing_user is not None:
             # debug log
             logger.debug(f'Username "{username}" is already taken')
 
@@ -79,7 +89,6 @@ def create_user_account_service(session: Session, credentials: AccountCreate):
             )
 
         raise exception
-
     session.add(account)
     session.commit()
     session.refresh(account)
@@ -87,7 +96,66 @@ def create_user_account_service(session: Session, credentials: AccountCreate):
     return account
 
 
-def authenticate_user_account_service(session: Session, identifier: str, password: str):
+async def create_user_account_oidc_service(session: Session, credentials: AccountCreateOIDC):
+    """Using an existing OAuth 2.0 client and OpenID Connect (OIDC),
+    Create a user account that will be used for authentication and will serve
+    as the user's identification through the entire system
+
+    :param session: the database session to use to create a new account
+
+    :param credentials: the credentials or data to use to create a new account
+
+    :raises ConflictException:
+        - if account with email already exists or
+    """
+
+    oauth_info = await oauth2_provider_tokeninfo(
+        id_token=credentials.id_token,
+        access_token=credentials.access_token,
+        provider=credentials.provider,
+    )
+
+    first_name = oauth_info.first_name
+    last_name = oauth_info.last_name
+    email = oauth_info.email
+    scope = oauth_info.scope
+    provider_account_id = oauth_info.account_id
+
+    user = UserInDB(first_name=first_name, last_name=last_name)
+    account_meta = AccountMetaInDB(
+        provider=credentials.provider,
+        scopes=scope,
+        provider_account_id=provider_account_id,
+    )
+    account = AccountInDB(
+        email=email,
+        user=user,
+        meta=account_meta,
+        password=None,
+    )
+
+    try:
+        get_account_by_email(session, email=email)
+        exception = ConflictException("Email address's already in use")
+        logger.debug(f'Email address "{email}" is already taken')
+
+        exception.add_attributes(
+            context=None,
+            message=exception.message,
+            path=("body", "email"),
+            value=email,
+        )
+        raise exception
+    except MissingResourceException:
+        pass
+    session.add(account)
+    session.commit()
+    session.refresh(account)
+
+    return account
+
+
+def authenticate_user_account_service(session: Session, *, identifier: str, password: str):
     """Authenticate a user using an identifier (in this case an email address only)
     and a password.
 
@@ -125,8 +193,7 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
 
     challenge = Password(plain=password)
 
-    if not challenge.compare(hashed=account.password) is True:
-        # debug log:
+    if account.password is None or challenge.compare(hashed=account.password.hashed) is False:
         logger.debug(f"Access to account with email {identifier} was tried with a wrong password")
 
         exception = ChallengeFailedException("Incorrect password")
@@ -140,6 +207,33 @@ def authenticate_user_account_service(session: Session, identifier: str, passwor
 
         raise exception
 
+    return account
+
+
+async def authenticate_user_account_oidc_service(
+    session: Session,
+    credentials: AccountCredentialsOIDC,
+):
+    oauth_info = await oauth2_provider_tokeninfo(
+        id_token=credentials.id_token,
+        access_token=credentials.access_token,
+        provider=credentials.provider,
+    )
+
+    account = get_account_by_email(session, email=oauth_info.email)
+
+    if (
+        account.meta.provider is not oauth_info.provider
+        or account.meta.provider_account_id != oauth_info.account_id
+    ):
+        exception = ChallengeFailedException("Mismatched account claims")
+        exception.add_attributes(
+            context={"type": ErrorContextType.help},
+            message="The authentication method used did not match, try using another method",
+            path=("body", "provider"),
+            value=credentials.provider,
+        )
+        raise exception
     return account
 
 

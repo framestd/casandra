@@ -18,17 +18,19 @@ from app.core.exceptions.http import AppHTTPException, ForbiddenRequestException
 from app.core.intelligence.basic import create_aggregate_prompts
 from app.core.intelligence.basic import create_openai_message_prompt
 from app.core.logging.logger import get_app_logger
-from app.core.models.conversation import Conversation
-from app.core.models.message import ConversationMessage, ConversationMessageRoleEnum
+from app.core.models.conversation import ConversationInDB
+from app.core.models.message import ConversationMessageInDB, ConversationMessageRoleEnum
 from app.core.redis.channels import get_conversation_channel_for
 from app.core.redis.publisher import publisher
 from app.core.redis.types import PubSubMessageDict
-from app.core.schemas.account import AccountOut
-from app.core.schemas.message import ConversationMessageOut, ConversationMessagePartial
+from app.core.schemas.account import Account
+from app.core.schemas.message import ConversationMessage, ConversationMessagePartial
 from app.core.schemas.message import MessageCreate, MessageCreateCustomizations
 from app.core.schemas.message import MessageFilter, MessageFilterExtra
 from app.core.schemas.pagination import PageOptions
-from app.core.schemas.websocket import DataStream, SignalStream, StreamSignalEnum
+from app.core.schemas.response import ErrorAttributes, ErrorResponse
+from app.core.schemas.websocket import DataStream, ErrorStream, SignalStream
+from app.core.schemas.websocket import StreamSignalEnum
 from app.core.utils import get_utc_time
 from app.core.worker.completion_tasks import MessageBuffDict, openai_completion_task
 from app.core.worker.completion_tasks import save_message_response_pair_task
@@ -48,6 +50,23 @@ __all__ = (
 logger = get_app_logger(__name__)
 
 
+def _process_streaming_exceptions(exc: Exception, channel: str):
+    if isinstance(exc, AppHTTPException):
+        error_res = ErrorResponse[type(exc)](
+            message=exc.message,
+            title=exc.title,
+            code=exc.code,
+            errors=[ErrorAttributes(**error) for error in exc.errors],
+        )
+    else:
+        error_res = ErrorResponse[AppHTTPException](
+            title=AppHTTPException.title,
+            code=AppHTTPException.code,
+            errors=[],
+        )
+    return ErrorStream(channel=channel, error=error_res)
+
+
 def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
     """Get a conversation message by ID
 
@@ -65,7 +84,11 @@ def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         to do so.
     """
 
-    message = session.query(ConversationMessage).filter(ConversationMessage.id == id).one_or_none()
+    message = (
+        session.query(ConversationMessageInDB)
+        .filter(ConversationMessageInDB.id == id)
+        .one_or_none()
+    )
 
     if message is None:
         exception = MissingResourceException(f"There's no chat message with id {id}")
@@ -120,7 +143,7 @@ def get_messages_by_conversation_id(
     #         "You are not allowed to read messages from this conversation"
     #     )
 
-    page_builder = PageBuilder[ConversationMessage, MessageFilterExtra]()
+    page_builder = PageBuilder[ConversationMessageInDB, MessageFilterExtra]()
 
     after = page_opts.page_cursor if page_opts.page_forward else None
     before = page_opts.page_cursor if not page_opts.page_forward else None
@@ -131,7 +154,7 @@ def get_messages_by_conversation_id(
     )
 
     page = (
-        page_builder.setup(session=session, model=ConversationMessage)
+        page_builder.setup(session=session, model=ConversationMessageInDB)
         .go_to_edge_before(before)
         .go_to_edge_after(after)
         .skim_through(filter=filter_extra)
@@ -182,25 +205,25 @@ async def message_completion_streamer(
         _context_size = customizations.context_length
         filters = [
             # Ensure the conversation was started or belongs to the user context
-            Conversation.started_by_id == ctx.user.id,
+            ConversationInDB.started_by_id == ctx.user.id,
             # Match only messages in the conversation specified by its ID
-            ConversationMessage.conversation_id == message_create.conversation_id,
+            ConversationMessageInDB.conversation_id == message_create.conversation_id,
         ]
 
         # If quoted message IDs are provided, load messages where their IDs are in the
         # set of quoted message IDs provided
         if customizations.quotes and len(customizations.quotes) != 0:
-            filters.append(ConversationMessage.id.in_(customizations.quotes))
+            filters.append(ConversationMessageInDB.id.in_(customizations.quotes))
             # reassign:
             _context_size = len(customizations.quotes)
 
         # sort ascending to restore order of messages (or reverse)
         context_messages = sorted(
             # sort desc to enusre the most recent are selected
-            session.query(ConversationMessage)
-            .join(Conversation)  # we need a join irrespective of SQLAlchemy loading strategy
+            session.query(ConversationMessageInDB)
+            .join(ConversationInDB)  # we need a join irrespective of SQLAlchemy loading strategy
             .filter(and_(*filters))
-            .order_by(ConversationMessage.created_at.desc())
+            .order_by(ConversationMessageInDB.created_at.desc())
             .limit(_context_size)
             .all(),
             key=lambda x: x.created_at,
@@ -242,10 +265,12 @@ async def message_completion_streamer(
             msg_create_dict=message_create.model_dump(),
             msg_create_timestamp=get_utc_time(),
             msg_customizations_dict=customizations.model_dump(),
-            user_account_dict=AccountOut.model_validate(ctx.account).model_dump(),
+            user_account_dict=Account.model_validate(ctx.account).model_dump(),
         )
 
-        task = root_task_signature.apply_async(link=child_task_signature)
+        task = root_task_signature.apply_async(
+            link=child_task_signature, task_id=str(user_message_id)
+        )
 
         # task.get(...) is a blocking call so check that task is ready, first.
         # If the task is ready, then task.get(...) can return fast enough, and
@@ -267,8 +292,8 @@ async def message_completion_streamer(
         user_message, assistant_message = child_result
 
         result = (
-            ConversationMessageOut(**user_message).model_dump(mode="json"),
-            ConversationMessageOut(**assistant_message).model_dump(mode="json"),
+            ConversationMessage(**user_message).model_dump(mode="json"),
+            ConversationMessage(**assistant_message).model_dump(mode="json"),
         )
 
         await asyncio.create_task(publisher(ctx.rdb, channel, json.dumps(result)))
@@ -288,7 +313,14 @@ async def message_completion_streamer(
                     yield stream.model_dump_json().encode()
                     yield b"\x0A"  # EOL
         except asyncio.CancelledError:
-            logger.error("Error occured while streaming", exc_info=True)
+            logger.error("Request was canceled while streaming", exc_info=True)
+        except AppHTTPException as exc:
+            yield _process_streaming_exceptions(exc, channel).model_dump_json().encode()
+            yield b"\x0A"
+        except Exception as exc:
+            logger.error("Unknown error occured while streaming", exc_info=True)
+            yield _process_streaming_exceptions(exc, channel).model_dump_json().encode()
+            yield b"\x0A"
 
     yield streamer
 
@@ -330,7 +362,7 @@ async def open_message_reply_stream(
             body="",
             conversation_id=conversation_id,
             role=ConversationMessageRoleEnum.robot,
-            response_to_id=user_message_id
+            response_to_id=user_message_id,
         ),
     )
 
@@ -356,10 +388,10 @@ async def open_message_reply_stream(
                 if isinstance(data, list):
                     try:
                         for d in data:
-                            data_stream = DataStream[ConversationMessageOut](
+                            data_stream = DataStream[ConversationMessage](
                                 channel=channel,
                                 message="Streaming resulting data",
-                                data=ConversationMessageOut(**d),
+                                data=ConversationMessage(**d),
                             )
 
                             yield data_stream
