@@ -11,9 +11,12 @@ from app.core.authentication.oauth2 import OAuth2PasswordAndRefreshRequestForm
 from app.core.authentication.token import JWTRS256Token
 from app.core.deps import get_current_account, get_db
 from app.core.logging.logger import get_app_logger
-from app.core.schemas.account import Account, AccountCreate, Token, TokenTypeEnum
+from app.core.schemas.account import Account, AccountCreate, AccountCreateOIDC
+from app.core.schemas.account import AccountCredentialsOIDC, Token, TokenTypeEnum
 from app.core.schemas.response import StandardResponse, StatusResponse
+from app.core.services.account import authenticate_user_account_oidc_service
 from app.core.services.account import authenticate_user_account_service
+from app.core.services.account import create_user_account_oidc_service
 from app.core.services.account import create_user_account_service
 from app.core.services.account import reauthenticate_user_account_service
 from app.core.specs.additional_responses import responses
@@ -46,12 +49,33 @@ def create_user_account(
     return response
 
 
+@router.post(
+    "/create/oidc",
+    status_code=201,
+    response_model=StatusResponse[Account],
+    responses={419: responses.get("o419"), 422: responses.get("o422")},
+)
+async def create_user_account_oidc(
+    credentials: AccountCreateOIDC, db: Annotated[Session, Depends(get_db)]
+) -> StatusResponse[Account]:
+    """Create a user account from an OpenID Connect client"""
+
+    account = await create_user_account_oidc_service(session=db, credentials=credentials)
+    response = StatusResponse[Account](
+        data=cast(Account, account),
+        message="User account created successfully",
+        success=True,
+    )
+
+    return response
+
+
 @router.post("/authenticate", response_model=Token, responses={422: responses.get("o422")})
 def authenticate_user_account(
     form_data: Annotated[OAuth2PasswordAndRefreshRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
 ) -> Token:
-    """OAuth2 authentication for clients.
+    """Basic OAuth2 authentication for clients.
 
     Provides an access and refresh token. The access token can be used to request
     resources requiring authorization, while the refresh token can be used to
@@ -85,8 +109,34 @@ def authenticate_user_account(
     )
 
     return Token(
-        access_token=access_token,
-        refresh_token=refresh_token,
+        id=account.id,
+        expires_in=access_token.expires_in,
+        expiry=access_token.expiry,
+        access_token=str(access_token),
+        refresh_token=str(refresh_token),
+        token_type=TokenTypeEnum.BEARER,
+    )
+
+
+@router.post("/authenticate/oidc", response_model=Token, responses={422: responses.get("o422")})
+async def authenticate_user_account_oidc(
+    credentials: AccountCredentialsOIDC,
+    db: Annotated[Session, Depends(get_db)],
+):
+    account = await authenticate_user_account_oidc_service(session=db, credentials=credentials)
+
+    access_token = JWTRS256Token.from_data(data=tok_payload(account.id))
+    refresh_token = JWTRS256Token.from_data(
+        data=tok_payload(account.id),
+        expires_delta=timedelta(days=7),
+    )
+
+    return Token(
+        id=account.id,
+        expires_in=access_token.expires_in,
+        expiry=access_token.expiry,
+        access_token=str(access_token),
+        refresh_token=str(refresh_token),
         token_type=TokenTypeEnum.BEARER,
     )
 
