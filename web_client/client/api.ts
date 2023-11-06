@@ -88,6 +88,18 @@ export interface Account {
    * @memberof Account
    */
   user: User;
+  /**
+   *
+   * @type {AccountMeta}
+   * @memberof Account
+   */
+  meta: AccountMeta;
+  /**
+   *
+   * @type {Array<ConnectedServices>}
+   * @memberof Account
+   */
+  connected_services: Array<ConnectedServices>;
 }
 /**
  * Attributes necessary for creating an Account object
@@ -169,6 +181,62 @@ export interface AccountCredentialsOIDC {
 /**
  *
  * @export
+ * @interface AccountMeta
+ */
+export interface AccountMeta {
+  /**
+   *
+   * @type {string}
+   * @memberof AccountMeta
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountMeta
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountMeta
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountMeta
+   */
+  deleted_at: string | null;
+  /**
+   *
+   * @type {AccountProviderEnum}
+   * @memberof AccountMeta
+   */
+  provider: AccountProviderEnum;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof AccountMeta
+   */
+  scopes: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountMeta
+   */
+  provider_account_id: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof AccountMeta
+   */
+  account_id: string;
+}
+
+/**
+ *
+ * @export
  * @enum {string}
  */
 
@@ -228,6 +296,116 @@ export interface BodyPublishMessageMessagesPost {
    */
   customizations: MessageCreateCustomizations;
 }
+/**
+ *
+ * @export
+ * @interface ConnectedServices
+ */
+export interface ConnectedServices {
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  created_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  updated_at: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  deleted_at: string | null;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  label: string;
+  /**
+   *
+   * @type {ConnectedServicesProviderEnum}
+   * @memberof ConnectedServices
+   */
+  provider: ConnectedServicesProviderEnum;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  provider_account_id: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  access_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  scopes: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServices
+   */
+  account_id: string;
+}
+
+/**
+ *
+ * @export
+ * @interface ConnectedServicesCreate
+ */
+export interface ConnectedServicesCreate {
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServicesCreate
+   */
+  code: string;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServicesCreate
+   */
+  redirect_uri: string;
+  /**
+   *
+   * @type {Array<string>}
+   * @memberof ConnectedServicesCreate
+   */
+  scopes: Array<string>;
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServicesCreate
+   */
+  state?: string | null;
+}
+/**
+ *
+ * @export
+ * @enum {string}
+ */
+
+export enum ConnectedServicesProviderEnum {
+  GOOGLE = 'google',
+  APPLE = 'apple',
+}
+
 /**
  * Conversation outbound attributes
  * @export
@@ -589,19 +767,6 @@ export interface ErrorResponseUnprocessableEntityException {
 }
 
 /**
- * This class serves as a convenient representation     of a JWT RS256 Token, and also a valid Pydantic model     for representing this type of JWT token.      The signing algorithm used is an RS256 algorithm with     asymmetric key-pairs for signing and verifying, or encoding     and decoding.      It\'s safe to pass this object as a FastAPI or Pydantic     response model. It will be correctly represented as the     token string it wraps around, since it implements a     Pydantic model serializer.      To encode or sign a token from a regular Python data, dict,     you do not need to create this class object directly—the use     of `JWTRS256Token.from_data` covers this case.      The class object itself is used to wrap or represent an     already signed token string and can be used for decoding     the wrapped token.
- * @export
- * @interface JWTRS256Token
- */
-export interface JWTRS256Token {
-  /**
-   *
-   * @type {string}
-   * @memberof JWTRS256Token
-   */
-  root: string;
-}
-/**
  * Attributes necessary for creating a ChatMessage object
  * @export
  * @interface MessageCreate
@@ -720,13 +885,13 @@ export interface ResponseToId {}
  */
 export interface Role {}
 /**
- * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
+ * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
  * @export
  * @interface Sort
  */
 export interface Sort {}
 /**
- * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
+ * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
  * @export
  * @interface Sort1
  */
@@ -803,6 +968,25 @@ export interface StandardResponseAccount {
 /**
  *
  * @export
+ * @interface StandardResponseConnectedServices
+ */
+export interface StandardResponseConnectedServices {
+  /**
+   *
+   * @type {ConnectedServices}
+   * @memberof StandardResponseConnectedServices
+   */
+  data: ConnectedServices;
+  /**
+   *
+   * @type {string}
+   * @memberof StandardResponseConnectedServices
+   */
+  typename: string;
+}
+/**
+ *
+ * @export
  * @interface StandardResponseConversation
  */
 export interface StandardResponseConversation {
@@ -835,6 +1019,25 @@ export interface StandardResponseConversationMessage {
    *
    * @type {string}
    * @memberof StandardResponseConversationMessage
+   */
+  typename: string;
+}
+/**
+ *
+ * @export
+ * @interface StandardResponseListConnectedServices
+ */
+export interface StandardResponseListConnectedServices {
+  /**
+   *
+   * @type {Array<ConnectedServices>}
+   * @memberof StandardResponseListConnectedServices
+   */
+  data: Array<ConnectedServices>;
+  /**
+   *
+   * @type {string}
+   * @memberof StandardResponseListConnectedServices
    */
   typename: string;
 }
@@ -891,6 +1094,37 @@ export interface StatusResponseAccount {
 /**
  *
  * @export
+ * @interface StatusResponseConnectedServices
+ */
+export interface StatusResponseConnectedServices {
+  /**
+   *
+   * @type {string}
+   * @memberof StatusResponseConnectedServices
+   */
+  message: string;
+  /**
+   *
+   * @type {boolean}
+   * @memberof StatusResponseConnectedServices
+   */
+  success: boolean;
+  /**
+   *
+   * @type {ConnectedServices}
+   * @memberof StatusResponseConnectedServices
+   */
+  data: ConnectedServices;
+  /**
+   *
+   * @type {string}
+   * @memberof StatusResponseConnectedServices
+   */
+  typename: string;
+}
+/**
+ *
+ * @export
  * @interface Subject
  */
 export interface Subject {}
@@ -902,26 +1136,69 @@ export interface Subject {}
 export interface Token {
   /**
    *
+   * @type {number}
+   * @memberof Token
+   */
+  expires_in: number;
+  /**
+   *
+   * @type {number}
+   * @memberof Token
+   */
+  expiry: number;
+  /**
+   *
+   * @type {string}
+   * @memberof Token
+   */
+  access_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof Token
+   */
+  token_type: string;
+  /**
+   *
    * @type {string}
    * @memberof Token
    */
   id: string;
   /**
    *
-   * @type {JWTRS256Token}
+   * @type {string}
    * @memberof Token
    */
-  access_token: JWTRS256Token;
+  refresh_token: string;
+}
+/**
+ *
+ * @export
+ * @interface TokenBase
+ */
+export interface TokenBase {
   /**
    *
-   * @type {JWTRS256Token}
-   * @memberof Token
+   * @type {number}
+   * @memberof TokenBase
    */
-  refresh_token: JWTRS256Token;
+  expires_in: number;
+  /**
+   *
+   * @type {number}
+   * @memberof TokenBase
+   */
+  expiry: number;
   /**
    *
    * @type {string}
-   * @memberof Token
+   * @memberof TokenBase
+   */
+  access_token: string;
+  /**
+   *
+   * @type {string}
+   * @memberof TokenBase
    */
   token_type: string;
 }
@@ -1643,6 +1920,689 @@ export class AccountApi extends BaseAPI {
 }
 
 /**
+ * ConnectedServicesApi - axios parameter creator
+ * @export
+ */
+export const ConnectedServicesApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Connect with GoogleAPIs and services using an OAuth 2 flow.  :param code: The authorization code from Google :param redirect_uri: The original authorization redirect_uri :param scopes: The original authorization scopes requested :param state: The authorization state to prevent CSRF
+     * @summary Connect Google Oauth
+     * @param {ConnectedServicesCreate} connectedServicesCreate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    connectGoogleOauthConnectedServicesOauthGooglePost: async (
+      connectedServicesCreate: ConnectedServicesCreate,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'connectedServicesCreate' is not null or undefined
+      assertParamExists(
+        'connectGoogleOauthConnectedServicesOauthGooglePost',
+        'connectedServicesCreate',
+        connectedServicesCreate,
+      );
+      const localVarPath = `/connected_services/oauth/google`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      localVarHeaderParameter['Content-Type'] = 'application/json';
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        connectedServicesCreate,
+        localVarRequestOptions,
+        configuration,
+      );
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get Connected Services By Id
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesByIdConnectedServicesIdGet: async (
+      id: string,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'id' is not null or undefined
+      assertParamExists('getConnectedServicesByIdConnectedServicesIdGet', 'id', id);
+      const localVarPath = `/connected_services/{id}`.replace(`{${'id'}}`, encodeURIComponent(String(id)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get Connected Services By Provider
+     * @param {ConnectedServicesProviderEnum} provider
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesByProviderConnectedServicesByProviderGet: async (
+      provider: ConnectedServicesProviderEnum,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'provider' is not null or undefined
+      assertParamExists('getConnectedServicesByProviderConnectedServicesByProviderGet', 'provider', provider);
+      const localVarPath = `/connected_services/by_provider`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      if (provider !== undefined) {
+        localVarQueryParameter['provider'] = provider;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get Connected Services By Provider Label
+     * @param {ConnectedServicesProviderEnum} provider
+     * @param {string} label
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet: async (
+      provider: ConnectedServicesProviderEnum,
+      label: string,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'provider' is not null or undefined
+      assertParamExists('getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet', 'provider', provider);
+      // verify required parameter 'label' is not null or undefined
+      assertParamExists('getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet', 'label', label);
+      const localVarPath = `/connected_services/by_provider_label`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      if (provider !== undefined) {
+        localVarQueryParameter['provider'] = provider;
+      }
+
+      if (label !== undefined) {
+        localVarQueryParameter['label'] = label;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get Connected Services
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesConnectedServicesGet: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+      const localVarPath = `/connected_services/`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @summary Get Provider Token For Label
+     * @param {ConnectedServicesProviderEnum} provider
+     * @param {string} label
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet: async (
+      provider: ConnectedServicesProviderEnum,
+      label: string,
+      options: AxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'provider' is not null or undefined
+      assertParamExists('getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet', 'provider', provider);
+      // verify required parameter 'label' is not null or undefined
+      assertParamExists('getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet', 'label', label);
+      const localVarPath = `/connected_services/oauth/{provider}/{label}/token`
+        .replace(`{${'provider'}}`, encodeURIComponent(String(provider)))
+        .replace(`{${'label'}}`, encodeURIComponent(String(label)));
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication OAuth2PasswordBearer required
+      // oauth required
+      await setOAuthToObject(localVarHeaderParameter, 'OAuth2PasswordBearer', [], configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = { ...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * ConnectedServicesApi - functional programming interface
+ * @export
+ */
+export const ConnectedServicesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = ConnectedServicesApiAxiosParamCreator(configuration);
+  return {
+    /**
+     * Connect with GoogleAPIs and services using an OAuth 2 flow.  :param code: The authorization code from Google :param redirect_uri: The original authorization redirect_uri :param scopes: The original authorization scopes requested :param state: The authorization state to prevent CSRF
+     * @summary Connect Google Oauth
+     * @param {ConnectedServicesCreate} connectedServicesCreate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async connectGoogleOauthConnectedServicesOauthGooglePost(
+      connectedServicesCreate: ConnectedServicesCreate,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StatusResponseConnectedServices>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.connectGoogleOauthConnectedServicesOauthGooglePost(
+        connectedServicesCreate,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Get Connected Services By Id
+     * @param {string} id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getConnectedServicesByIdConnectedServicesIdGet(
+      id: string,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseConnectedServices>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectedServicesByIdConnectedServicesIdGet(
+        id,
+        options,
+      );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Get Connected Services By Provider
+     * @param {ConnectedServicesProviderEnum} provider
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getConnectedServicesByProviderConnectedServicesByProviderGet(
+      provider: ConnectedServicesProviderEnum,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseListConnectedServices>> {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getConnectedServicesByProviderConnectedServicesByProviderGet(provider, options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Get Connected Services By Provider Label
+     * @param {ConnectedServicesProviderEnum} provider
+     * @param {string} label
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet(
+      provider: ConnectedServicesProviderEnum,
+      label: string,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseConnectedServices>> {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet(
+          provider,
+          label,
+          options,
+        );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Get Connected Services
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getConnectedServicesConnectedServicesGet(
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<StandardResponseListConnectedServices>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getConnectedServicesConnectedServicesGet(options);
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+    /**
+     *
+     * @summary Get Provider Token For Label
+     * @param {ConnectedServicesProviderEnum} provider
+     * @param {string} label
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet(
+      provider: ConnectedServicesProviderEnum,
+      label: string,
+      options?: AxiosRequestConfig,
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TokenBase>> {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet(
+          provider,
+          label,
+          options,
+        );
+      return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+    },
+  };
+};
+
+/**
+ * ConnectedServicesApi - factory interface
+ * @export
+ */
+export const ConnectedServicesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = ConnectedServicesApiFp(configuration);
+  return {
+    /**
+     * Connect with GoogleAPIs and services using an OAuth 2 flow.  :param code: The authorization code from Google :param redirect_uri: The original authorization redirect_uri :param scopes: The original authorization scopes requested :param state: The authorization state to prevent CSRF
+     * @summary Connect Google Oauth
+     * @param {ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePostRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    connectGoogleOauthConnectedServicesOauthGooglePost(
+      requestParameters: ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePostRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StatusResponseConnectedServices> {
+      return localVarFp
+        .connectGoogleOauthConnectedServicesOauthGooglePost(requestParameters.connectedServicesCreate, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get Connected Services By Id
+     * @param {ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesByIdConnectedServicesIdGet(
+      requestParameters: ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseConnectedServices> {
+      return localVarFp
+        .getConnectedServicesByIdConnectedServicesIdGet(requestParameters.id, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get Connected Services By Provider
+     * @param {ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesByProviderConnectedServicesByProviderGet(
+      requestParameters: ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseListConnectedServices> {
+      return localVarFp
+        .getConnectedServicesByProviderConnectedServicesByProviderGet(requestParameters.provider, options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get Connected Services By Provider Label
+     * @param {ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet(
+      requestParameters: ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseConnectedServices> {
+      return localVarFp
+        .getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet(
+          requestParameters.provider,
+          requestParameters.label,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get Connected Services
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getConnectedServicesConnectedServicesGet(
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<StandardResponseListConnectedServices> {
+      return localVarFp.getConnectedServicesConnectedServicesGet(options).then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @summary Get Provider Token For Label
+     * @param {ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGetRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet(
+      requestParameters: ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGetRequest,
+      options?: AxiosRequestConfig,
+    ): AxiosPromise<TokenBase> {
+      return localVarFp
+        .getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet(
+          requestParameters.provider,
+          requestParameters.label,
+          options,
+        )
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * Request parameters for connectGoogleOauthConnectedServicesOauthGooglePost operation in ConnectedServicesApi.
+ * @export
+ * @interface ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePostRequest
+ */
+export interface ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePostRequest {
+  /**
+   *
+   * @type {ConnectedServicesCreate}
+   * @memberof ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePost
+   */
+  readonly connectedServicesCreate: ConnectedServicesCreate;
+}
+
+/**
+ * Request parameters for getConnectedServicesByIdConnectedServicesIdGet operation in ConnectedServicesApi.
+ * @export
+ * @interface ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGetRequest
+ */
+export interface ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGetRequest {
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGet
+   */
+  readonly id: string;
+}
+
+/**
+ * Request parameters for getConnectedServicesByProviderConnectedServicesByProviderGet operation in ConnectedServicesApi.
+ * @export
+ * @interface ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGetRequest
+ */
+export interface ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGetRequest {
+  /**
+   *
+   * @type {ConnectedServicesProviderEnum}
+   * @memberof ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGet
+   */
+  readonly provider: ConnectedServicesProviderEnum;
+}
+
+/**
+ * Request parameters for getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet operation in ConnectedServicesApi.
+ * @export
+ * @interface ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGetRequest
+ */
+export interface ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGetRequest {
+  /**
+   *
+   * @type {ConnectedServicesProviderEnum}
+   * @memberof ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet
+   */
+  readonly provider: ConnectedServicesProviderEnum;
+
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet
+   */
+  readonly label: string;
+}
+
+/**
+ * Request parameters for getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet operation in ConnectedServicesApi.
+ * @export
+ * @interface ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGetRequest
+ */
+export interface ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGetRequest {
+  /**
+   *
+   * @type {ConnectedServicesProviderEnum}
+   * @memberof ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet
+   */
+  readonly provider: ConnectedServicesProviderEnum;
+
+  /**
+   *
+   * @type {string}
+   * @memberof ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet
+   */
+  readonly label: string;
+}
+
+/**
+ * ConnectedServicesApi - object-oriented interface
+ * @export
+ * @class ConnectedServicesApi
+ * @extends {BaseAPI}
+ */
+export class ConnectedServicesApi extends BaseAPI {
+  /**
+   * Connect with GoogleAPIs and services using an OAuth 2 flow.  :param code: The authorization code from Google :param redirect_uri: The original authorization redirect_uri :param scopes: The original authorization scopes requested :param state: The authorization state to prevent CSRF
+   * @summary Connect Google Oauth
+   * @param {ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePostRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConnectedServicesApi
+   */
+  public connectGoogleOauthConnectedServicesOauthGooglePost(
+    requestParameters: ConnectedServicesApiConnectGoogleOauthConnectedServicesOauthGooglePostRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConnectedServicesApiFp(this.configuration)
+      .connectGoogleOauthConnectedServicesOauthGooglePost(requestParameters.connectedServicesCreate, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get Connected Services By Id
+   * @param {ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConnectedServicesApi
+   */
+  public getConnectedServicesByIdConnectedServicesIdGet(
+    requestParameters: ConnectedServicesApiGetConnectedServicesByIdConnectedServicesIdGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConnectedServicesApiFp(this.configuration)
+      .getConnectedServicesByIdConnectedServicesIdGet(requestParameters.id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get Connected Services By Provider
+   * @param {ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConnectedServicesApi
+   */
+  public getConnectedServicesByProviderConnectedServicesByProviderGet(
+    requestParameters: ConnectedServicesApiGetConnectedServicesByProviderConnectedServicesByProviderGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConnectedServicesApiFp(this.configuration)
+      .getConnectedServicesByProviderConnectedServicesByProviderGet(requestParameters.provider, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get Connected Services By Provider Label
+   * @param {ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConnectedServicesApi
+   */
+  public getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet(
+    requestParameters: ConnectedServicesApiGetConnectedServicesByProviderLabelConnectedServicesByProviderLabelGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConnectedServicesApiFp(this.configuration)
+      .getConnectedServicesByProviderLabelConnectedServicesByProviderLabelGet(
+        requestParameters.provider,
+        requestParameters.label,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get Connected Services
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConnectedServicesApi
+   */
+  public getConnectedServicesConnectedServicesGet(options?: AxiosRequestConfig) {
+    return ConnectedServicesApiFp(this.configuration)
+      .getConnectedServicesConnectedServicesGet(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @summary Get Provider Token For Label
+   * @param {ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGetRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   * @memberof ConnectedServicesApi
+   */
+  public getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet(
+    requestParameters: ConnectedServicesApiGetProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGetRequest,
+    options?: AxiosRequestConfig,
+  ) {
+    return ConnectedServicesApiFp(this.configuration)
+      .getProviderTokenForLabelConnectedServicesOauthProviderLabelTokenGet(
+        requestParameters.provider,
+        requestParameters.label,
+        options,
+      )
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
  * ConversationApi - axios parameter creator
  * @export
  */
@@ -1689,7 +2649,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
     /**
      * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
-     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
+     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
      * @param {Subject | null} [subject]
      * @param {PageCursor | null} [pageCursor]
      * @param {number} [pageSize]
@@ -1698,7 +2658,7 @@ export const ConversationApiAxiosParamCreator = function (configuration?: Config
      * @throws {RequiredError}
      */
     readConversationsConversationsGet: async (
-      sort?: Sort1 | null,
+      sort?: Sort | null,
       subject?: Subject | null,
       pageCursor?: PageCursor | null,
       pageSize?: number,
@@ -1822,7 +2782,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
     /**
      * Read a page of conversations at any one time, with each page not containing more than 100 objects or edges
      * @summary Read Conversations
-     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
+     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
      * @param {Subject | null} [subject]
      * @param {PageCursor | null} [pageCursor]
      * @param {number} [pageSize]
@@ -1831,7 +2791,7 @@ export const ConversationApiFp = function (configuration?: Configuration) {
      * @throws {RequiredError}
      */
     async readConversationsConversationsGet(
-      sort?: Sort1 | null,
+      sort?: Sort | null,
       subject?: Subject | null,
       pageCursor?: PageCursor | null,
       pageSize?: number,
@@ -1959,10 +2919,10 @@ export interface ConversationApiReadConversationByIdConversationsIdGetRequest {
 export interface ConversationApiReadConversationsConversationsGetRequest {
   /**
    * id, created_at, updated_at, deleted_at, subject, started_by, started_by_id, last_active_at (e.g, id:asc)
-   * @type {Sort1}
+   * @type {Sort}
    * @memberof ConversationApiReadConversationsConversationsGet
    */
-  readonly sort?: Sort1 | null;
+  readonly sort?: Sort | null;
 
   /**
    *
@@ -2170,7 +3130,7 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
      *
      * @summary Read Chat Messages By Conversation Id
      * @param {string} conversationId
-     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
+     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
      * @param {Body | null} [body]
      * @param {Role | null} [role]
      * @param {ResponseFromId | null} [responseFromId]
@@ -2183,7 +3143,7 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
      */
     readChatMessagesByConversationIdMessagesGet: async (
       conversationId: string,
-      sort?: Sort | null,
+      sort?: Sort1 | null,
       body?: Body | null,
       role?: Role | null,
       responseFromId?: ResponseFromId | null,
@@ -2301,7 +3261,7 @@ export const MessageApiFp = function (configuration?: Configuration) {
      *
      * @summary Read Chat Messages By Conversation Id
      * @param {string} conversationId
-     * @param {Sort | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
+     * @param {Sort1 | null} [sort] id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
      * @param {Body | null} [body]
      * @param {Role | null} [role]
      * @param {ResponseFromId | null} [responseFromId]
@@ -2314,7 +3274,7 @@ export const MessageApiFp = function (configuration?: Configuration) {
      */
     async readChatMessagesByConversationIdMessagesGet(
       conversationId: string,
-      sort?: Sort | null,
+      sort?: Sort1 | null,
       body?: Body | null,
       role?: Role | null,
       responseFromId?: ResponseFromId | null,
@@ -2452,10 +3412,10 @@ export interface MessageApiReadChatMessagesByConversationIdMessagesGetRequest {
 
   /**
    * id, created_at, updated_at, deleted_at, body, conversation_id, conversation, role, response_from_id, response_to_id, quoted_messages, context_length (e.g, id:asc)
-   * @type {Sort}
+   * @type {Sort1}
    * @memberof MessageApiReadChatMessagesByConversationIdMessagesGet
    */
-  readonly sort?: Sort | null;
+  readonly sort?: Sort1 | null;
 
   /**
    *
