@@ -23,6 +23,12 @@
   "python.analysis.useLibraryCodeForTypes": true,
   "python.analysis.extraPaths": ["${workspaceFolder}/web_services/"],
   "python.analysis.ignore": ["**/site-packages/**/*.py", ".vscode/*.py"],
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportUnknownMemberType": "information",
+    "reportMissingTypeStubs": "information",
+    "reportUnknownVariableType": "information",
+    "reportUnknownArgumentType": "information"
+  },
   "black-formatter.args": ["--line-length=100"],
   "importSorter.generalConfiguration.sortOnBeforeSave": false,
   "importSorter.generalConfiguration.exclude": ["\\@/chakra-ui/.*"],
