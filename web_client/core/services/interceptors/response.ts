@@ -1,11 +1,13 @@
 import { AxiosError, AxiosInstance, AxiosResponse } from 'axios';
 
 import { ErrorCode } from '@/client';
-import { ACCESS_TOKEN_KEY, getToken, REFRESH_TOKEN_KEY, removeToken, storeToken } from '@/core/utils';
+import { getAuthorization } from '@/core/utils';
+import { Routes } from '@/core/utils/routes';
 
-import { reauthenticateAccountService } from '../account/authenticate.service';
-import { isErrorResponse } from '../base';
+import { appEventAdapter } from '../events';
+import { getRefreshToken } from '../next-auth/registry';
 import { ErrorPayload } from '../types';
+import { isErrorResponse } from '../utils';
 
 type RemoteResponse = AxiosResponse<any>;
 type ResponseInterceptor = <R extends RemoteResponse = RemoteResponse>(r: R) => R | Promise<R>;
@@ -27,8 +29,9 @@ export const createResponseInterceptor = () => {
 
 export const createResponseErrorInterceptor = (api: AxiosInstance) => {
   const errorInterceptor: ResponseErrorInterceptor = async (err) => {
+    const { reauthenticateAccountService } = await import('../account/authenticate.service');
     const error = err.response?.data;
-    const requestData = err.config?.data;
+    const requestData: Record<string, any> | undefined = err.config?.data;
     const isReauthenticationError =
       /\/accounts\/authenticate\/?/.test(err.config?.url || '') &&
       requestData !== undefined &&
@@ -37,10 +40,11 @@ export const createResponseErrorInterceptor = (api: AxiosInstance) => {
     const rejection = () => Promise.reject(error || err);
 
     const logout = <R = never>(result: () => Promise<R> = rejection) => {
-      removeToken(ACCESS_TOKEN_KEY);
-      removeToken(REFRESH_TOKEN_KEY);
+      const allowedRoutes = new Set<string>([Routes.SIGNIN, Routes.SIGNUP]);
+      appEventAdapter.trigger('signout');
 
-      if (typeof window !== 'undefined') {
+      // Reload: <PrivateRoute /> should redirect to login page after reload if the page is one that requires a session
+      if (typeof window !== 'undefined' && !allowedRoutes.has(window.location.pathname)) {
         window.location.reload();
       }
 
@@ -52,10 +56,9 @@ export const createResponseErrorInterceptor = (api: AxiosInstance) => {
     }
 
     if (error && error.code === ErrorCode.UNAUTHORIZED) {
-      const access_token = getToken(ACCESS_TOKEN_KEY);
-      const refresh_token = getToken(REFRESH_TOKEN_KEY);
+      const refresh_token = getRefreshToken();
 
-      if (!access_token || !refresh_token) {
+      if (!refresh_token) {
         return logout();
       }
 
@@ -67,22 +70,12 @@ export const createResponseErrorInterceptor = (api: AxiosInstance) => {
         return logout();
       }
 
-      const newAccessToken: string = response.data.access_token + '';
-      const newRefreshToken: string = response.data.refresh_token + '';
-      const newTokensType: string = response.data.token_type;
-
-      if (!newAccessToken || !newRefreshToken) {
-        return rejection();
-      }
-
-      storeToken(newAccessToken, ACCESS_TOKEN_KEY);
-      storeToken(newRefreshToken, REFRESH_TOKEN_KEY);
-
-      const authorization = `${newTokensType} ${newAccessToken}`;
+      // trigger a session update for listeners one of which is the nextAuthSession.update listener in SessionLoader
+      appEventAdapter.trigger('tokenrefresh', response.data);
 
       const newConfig = {
         ...err.config,
-        headers: { ...err.config!.headers, authorization: authorization },
+        headers: { ...err.config!.headers, authorization: getAuthorization(response.data) },
       };
 
       const retry = await api(newConfig);
