@@ -7,11 +7,13 @@ import { ChakraProvider, cookieStorageManagerSSR } from '@/chakra-ui/react';
 
 import { Session as NextAuthSession } from 'next-auth';
 import { SessionProvider as NextAuthSessionProvider } from 'next-auth/react';
+import { Provider } from 'react-redux';
 import { ToastContainer } from 'react-toastify';
 
 import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
+import { store } from '@/core/redux';
 import { MissingAccessTokenException } from '@/core/services/config';
 import { tokenRegistry } from '@/core/services/next-auth/registry';
 import { isErrorResponse } from '@/core/services/utils';
@@ -89,11 +91,13 @@ export function AppProvider({ children, colormode, session }: AppProviderProps) 
         <CacheProvider>
           <ChakraProvider theme={theme} colorModeManager={colorModeManager}>
             <NextAuthSessionProvider session={session}>
-              <ConfigProvider>
-                <ConfigLoader>
-                  <SessionLoader>{children}</SessionLoader>
-                </ConfigLoader>
-              </ConfigProvider>
+              <Provider store={store}>
+                <ConfigProvider>
+                  <ConfigLoader>
+                    <SessionLoader>{children}</SessionLoader>
+                  </ConfigLoader>
+                </ConfigProvider>
+              </Provider>
             </NextAuthSessionProvider>
 
             <ToastContainer
