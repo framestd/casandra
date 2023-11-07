@@ -1,12 +1,15 @@
 import { useContext, useMemo } from 'react';
 
-import { Box, HStack, InputProps, Switch, VStack } from '@/chakra-ui/react';
+import { HStack, Icon, InputProps, Switch, VStack } from '@/chakra-ui/react';
 
+import { BsLayoutTextSidebar } from 'react-icons/bs';
+
+import { AppIconButton } from '@/core/components/Button';
 import { NumberInput } from '@/core/components/Input';
 import { Typography } from '@/core/components/Typography';
 import { backdropFactory } from '@/core/theme';
 
-import { ConversationContext, setContextSize, toggleIncognito } from '../Conversation';
+import { actions, ConversationContext } from '../Conversation';
 import { useThemeConstants } from '../hooks';
 
 export interface ConversationCustomizerProps {}
@@ -39,11 +42,25 @@ export const ConversationCustomizer = () => {
       alignItems="flex-start"
       {...backdropFactory({ bgColor: blended_bg })}
     >
-      <Box px={4} py={2} width="full" borderBottomWidth={1} borderColor={light_mode_visible_br_c}>
+      <HStack
+        px={4}
+        py={2}
+        width="full"
+        borderBottomWidth={1}
+        justifyContent="space-between"
+        borderColor={light_mode_visible_br_c}
+      >
         <Typography fontSize="sm" fontWeight={600}>
           Customize
         </Typography>
-      </Box>
+
+        <AppIconButton
+          aria-label="Toggle sidebar"
+          size="sm"
+          color={blended_c}
+          icon={<Icon as={BsLayoutTextSidebar} />}
+        />
+      </HStack>
 
       <VStack px={2} alignItems="flex-start" width="full">
         <HStack py={1.5} px={2} width="full" bgColor={blended_bg} borderRadius="xl">
@@ -54,7 +71,7 @@ export const ConversationCustomizer = () => {
           <Switch
             colorScheme="brand"
             isChecked={incognito}
-            onChange={(e) => updateCustomizations(toggleIncognito(e.target.checked))}
+            onChange={(e) => updateCustomizations(actions.toggleIncognito(e.target.checked))}
             sx={{ '& > span[data-checked]': { '--switch-bg': 'var(--chakra-colors-brand-500) !important' } }}
           />
         </HStack>
@@ -70,7 +87,7 @@ export const ConversationCustomizer = () => {
             value={context_size ?? 2}
             InputProps={inputProps}
             RootProps={{ justifySelf: 'flex-end' }}
-            onChange={(_, vn) => updateCustomizations(setContextSize(vn))}
+            onChange={(_, vn) => updateCustomizations(actions.setContextSize(vn))}
           />
         </HStack>
       </VStack>

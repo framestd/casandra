@@ -13,7 +13,7 @@ import { ConversationMesssage } from '@/core/components/ConversationMessage';
 import { createMarkdownWorkerMessageHandler } from '@/core/components/Markdown';
 import { APP_NAME, MAX_ALLOWED_QUOTED_MESSAGES } from '@/core/utils';
 
-import { addQuotedMessage, ConversationContext, removeQuotedMessage } from './ConversationContext';
+import { actions, ConversationContext } from './ConversationContext';
 
 export interface ConversationMessagesProps {
   messages: ConversationMessage[];
@@ -38,12 +38,12 @@ export const ConversationMessageList = ({
       };
 
       if (quoted_messages.has(message_id)) {
-        return updateCustomizations(removeQuotedMessage(message_id));
+        return updateCustomizations(actions.removeQuotedMessage(message_id));
       } else if (quoted_messages.size === MAX_ALLOWED_QUOTED_MESSAGES) {
         return void toast.info(limitMessage, toastOpts);
       }
 
-      updateCustomizations(addQuotedMessage(message_id));
+      updateCustomizations(actions.addQuotedMessage(message_id));
     },
     [quoted_messages, updateCustomizations],
   );
