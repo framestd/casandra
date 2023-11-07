@@ -1,12 +1,9 @@
 import { AxiosRequestConfig } from 'axios';
 
-import { api } from '../base';
 import { rootClient } from './client';
 
 export async function getApplicationInfo(axiosOptions?: AxiosRequestConfig) {
-  const getRoot = await rootClient.rootGet(axiosOptions);
-
-  const response = await getRoot(api);
+  const response = await rootClient.rootGet(axiosOptions);
 
   return response;
 }
