@@ -8,10 +8,10 @@ import { useParams } from 'next/navigation';
 import { ErrorBoundary } from 'react-error-boundary';
 
 import { AppBar } from '@/core/components/AppBar';
-import { GoogleAPIsLoader } from '@/core/components/GoogleAPIs';
 import { SplashScreen } from '@/core/components/Loader';
 import { ProfileMenu } from '@/core/components/ProfileMenu';
 import { ConfigContext } from '@/core/components/Providers';
+import { GoogleAPIsLoader } from '@/core/composition/GoogleAPIs';
 import { backdropFactory } from '@/core/theme';
 
 import { ConversationContextProvider } from '../Conversation';
