@@ -200,7 +200,7 @@ export const theme = extendTheme(
   {
     config,
     breakpoints: { xs: '20em' },
-    styles: { global: (props: any) => ({ body: { bg: mode('offwhite', 'offblack')(props) } }) },
+    styles: { global: (props: any) => ({ body: { bg: mode('offwhite', 'black')(props) } }) },
     fonts: { body: 'Graphik' },
     colors: { offwhite, offwhiteAlpha, offblack, offblackAlpha, brand },
     shadows: { outline: '0 0 0 3px var(--chakra-colors-brand-500)' },
