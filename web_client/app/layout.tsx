@@ -6,15 +6,15 @@ import { Plus_Jakarta_Sans } from 'next/font/google';
 import { cookies } from 'next/headers';
 
 import { AppProvider } from '@/core/components/Providers';
-import { getApplicationInfo_Cached } from '@/core/services/build-props';
+import { getServerApplicationInfo } from '@/core/services/server';
 import { getAppServerSession } from '@/core/services/next-auth';
 import { tokenRegistry } from '@/core/services/next-auth/registry';
 import { COLORMODE_STORAGE_KEY, CONFIG_SCRIPT_NAME } from '@/core/utils';
 
-const pjs = Plus_Jakarta_Sans({ weight: '400', subsets: ['latin'] });
+const pjs = Plus_Jakarta_Sans({ weight: ['400', '500', '600', '700', '800'], subsets: ['latin'] });
 
 export const generateMetadata = async (): Promise<Metadata> => {
-  const res = await getApplicationInfo_Cached();
+  const res = await getServerApplicationInfo();
   const data = res.data;
 
   return {
@@ -28,7 +28,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const cookieStore = cookies();
   const colormode = cookieStore.get(COLORMODE_STORAGE_KEY);
   const session = await getAppServerSession();
-  const res = await getApplicationInfo_Cached();
+  const res = await getServerApplicationInfo();
 
   const data = res.data;
 
