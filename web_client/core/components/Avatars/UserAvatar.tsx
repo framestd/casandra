@@ -1,12 +1,10 @@
-import { forwardRef } from 'react';
-
-import { Avatar, AvatarProps } from '@/chakra-ui/react';
+import { Avatar, AvatarProps, forwardRef } from '@/chakra-ui/react';
 
 import { useAppSession } from '@/core/composition/hooks';
 
 export interface UserAvatarProps extends AvatarProps {}
 
-export const UserAvatar = forwardRef<'span', UserAvatarProps>(({ name, src, ...rest }, ref) => {
+export const UserAvatar = forwardRef<UserAvatarProps, 'span'>(({ name, src, ...rest }, ref) => {
   const session = useAppSession();
   const fullname = name ?? session.data?.user.name ?? '';
   const image = src ?? session.data?.user.image ?? '';
