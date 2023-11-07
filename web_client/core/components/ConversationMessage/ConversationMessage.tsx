@@ -36,6 +36,7 @@ export const ConversationMesssage = ({
   ...rest
 }: ConversationMessageProps) => {
   const highlght = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
+  const linkColor = useColorModeValue('brand.500', 'brand.300');
   const isAssistant = role === ConversationMessageRoleEnum.ROBOT;
 
   return (
@@ -45,7 +46,7 @@ export const ConversationMesssage = ({
       spacing={6}
       width="full"
       id={messageToId(message_id)}
-      alignItems="baseline"
+      alignItems="flex-start"
       borderBottomWidth={1}
       bgColor={isAssistant ? highlght : undefined}
       {...rest}
@@ -75,7 +76,9 @@ export const ConversationMesssage = ({
         flex="1 1 auto"
         noOfLines={noOfLines}
         sx={{
-          '& pre:not(:last-child)': { mb: 8 },
+          '& pre:not(:last-child), & ul, & ol': { mb: 8 },
+          '& ul ul, & ul ol, & ol ol, & ol ul': { ms: 4 },
+          '& a': { color: linkColor, textDecoration: 'underline' },
           '& p:not(:last-child)': {
             whiteSpace: 'pre-wrap',
             width: 'full',
