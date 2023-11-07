@@ -1,6 +1,6 @@
 import { cache } from 'react';
 
-import { getApplicationInfo } from '../_app';
+import { getApplicationInfo } from '../root';
 import { readConversationByIdService } from '../conversation';
 import { getAppServerSession } from '../next-auth';
 import { getAuthorization } from '@/core/utils';
