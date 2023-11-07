@@ -1,10 +1,11 @@
 export const APP_NAME = process.env.APP_NAME!;
 
-export const SERVER_BASE_PATH = '';
+export const SERVER_BASE_PATH = '/api/v1';
 export const SERVER_BASE_URL = process.env.SERVER_BASE_URL!;
 export const SERVER_INTERNAL_ADDRESS = process.env.SERVER_INTERNAL_ADDRESS!;
 export const GOOGLE_ID = process.env.GOOGLE_ID!;
 export const GOOGLE_SECRET = process.env.GOOGLE_SECRET!;
+export const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY!;
 
 export const CONFIG_SCRIPT_NAME = 'config';
 export const DEFAULT_PAGE_SIZE = 100;

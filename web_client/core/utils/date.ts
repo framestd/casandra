@@ -2,15 +2,7 @@ import dayjs from 'dayjs';
 
 type UnitType = dayjs.UnitTypeLong | 'week';
 
-const UnitSet: ReadonlyArray<UnitType> = [
-  'year',
-  'month',
-  'week',
-  'day',
-  'hour',
-  'minute',
-  'second'
-];
+const UnitSet: ReadonlyArray<UnitType> = ['year', 'month', 'week', 'day', 'hour', 'minute', 'second'];
 
 export const timeAgo = (date: dayjs.ConfigType) => {
   const now = dayjs();
