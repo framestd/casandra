@@ -2,7 +2,7 @@
 
 import { ChangeEvent, KeyboardEvent, MouseEvent, useState } from 'react';
 
-import { Box, Flex, FlexProps, Icon, IconButton, SystemStyleObject, Textarea } from '@/chakra-ui/react';
+import { Box, Flex, FlexProps, forwardRef, Icon, IconButton, SystemStyleObject, Textarea } from '@/chakra-ui/react';
 
 import { IoSend } from 'react-icons/io5';
 
@@ -12,7 +12,7 @@ export interface ChatTextBoxProps extends Omit<FlexProps, 'onChange'> {
   isSending?: boolean;
 }
 
-export const ChatTextBox = ({ value, isSending = false, onSend, ...props }: ChatTextBoxProps) => {
+export const ChatTextBox = forwardRef(({ value, isSending = false, onSend, ...props }: ChatTextBoxProps, ref) => {
   const [textValue, setTextValue] = useState(() => value || '');
   const sty: SystemStyleObject = {
     py: 0,
@@ -60,6 +60,7 @@ export const ChatTextBox = ({ value, isSending = false, onSend, ...props }: Chat
       borderWidth={1}
       borderStyle="solid"
       borderColor="gray.500"
+      ref={ref}
       {...props}
     >
       <Box
@@ -111,4 +112,4 @@ export const ChatTextBox = ({ value, isSending = false, onSend, ...props }: Chat
       </Box>
     </Flex>
   );
-};
+});

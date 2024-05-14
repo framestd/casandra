@@ -31,7 +31,7 @@ class ServiceObject(Generic[ObjectT]):
 class PagedServiceObject(Generic[ObjectT]):
     """A data class for representing ServiceObjects with paged objects"""
 
-    obj: list[ObjectT] = field(kw_only=False)
+    edges: list[ObjectT] = field(kw_only=False)
     cursors: tuple[str | None, str | None]
     page_size: int
     total_pages: int

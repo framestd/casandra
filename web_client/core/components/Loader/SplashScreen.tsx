@@ -7,7 +7,8 @@ import { InfinitySpin } from 'react-loader-spinner';
 import { getThemeColor } from '@/core/utils';
 
 import { AppName } from '../AppBar/AppName';
-import { styles } from './SplashScreenStyles';
+
+import styles from './style.module.scss';
 
 export interface SplashScreenProps {
   title: string;
@@ -15,8 +16,8 @@ export interface SplashScreenProps {
 
 export const SplashScreen = (props: SplashScreenProps) => {
   return (
-    <Box css={styles.main}>
-      <Box css={styles.center}>
+    <Box className={styles.main}>
+      <Box className={styles.center}>
         <AppName textStyle="h2" name={props.title} />
       </Box>
 
@@ -24,7 +25,7 @@ export const SplashScreen = (props: SplashScreenProps) => {
         <InfinitySpin width="200" color={getThemeColor('brand.500')} />
       </VStack>
 
-      <Box css={styles.grid}></Box>
+      <Box className={styles.grid}></Box>
     </Box>
   );
 };

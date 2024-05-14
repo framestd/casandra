@@ -2,7 +2,7 @@
 
 import { Fragment, ReactNode, useCallback, useContext, useEffect, useState } from 'react';
 
-import { useGetApplicationInfo } from '@/core/services/_app';
+import { useGetApplicationInfo } from '@/core/services/root';
 import { CONFIG_SCRIPT_NAME } from '@/core/utils';
 
 import { actions, ConfigContext } from './ConfigProvider';

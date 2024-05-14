@@ -12,9 +12,11 @@ import { ErrorAttributes, ErrorCode } from '@/client';
 type Require<T, K extends keyof T> = { [P in K]-?: T[P] } & Pick<T, Exclude<keyof T, K>>;
 
 export interface ErrorPayload {
+  title: string;
   message: string;
   success: false;
-  error: { code: ErrorCode; errors: ErrorAttributes[] };
+  code: ErrorCode;
+  errors: ErrorAttributes[];
 }
 
 export interface BasePagedServiceParams {
@@ -50,7 +52,7 @@ export type BaseQueryServiceOptions<R = any, V = unknown, S = unknown> = V exten
 interface IBaseInfiniteQueryServiceOptions<R = any, V = unknown, S = unknown>
   extends Pick<
     InfiniteQueryObserverOptions<AxiosResponse<R>, AxiosError<ErrorPayload> | ErrorPayload, S>,
-    'onSuccess' | 'onError'
+    'onSuccess' | 'onError' | 'useErrorBoundary'
   > {
   trigger?: boolean;
   variables?: V;

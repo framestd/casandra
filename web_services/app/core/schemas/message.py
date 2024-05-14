@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Annotated
 from pydantic import UUID4, Field
 
 # First Party
-from app.core.models.chat_message import ChatMessageRoleEnum
+from app.core.models.message import ConversationMessageRoleEnum
 
 # Local Folder
 from .base import BaseModel, SchemaBase
@@ -24,10 +24,10 @@ class MessageBase(BaseModel):
 class MessageFilter(BaseModel):
     """Filters available for chat message endpoint"""
 
-    body: Annotated[str | None, Field(None)]
-    role: Annotated[ChatMessageRoleEnum | None, Field(None)]
-    response_from_id: Annotated[UUID4 | None, Field(None)]
-    response_to_id: Annotated[UUID4 | None, Field(None)]
+    body: Annotated[str | None, Field(None)] = None
+    role: Annotated[ConversationMessageRoleEnum | None, Field(None)] = None
+    response_from_id: Annotated[UUID4 | None, Field(None)] = None
+    response_to_id: Annotated[UUID4 | None, Field(None)] = None
 
 
 class MessageFilterExtra(MessageFilter):
@@ -42,12 +42,37 @@ class MessageCreate(MessageBase):
     conversation_id: UUID4 | None = None
 
 
-class Message(MessageBase, SchemaBase):
-    """ChatMessage outbound attributes"""
+class MessageCreateCustomizations(BaseModel):
+    """
+    A couple of options used to customize message completion.
+
+    Attributes:
+        quotes: The IDs of quoted previous messages to include to provide context for the new
+        message. Note that "quotes" takes precedence over "context_length" when quotes is provided
+
+        context_length: The number of previous messages to include to provide context for the new
+        message
+    """
+
+    quotes: Annotated[list[UUID4], Field([], max_items=6)] = []  # type: ignore
+    context_length: Annotated[int, Field(2, le=6)] = 2
+
+
+class ConversationMessagePartial(MessageBase):
+    id: UUID4
+    conversation_id: UUID4
+    role: ConversationMessageRoleEnum
+    response_from_id: UUID4 | None = None
+    response_to_id: UUID4 | None = None
+
+
+class ConversationMessage(MessageBase, SchemaBase):
+    """ConversationMessage outbound attributes"""
 
     conversation_id: UUID4
     conversation: "Conversation"
-    role: ChatMessageRoleEnum
+    role: ConversationMessageRoleEnum
     response_from_id: UUID4 | None
     response_to_id: UUID4 | None
-    _dangling: bool
+    quoted_messages: list["ConversationMessage"]
+    context_length: int

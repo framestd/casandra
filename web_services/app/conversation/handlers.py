@@ -1,15 +1,14 @@
 # Standard Library
-import asyncio
 from typing import Annotated, cast
 
 # Third Party
-from fastapi import Depends, Path, WebSocket, WebSocketDisconnect
+from fastapi import Depends
 from pydantic import UUID4
 from sqlalchemy.orm import Session
 
 # First Party
 from app.core.deps import ServiceContext, get_db, get_service_context
-from app.core.deps import get_ws_service_context, preprocess_sort_param
+from app.core.deps import preprocess_sort_param
 from app.core.logging.logger import get_app_logger
 from app.core.schemas.conversation import Conversation, ConversationFilter
 from app.core.schemas.conversation import ConversationUpdate
@@ -18,7 +17,6 @@ from app.core.schemas.response import ResponseMetadata, StandardPaginatedRespons
 from app.core.schemas.response import StandardResponse
 from app.core.services.conversation import get_conversation_by_id, get_conversations
 from app.core.services.conversation import update_conversation_service
-from app.core.services.message import open_message_reply_stream
 from app.core.specs.additional_responses import responses
 
 # Local Folder
@@ -81,7 +79,7 @@ def read_conversations(
     has_prev, has_next = result.has_prev, result.has_next
 
     response = StandardPaginatedResponse(
-        data=cast(list[Conversation], result.obj),
+        data=cast(list[Conversation], result.edges),
         metadata=ResponseMetadata(
             total_objects=result.total_pages,
             page_info=PageInfo(
@@ -120,38 +118,3 @@ def revise_conversation(
     response = StandardResponse[Conversation](data=cast(Conversation, conversation))
 
     return response
-
-
-@router.websocket("/{id}/ws")
-async def recieve_message_reply_stream(
-    *,
-    websocket: WebSocket,
-    conversation_id: Annotated[UUID4, Path(alias="id")],
-    ctx: Annotated[ServiceContext, Depends(get_ws_service_context)],
-    db: Annotated[Session, Depends(get_db)],
-):
-    """Stream prompt message response back to connected clients
-    just after they publish a message and it has been processed.
-    """
-
-    async def receiver_task(websocket: WebSocket):
-        try:
-            while True:
-                await websocket.receive_text()
-                await asyncio.sleep(0)
-        except WebSocketDisconnect as exc:
-            logger.info(
-                f"Socket disconnected for {websocket.url}"
-                f' with code={exc.code}, reason="{exc.reason}"'
-            )
-            # re-raise to cancel the task
-            raise exc
-
-    async def streamer(websocket: WebSocket):
-        async with open_message_reply_stream(db, ctx, conversation_id) as message_reply_stream:
-            async for stream in message_reply_stream():
-                await websocket.send_json(mode="binary", data=stream.model_dump(mode="json"))
-
-    async with asyncio.TaskGroup() as tg:
-        tg.create_task(receiver_task(websocket))
-        await tg.create_task(streamer(websocket))

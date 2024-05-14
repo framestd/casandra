@@ -1,4 +1,5 @@
 # Standard Library
+from datetime import datetime
 from typing import TYPE_CHECKING, Annotated
 
 # Third Party
@@ -16,7 +17,6 @@ class ConversationBase(BaseModel):
     """Foundational, common attributes"""
 
     subject: str
-
 
 
 class ConversationFilter(BaseModel):
@@ -39,6 +39,7 @@ class ConversationCreate(ConversationBase):
 
 class ConversationUpdate(ConversationBase):
     """Updateable attributes for a Conversation object"""
+
     subject: str
 
 
@@ -47,3 +48,4 @@ class Conversation(ConversationBase, SchemaBase):
 
     started_by: "User"
     started_by_id: UUID4
+    last_active_at: datetime

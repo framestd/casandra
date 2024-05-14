@@ -16,9 +16,9 @@ from app.conversation.handlers import router as conversation_router
 from app.core.exceptions.http import AppHTTPException, ErrorCode
 from app.core.exceptions.http import UnprocessableEntityException
 from app.core.logging.logger import get_app_logger
-from app.core.redis.client import appredis
+from app.core.redis.client import appredis, appredis_sync
 from app.core.schemas.base import ApplicationInfo
-from app.core.schemas.response import ErrorAttributes, ErrorResponse, ErrorSpec
+from app.core.schemas.response import ErrorAttributes, ErrorResponse
 from app.core.settings import settings
 from app.message.handlers import router as message_router
 from app.user.handlers import router as user_router
@@ -30,12 +30,14 @@ logger = get_app_logger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Opening connection to Redis...")
     await appredis.connect()
+    appredis_sync.connect()
     logger.info("Redis connection opened and provided!")
 
     yield
 
     logger.info("Disconnecting all Redis connections...")
     await appredis.disconnect(True)
+    appredis_sync.disconnect()
     logger.info("Disconnected all Redis connections!")
 
 
@@ -46,8 +48,6 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# app.openapi_version = "3.0.3"
-
 
 @app.middleware("http")
 async def standard_exception_handler(request: Request, call_next: Callable[[Request], Any]):
@@ -57,9 +57,11 @@ async def standard_exception_handler(request: Request, call_next: Callable[[Requ
         logger.error(f"Unknown error occured: {str(exc)}", exc_info=True)
 
         error_response = ErrorResponse[AppHTTPException](
+            title=AppHTTPException.title,
             message="Oops, an unknown error occured",
             success=False,
-            error=ErrorSpec(code=ErrorCode.UNKNOWN, errors=[]),
+            code=ErrorCode.UNKNOWN,
+            errors=[],
         )
 
     return JSONResponse(
@@ -86,12 +88,13 @@ app.include_router(user_router, prefix="/users", tags=["User"])
 @app.exception_handler(AppHTTPException)
 def app_http_exception_handler(request: Request, exc: AppHTTPException):
     error_attrs = [ErrorAttributes(**error) for error in exc.errors]
-    error_spec = ErrorSpec(code=exc.code, errors=error_attrs)
 
     error_response = ErrorResponse[type(exc)](
+        title=exc.title,
         message=exc.message,
         success=False,
-        error=error_spec,
+        code=exc.code,
+        errors=error_attrs,
     )
 
     return JSONResponse(
@@ -112,12 +115,12 @@ def request_validation_exception_handler(request: Request, exc: RequestValidatio
         for error in exc.errors()
     ]
 
-    error_spec = ErrorSpec(code=ErrorCode.UNPROCESSABLE_ENTITY, errors=error_attrs)
-
     error_response = ErrorResponse[UnprocessableEntityException](
+        title=UnprocessableEntityException.title,
         message=error_attrs[0].message,
         success=False,
-        error=error_spec,
+        code=ErrorCode.UNPROCESSABLE_ENTITY,
+        errors=error_attrs,
     )
 
     content = error_response.model_dump(mode="json")

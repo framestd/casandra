@@ -1,28 +1,31 @@
-import { api } from '../base';
+import { AccountCredentialsOIDC } from '@/client';
 import { accountClient } from './client';
 import { SigninCredentials } from './dto';
 
 export async function reauthenticateAccountService(refreshToken: string) {
-  const authenticateAccount = await accountClient.authenticateUserAccountAccountsAuthenticatePost(
-    'username', // not necessary but API requires it
-    'refresh_token',
-    undefined,
+  const response = await accountClient.authenticateUserAccountAccountsAuthenticatePost({
+    username: 'username', // not necessary but API requires it
+    grantType: 'refresh_token',
     refreshToken,
-  );
-
-  const response = await authenticateAccount(api);
+  });
 
   return response;
 }
 
-export async function authenticateAccountService(signin: SigninCredentials) {
-  const authenticateAccount = await accountClient.authenticateUserAccountAccountsAuthenticatePost(
-    signin.email,
-    'password',
-    signin.password,
-  );
+export async function authenticateAccountService(credentials: SigninCredentials) {
+  const response = await accountClient.authenticateUserAccountAccountsAuthenticatePost({
+    username: credentials.email,
+    grantType: 'password',
+    password: credentials.password,
+  });
 
-  const response = await authenticateAccount(api);
+  return response;
+}
+
+export async function authenticateAccountOIDCService(credentials: AccountCredentialsOIDC) {
+  const response = await accountClient.authenticateUserAccountOidcAccountsAuthenticateOidcPost({
+    accountCredentialsOIDC: credentials,
+  });
 
   return response;
 }

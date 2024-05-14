@@ -1,9 +1,12 @@
-import { AxiosResponse } from 'axios';
+import { AxiosHeaders, AxiosResponse, HttpStatusCode } from 'axios';
+import { getReasonPhrase } from 'http-status-codes';
 import { Draft, produce } from 'immer';
 
-import { InfiniteData, QueryClient, QueryKey } from '@tanstack/react-query';
+import { InfiniteData, QueryClient, QueryFilters, QueryKey } from '@tanstack/react-query';
 
 import { ResponseMetadata } from '@/client';
+
+import { ErrorPayload } from './types';
 
 type ResponseData<T> = Record<'data', T[]>;
 type ResponseDataMetadata<T> = AxiosResponse<Record<'metadata', T>>;
@@ -11,12 +14,74 @@ type InferResponseDataT<ResponseDataT> = ResponseDataT extends ResponseData<infe
 
 type WriteInfo<R> = {
   queryKey: QueryKey;
+  previous: AxiosResponse<R> | undefined;
+  written: AxiosResponse<R> | undefined;
+};
+
+type InfiniteWriteInfo<R> = {
+  queryKey: QueryKey;
   previous: InfiniteData<AxiosResponse<R>> | undefined;
   written: InfiniteData<AxiosResponse<R>> | undefined;
 };
 
+type WriteMockedAxiosResponseResult<T, IsInfinite> = IsInfinite extends true ? InfiniteWriteInfo<T> : WriteInfo<T>;
+
 export type PageParam = { pageCursor: string | null; pageForward: boolean };
 
+export function isErrorResponse(value: unknown): value is ErrorPayload {
+  if (!value) return false;
+
+  if (typeof value === 'object' && 'message' in value && 'errors' in value && 'success' in value) {
+    const err = value as ErrorPayload;
+
+    return err.success === false;
+  }
+
+  return false;
+}
+
+export async function writeMockedAxiosResponse<T, IsInfinite extends boolean = true>(
+  queryClient: QueryClient,
+  partialQueryKey: QueryKey,
+  response: AxiosResponse<T>,
+  predicate: QueryFilters['predicate'],
+  isInfinite: IsInfinite = true as IsInfinite,
+): Promise<WriteMockedAxiosResponseResult<T, IsInfinite> | undefined> {
+  const queryKey = queryClient.getQueryCache().find(partialQueryKey, { exact: false, predicate })?.queryKey;
+
+  if (!queryKey) return;
+
+  if (isInfinite === true) {
+    const written = queryClient.setQueryData<InfiniteData<typeof response>>(queryKey, () => {
+      return { pages: [response], pageParams: [] };
+    });
+
+    return { written, previous: undefined, queryKey } as WriteMockedAxiosResponseResult<T, IsInfinite>;
+  }
+
+  const written = queryClient.setQueryData<typeof response>(queryKey, () => {
+    return response;
+  });
+
+  return { written, previous: undefined, queryKey } as WriteMockedAxiosResponseResult<T, IsInfinite>;
+}
+
+/**
+ * Write a react query infinite data to the cache optimisitically before even fetching over network
+ *
+ * `initial = 'lpush'` specifies that the data to be written should be pushed to the start of the list
+ * when predicate cannot match an existing data to update with it.
+ *
+ * `initial = 'rpush'` specifies that the data to be written should be pushed to the end of the list when
+ * predicate cannot match an existing data to update with it.
+ *
+ * @param queryClient The react query query client retrieved from useQueryCleint
+ * @param partialQueryKey The partial (or full) query key
+ * @param incomingData The incoming data to write to the query cache optimistically
+ * @param predicate The predicate to use to match the exact data to write
+ * @param initial Sepcify whether to push the data to the beginning or end of the list if predicate returns false
+ * @returns Promise that resolves to a `WriteInfo<R>` object containing the written, overwritten data and query key
+ */
 export async function writeOptimisticInfiniteData<
   R extends ResponseData<InferResponseDataT<R>>,
   T extends InferResponseDataT<R> = InferResponseDataT<R>,
@@ -24,9 +89,9 @@ export async function writeOptimisticInfiniteData<
   queryClient: QueryClient,
   partialQueryKey: QueryKey,
   incomingData: T,
-  matcher: (draftData: Draft<InferResponseDataT<R>>) => boolean,
+  predicate: (draftData: Draft<InferResponseDataT<R>>) => boolean,
   initial: 'rpush' | 'lpush' = 'rpush',
-): Promise<WriteInfo<R> | undefined> {
+): Promise<InfiniteWriteInfo<R> | undefined> {
   const queryKey = queryClient.getQueryCache().find(partialQueryKey, { exact: false, type: 'active' })?.queryKey;
 
   if (!queryKey) return;
@@ -43,7 +108,7 @@ export async function writeOptimisticInfiniteData<
 
       const indexOfPage = draft.pages.findIndex((page) => {
         const pageFound = page.data.data.some((currentData, j) => {
-          const currentDataFound = matcher(currentData);
+          const currentDataFound = predicate(currentData);
 
           if (currentDataFound) indexOfCurrentData = j;
 
@@ -92,3 +157,26 @@ export const getNextPageParam = <T extends ResponseDataMetadata<ResponseMetadata
   const pageCursor = pageInfo.bottom_cursor!;
   return pageInfo.has_next ? { pageCursor, pageForward: true } : undefined;
 };
+
+export function readBinaryData(data: Blob): Promise<string> {
+  const reader = new FileReader();
+  return new Promise<string>((resolve, reject) => {
+    reader.addEventListener('load', () => resolve(reader.result as string));
+    reader.addEventListener('error', () => reject(reader.error));
+    reader.readAsText(data, 'utf-8');
+  });
+}
+
+export function mockAxiosResponse<DataT>(
+  data: DataT,
+  status: HttpStatusCode = HttpStatusCode.Ok,
+): AxiosResponse<DataT> {
+  return {
+    config: { headers: new AxiosHeaders() },
+    data: data,
+    headers: {},
+    status: status,
+    statusText: getReasonPhrase(status),
+    request: {},
+  };
+}

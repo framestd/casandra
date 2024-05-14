@@ -1,6 +1,7 @@
 version: "3.8"
 
 networks:
+  client: # web_client
   server: # web_server
   cache: # redis
   database: # postgres
@@ -13,31 +14,32 @@ services:
       dockerfile: Dockerfile.development
     container_name: casandra_client
     expose:
-      - ${CLIENT_PORT}
-      - 9339 # debug
-      - 49153 # webpack hot reload
+      - 3000
     ports:
-      - ${CLIENT_PORT}:${CLIENT_PORT}
-      - 9339:9339
-      - 49153:49153
-    entrypoint: "yarn dev -p $CLIENT_PORT"
+      - ${CLIENT_PORT}:3000
+    entrypoint: "yarn dev -p 3000"
     depends_on:
       - web_server
     networks:
       - server
     volumes:
       - "./web_client:${CLIENT_WORKDIR}"
-      - "./web_client/node_modules:${CLIENT_WORKDIR}/node_modules"
+      - "node_modules:${CLIENT_WORKDIR}/node_modules"
+      - "nextjs_internals:${CLIENT_WORKDIR}/.next"
     environment:
       - APP_NAME=${APP_NAME} # the application name
       - PORT=${CLIENT_PORT} # Assign $CLIENT_PORT to $PORT env var in web_client
-
+      - NEXTAUTH_URL=https://dev.example.com
+      - GOOGLE_ID=${GOOGLE_ID}
+      - GOOGLE_SECRET=${GOOGLE_SECRET}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
       # HTTP requests between host machine and server container will be done on this address
-      - SERVER_BASE_URL=http://localhost:${PORT} # $PORT here is web_server container port
-
+      # DNS Lookup resolves to localhost: modified in /etc/hosts /api/v1 path is in nginx.conf
+      - SERVER_BASE_URL=https://dev.example.com
       # HTTP requests between client and server containers will be done on this address
       - SERVER_INTERNAL_ADDRESS=http://casandra_server:8000
     restart: unless-stopped
+    tty: true
 
   web_server:
     build:
@@ -48,7 +50,7 @@ services:
       - 8000
     ports:
       - ${PORT}:8000
-    command: "uvicorn app.main:app --log-level=debug --host='0.0.0.0' --port=8000 --reload"
+    command: "uvicorn app.main:app --root-path=/api/v1 --log-level=debug --host='0.0.0.0' --port=8000 --reload"
     networks:
       - server
       - cache
@@ -59,7 +61,8 @@ services:
     depends_on:
       - redis
       - postgres
-    environment:
+      - celery
+    environment: &server_env
       - APP_NAME=${APP_NAME} # the application name
       - APP_DESC=${APP_DESC} # a short description of the application
       - CLIENT_HOSTS=${CLIENT_ADDRESSES} # List of hosts to whitelist for CORS
@@ -68,6 +71,64 @@ services:
       - POSTGRES_USER=${POSTGRES_USER} # the database user
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD} # the database password
       - REDIS_URL=redis://casandra_services_cache:6379 # the name of the redis container as hostname
+      - CELERY_BROKER_URL=redis://casandra_services_cache:6379
+      - CELERY_RESULT_BACKEND=redis://casandra_services_cache:6379
+      - GOOGLE_ID=${GOOGLE_ID}
+      - GOOGLE_SECRET=${GOOGLE_SECRET}
+    restart: unless-stopped
+    tty: true
+
+  nginx:
+    image: nginx:1.25.3-bookworm
+    container_name: proxy_server
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./.cert/:/etc/nginx/certificates/
+    depends_on:
+      - web_client
+      - web_server
+    networks:
+      - server
+      - client
+    restart: unless-stopped
+
+  celery:
+    build:
+      context: ./web_services
+      dockerfile: Dockerfile
+    container_name: casandra_celery
+    command: >-
+      watchfiles --filter python
+      'celery -A app.core.worker.celery.celery --config app.celeryconfig worker --loglevel=info'
+      ${SERVER_WORKDIR}/app/core/worker/
+    networks:
+      - server
+      - cache
+      - database
+    volumes:
+      - "./web_services:${SERVER_WORKDIR}"
+      - "virtual_env:${SERVER_WORKDIR}/.venv"
+    depends_on:
+      - redis
+    environment: *server_env
+    restart: unless-stopped
+
+  flower:
+    image: mher/flower
+    container_name: casandra_celery_flower
+    ports:
+      - 5556:5555
+    command: celery flower --port=5555
+    networks:
+      - cache
+    depends_on:
+      - celery
+    environment:
+      - CELERY_BROKER_URL=redis://casandra_services_cache:6379
+      - CELERY_RESULT_BACKEND=redis://casandra_services_cache:6379
     restart: unless-stopped
 
   redis:
@@ -113,7 +174,8 @@ services:
     restart: unless-stopped
 
 volumes:
-  # node_modules:
+  node_modules:
+  nextjs_internals:
   postgres:
   pgadmin:
   virtual_env:

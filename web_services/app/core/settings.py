@@ -44,6 +44,11 @@ class Settings(BaseSettings):
 
     WS_ACCESS_TOKEN_KEY: str = "ws_a_t"
 
+    GOOGLE_TOKENINFO_URI: str = "https://oauth2.googleapis.com/tokeninfo"
+    GOOGLE_TOKEN_URI: str = "https://oauth2.googleapis.com/token"
+    GOOGLE_ID: str
+    GOOGLE_SECRET: str
+
     @computed_field
     @property
     def CELERY_BROKER_URL(self) -> RedisDsn:

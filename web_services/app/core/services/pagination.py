@@ -326,7 +326,7 @@ class Paginator(Generic[ModelT, FilterT]):
 
         conditions: list[ColumnElement[bool]] = []
 
-        for attr in filter.__fields_set__:
+        for attr in filter.model_fields_set:
             values: Any | list[Any] = filter.model_dump(exclude_defaults=True).get(attr, [])
 
             if attr in sa_inspect(self.model).columns.keys():

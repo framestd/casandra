@@ -1,3 +1,5 @@
+'use client';
+
 import { CSSProperties } from 'react';
 
 import { Box, BoxProps, forwardRef, theme } from '@/chakra-ui/react';

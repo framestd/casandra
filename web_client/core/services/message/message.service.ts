@@ -1,13 +1,13 @@
 import { AxiosRequestConfig } from 'axios';
 
-import { ChatMessageRoleEnum } from '@/client';
+import { ConversationMessageRoleEnum } from '@/client';
 
 import { BasePagedServiceParams } from '../types';
 import { messageClient } from './client';
 
 export interface ReadMessagesVariables extends BasePagedServiceParams {
   body?: string;
-  role?: ChatMessageRoleEnum;
+  role?: ConversationMessageRoleEnum;
   responseFromId?: string;
   responseToId?: string;
 }

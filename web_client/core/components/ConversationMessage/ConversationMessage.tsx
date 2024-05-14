@@ -1,37 +1,101 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { HStack, Icon, IconButton, StackProps, useColorModeValue, VStack } from '@/chakra-ui/react';
 
-import { Avatar, Box, HStack, StackProps, useColorModeValue } from '@/chakra-ui/react';
+import { IoArrowUndoOutline } from 'react-icons/io5';
 
-import { ChatMessageRoleEnum } from '@/client';
+import { ConversationMessageRoleEnum } from '@/client';
+import { isFunction } from '@/core/utils';
 
+import { AppAvatar, UserAvatar } from '../Avatars';
+import { Markdown } from '../Markdown';
 import { Typography } from '../Typography';
 
-export interface ChatMessageProps extends StackProps {
-  message: ReactNode;
-  role: ChatMessageRoleEnum;
-  enitity: string;
-  streaming?: boolean;
+export interface ConversationMessageProps extends StackProps {
+  message_id: string;
+  message: string;
+  role: ConversationMessageRoleEnum;
+  entity: string;
+  isStreaming?: boolean;
+  isParsed?: boolean;
+  isQuouted: boolean;
+  onQuote?: (message_id: string) => void;
 }
 
-export const ConversationMesssage = ({ message, enitity, role, ...rest }: ChatMessageProps) => {
+export const messageToId = (message: string) => `message-${message.replace(/\s+/g, '-')}`;
+
+export const ConversationMesssage = ({
+  message_id,
+  message,
+  entity,
+  role,
+  isQuouted,
+  isParsed = false,
+  onQuote,
+  noOfLines,
+  ...rest
+}: ConversationMessageProps) => {
   const highlght = useColorModeValue('blackAlpha.100', 'whiteAlpha.100');
+  const linkColor = useColorModeValue('brand.500', 'brand.300');
+  const isAssistant = role === ConversationMessageRoleEnum.ROBOT;
+
   return (
     <HStack
       px={3}
       py={8}
+      spacing={6}
       width="full"
-      alignItems="baseline"
+      id={messageToId(message_id)}
+      alignItems="flex-start"
       borderBottomWidth={1}
-      bgColor={role === ChatMessageRoleEnum.ROBOT ? highlght : undefined}
+      bgColor={isAssistant ? highlght : undefined}
       {...rest}
     >
-      <Avatar name={enitity} size="sm" position="sticky" top={0} userSelect="none" />
+      <VStack spacing={4} height="full" position="sticky" top={3}>
+        {isAssistant ? <AppAvatar size="sm" /> : <UserAvatar name={entity} size="sm" />}
 
-      <Box>
-        <Typography whiteSpace="pre-wrap">{message}</Typography>
-      </Box>
+        {isFunction(onQuote) && (
+          <IconButton
+            size="sm"
+            aria-label="quote"
+            colorScheme="blue"
+            borderRadius="full"
+            onClick={() => onQuote(message_id)}
+            variant={isQuouted ? 'solid' : 'ghost'}
+            color={isQuouted ? 'blue.100' : undefined}
+            bgColor={isQuouted ? 'blue.600' : undefined}
+            icon={<Icon as={IoArrowUndoOutline} fontSize="md" />}
+            _hover={isQuouted ? { bgColor: 'blue.700' } : undefined}
+            _active={isQuouted ? { bgColor: 'blue.500' } : undefined}
+          />
+        )}
+      </VStack>
+
+      <Typography
+        width="0"
+        flex="1 1 auto"
+        noOfLines={noOfLines}
+        sx={{
+          '& pre:not(:last-child), & ul, & ol': { mb: 8 },
+          '& ul ul, & ul ol, & ol ol, & ol ul': { ms: 4 },
+          '& a': { color: linkColor, textDecoration: 'underline' },
+          '& p:not(:last-child)': {
+            whiteSpace: 'pre-wrap',
+            width: 'full',
+            mb: 8,
+          },
+        }}
+      >
+        {isAssistant ? (
+          isParsed ? (
+            <div dangerouslySetInnerHTML={{ __html: message }} />
+          ) : (
+            <Markdown content={message} useWorker={false} />
+          )
+        ) : (
+          message
+        )}
+      </Typography>
     </HStack>
   );
 };

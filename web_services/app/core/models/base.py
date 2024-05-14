@@ -1,5 +1,6 @@
 # Standard Library
 from datetime import datetime
+import re
 from uuid import UUID, uuid4
 
 # Third Party
@@ -16,7 +17,7 @@ from app.core.utils import get_utc_time
 class Base(DeclarativeBase, MappedAsDataclass):
     @declared_attr  # type: ignore
     def __tablename__(cls) -> str:
-        return cls.__name__
+        return re.sub(r"(?:InDB)$", "", cls.__name__)
 
     id: Mapped[UUID] = mapped_column(
         name="id",

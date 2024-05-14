@@ -2,56 +2,79 @@
 import asyncio
 import json
 from contextlib import asynccontextmanager
-from typing import Any, Generator, cast
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 # Third Party
-import openai
-from broadcaster import Event  # type: ignore
+from celery.result import AsyncResult
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 # First Party
 from app.core.deps import ServiceContext
 from app.core.exceptions.application import MissingResourceException
-from app.core.exceptions.http import ForbiddenRequestException
-from app.core.exceptions.http import ServiceUnavailableException
-from app.core.intelligence.basic import generate_prompt, generate_response
+from app.core.exceptions.code import ErrorContextType
+from app.core.exceptions.http import AppHTTPException, ForbiddenRequestException
+from app.core.intelligence.basic import create_aggregate_prompts
+from app.core.intelligence.basic import create_openai_message_prompt
 from app.core.logging.logger import get_app_logger
-from app.core.models.chat_message import ChatMessage as ChatMessageModel
-from app.core.models.chat_message import ChatMessageRoleEnum
-from app.core.models.conversation import Conversation as ConversationModel
+from app.core.models.conversation import ConversationInDB
+from app.core.models.message import ConversationMessageInDB, ConversationMessageRoleEnum
 from app.core.redis.channels import get_conversation_channel_for
 from app.core.redis.publisher import publisher
-from app.core.redis.types import PubSubMessage
-from app.core.schemas import message as schema
-from app.core.schemas.conversation import ConversationCreate
-from app.core.schemas.openai import ChatCompletionResponseStream
+from app.core.redis.types import PubSubMessageDict
+from app.core.schemas.account import Account
+from app.core.schemas.message import ConversationMessage, ConversationMessagePartial
+from app.core.schemas.message import MessageCreate, MessageCreateCustomizations
+from app.core.schemas.message import MessageFilter, MessageFilterExtra
 from app.core.schemas.pagination import PageOptions
-from app.core.schemas.websocket import DataStream, MessageStream, SignalStream
+from app.core.schemas.response import ErrorAttributes, ErrorResponse
+from app.core.schemas.websocket import DataStream, ErrorStream, SignalStream
 from app.core.schemas.websocket import StreamSignalEnum
-from app.core.services.pagination import PageBuilder
+from app.core.utils import get_utc_time
+from app.core.worker.completion_tasks import MessageBuffDict, openai_completion_task
+from app.core.worker.completion_tasks import save_message_response_pair_task
 
 # Local Folder
-from .conversation import create_conversation_service, get_conversation_by_id
+from .conversation import get_conversation_by_id
+from .pagination import PageBuilder
 from .service_object import PagedServiceObject
 
 __all__ = (
-    "handle_message",
-    "open_message_reply_stream",
     "get_message_by_id",
+    "get_messages_by_conversation_id",
+    "message_completion_streamer",
+    "open_message_reply_stream",
 )
 
 logger = get_app_logger(__name__)
 
 
+def _process_streaming_exceptions(exc: Exception, channel: str):
+    if isinstance(exc, AppHTTPException):
+        error_res = ErrorResponse[type(exc)](
+            message=exc.message,
+            title=exc.title,
+            code=exc.code,
+            errors=[ErrorAttributes(**error) for error in exc.errors],
+        )
+    else:
+        error_res = ErrorResponse[AppHTTPException](
+            title=AppHTTPException.title,
+            code=AppHTTPException.code,
+            errors=[],
+        )
+    return ErrorStream(channel=channel, error=error_res)
+
+
 def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
-    """Get a chat message by ID
+    """Get a conversation message by ID
 
     :params session: the database session to use to create a new account
 
     :params ctx: the service context necessary for running the service
 
-    :params id: the identifier to use to find the chat message
+    :params id: the identifier to use to find the conversation message
 
     :raises MissingResourceException:
         when no message by the giving resource identifier could be found
@@ -61,9 +84,13 @@ def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         to do so.
     """
 
-    chat_message = session.query(ChatMessageModel).filter(ChatMessageModel.id == id).one_or_none()
+    message = (
+        session.query(ConversationMessageInDB)
+        .filter(ConversationMessageInDB.id == id)
+        .one_or_none()
+    )
 
-    if chat_message is None:
+    if message is None:
         exception = MissingResourceException(f"There's no chat message with id {id}")
 
         exception.add_attributes(
@@ -76,10 +103,10 @@ def get_message_by_id(session: Session, ctx: ServiceContext, id: UUID):
         raise exception
 
     # TODO: revise when the feature to share conversations have been implemented
-    if chat_message.conversation.started_by.id != ctx.user.id:
+    if message.conversation.started_by.id != ctx.user.id:
         raise ForbiddenRequestException("You are not allowed to read this message")
 
-    return chat_message
+    return message
 
 
 def get_messages_by_conversation_id(
@@ -87,30 +114,47 @@ def get_messages_by_conversation_id(
     session: Session,
     ctx: ServiceContext,
     conversation_id: UUID,
-    filter: schema.MessageFilter,
+    filter: MessageFilter = MessageFilter(),
     sorts: list[str],
     page_opts: PageOptions,
 ):
+    """Get messages in a given conversation by the conversation ID as a paged service object
+    reading not more than 100 messages per session.
+
+    :params session: the database session to use to create a new account
+
+    :params ctx: the service context necessary for running the service
+
+    :params conversation_id: the ID of the conversation to read messages from
+
+    :raises MissingResourceException:
+        when no conversation by the giving resource identifier could be found
+
+    :raises ForbiddenRequestException:
+        when the user trying to read messages from a conversation doesn't have enough access
+        privileges to do so.
+    """
+
     conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
 
-    # TODO: revise when the feature to share conversations have been implemented
-    if conversation.started_by_id != ctx.user.id:
-        raise ForbiddenRequestException(
-            "You are not allowed to read messages from this conversation"
-        )
+    # # TODO: revise when the feature to share conversations have been implemented
+    # if conversation.started_by_id != ctx.user.id:
+    #     raise ForbiddenRequestException(
+    #         "You are not allowed to read messages from this conversation"
+    #     )
 
-    page_builder = PageBuilder[ChatMessageModel, schema.MessageFilterExtra]()
+    page_builder = PageBuilder[ConversationMessageInDB, MessageFilterExtra]()
 
     after = page_opts.page_cursor if page_opts.page_forward else None
     before = page_opts.page_cursor if not page_opts.page_forward else None
 
-    filter_extra = schema.MessageFilterExtra(
-        conversation_id=conversation_id,
+    filter_extra = MessageFilterExtra(
+        conversation_id=conversation.id,
         **filter.model_dump(exclude_defaults=True),
     )
 
     page = (
-        page_builder.setup(session=session, model=ChatMessageModel)
+        page_builder.setup(session=session, model=ConversationMessageInDB)
         .go_to_edge_before(before)
         .go_to_edge_after(after)
         .skim_through(filter=filter_extra)
@@ -130,56 +174,165 @@ def get_messages_by_conversation_id(
     return result
 
 
-async def handle_message(
+@asynccontextmanager
+async def message_completion_streamer(
+    *,
     session: Session,
     ctx: ServiceContext,
-    message: schema.MessageCreate,
+    message_create: MessageCreate,
+    customizations: MessageCreateCustomizations,
 ):
-    body = message.body
-    conversation_id = message.conversation_id
-    role = ChatMessageRoleEnum.human
+    body = message_create.body
+    conversation_id = message_create.conversation_id or uuid4()
+    user_message_id = uuid4()
+    assistant_message_id = uuid4()
+    role = ConversationMessageRoleEnum.human
 
-    # create a new conversation if no existing conversation was provided
-    if conversation_id is None:
-        conversation = create_conversation_service(
-            session=session,
-            conversation_create=ConversationCreate(
-                subject="New Conversation",
-                started_by_id=ctx.user.id,
-            ),
+    channel = get_conversation_channel_for(conversation_id=conversation_id)
+
+    if message_create.conversation_id is None:
+        context_messages = []
+    else:
+        """Load up contexts for this new message to be sent to OpenAI API for processing.
+
+        The way the context is loaded is based on the set customizations. The context length
+        specifies the amount of most recent previous messages to include in the prompt as context.
+
+        If quoted messages are present, the quoted messages are loaded by their IDs and sent as
+        context rather than loading (a max number x) most recent previous messages.
+        """
+
+        _context_size = customizations.context_length
+        filters = [
+            # Ensure the conversation was started or belongs to the user context
+            ConversationInDB.started_by_id == ctx.user.id,
+            # Match only messages in the conversation specified by its ID
+            ConversationMessageInDB.conversation_id == message_create.conversation_id,
+        ]
+
+        # If quoted message IDs are provided, load messages where their IDs are in the
+        # set of quoted message IDs provided
+        if customizations.quotes and len(customizations.quotes) != 0:
+            filters.append(ConversationMessageInDB.id.in_(customizations.quotes))
+            # reassign:
+            _context_size = len(customizations.quotes)
+
+        # sort ascending to restore order of messages (or reverse)
+        context_messages = sorted(
+            # sort desc to enusre the most recent are selected
+            session.query(ConversationMessageInDB)
+            .join(ConversationInDB)  # we need a join irrespective of SQLAlchemy loading strategy
+            .filter(and_(*filters))
+            .order_by(ConversationMessageInDB.created_at.desc())
+            .limit(_context_size)
+            .all(),
+            key=lambda x: x.created_at,
         )
 
-        # reassign
-        conversation_id = conversation.id
-    else:
-        conversation = get_conversation_by_id(session=session, ctx=ctx, id=conversation_id)
+        # check that all the quoted messages were matched, if not, then fail fast
+        if customizations.quotes and len(customizations.quotes) != len(context_messages):
+            found_ids = map(lambda x: x.id, context_messages)
+            missing_ids = list(filter(lambda x: x not in found_ids, customizations.quotes))
 
-    session.expunge(conversation)
+            exception = MissingResourceException("Some or all of the quoted contexts are missing")
+            exception.add_attributes(
+                context={"type": ErrorContextType.details},
+                path=("body", "quotes"),
+                value=missing_ids,
+                message=f"Missing qouted messages with ID: [{', '.join(map(str, missing_ids))}]",
+            )
+            raise exception
 
-    modeled_message = ChatMessageModel(
-        body=body,
-        conversation_id=conversation_id,
-        response_to_id=None,
-        response_from_id=None,
-        role=role,
-        _dangling=True,  # object has not been commited to db
-    )
+    message_prompts = [
+        create_openai_message_prompt(role=x.role, body=x.body) for x in context_messages
+    ]
 
-    modeled_message.conversation = conversation
+    message_prompts.append(create_openai_message_prompt(role=role, body=body))
 
-    json_message = schema.Message.model_validate(modeled_message).model_dump_json()
+    aggregate_prompts = create_aggregate_prompts(prompts=message_prompts)
 
-    # Only publish if message originally had a conversation attached
-    # If not, it was a <noop> message just to get a conversation going.
-    if message.conversation_id is not None:
-        channel = get_conversation_channel_for(conversation_id)
-        asyncio.create_task(publisher(ctx.rdb, channel, json_message))
+    async def run_celery_task():
+        root_task_signature = openai_completion_task.s(
+            conversation_id=conversation_id,
+            prompts=aggregate_prompts,
+            with_metadata=message_create.conversation_id is None,
+        )
 
-    return modeled_message
+        child_task_signature = save_message_response_pair_task.s(
+            conversation_id=conversation_id,
+            user_message_id=user_message_id,
+            assistant_message_id=assistant_message_id,
+            msg_create_dict=message_create.model_dump(),
+            msg_create_timestamp=get_utc_time(),
+            msg_customizations_dict=customizations.model_dump(),
+            user_account_dict=Account.model_validate(ctx.account).model_dump(),
+        )
+
+        task = root_task_signature.apply_async(
+            link=child_task_signature, task_id=str(user_message_id)
+        )
+
+        # task.get(...) is a blocking call so check that task is ready, first.
+        # If the task is ready, then task.get(...) can return fast enough, and
+        # other statements can be executed.
+        # Otherwise, await a coroutine (sleep) to give the event loop chance
+        # to do something else.
+        while not task.ready():
+            await asyncio.sleep(0)
+        task.get(propagate=True)
+
+        if task.children is None:
+            raise AppHTTPException("`save_message_response_pair_task` unresolved")
+        child_task = cast("AsyncResult[list[dict[str, Any]]]", task.children[0])
+
+        while not child_task.ready():
+            await asyncio.sleep(0)
+        child_result = child_task.get(propagate=True)
+
+        user_message, assistant_message = child_result
+
+        result = (
+            ConversationMessage(**user_message).model_dump(mode="json"),
+            ConversationMessage(**assistant_message).model_dump(mode="json"),
+        )
+
+        await asyncio.create_task(publisher(ctx.rdb, channel, json.dumps(result)))
+
+    async def streamer():
+        try:
+            open_message_reply_stream_context = open_message_reply_stream(
+                ctx=ctx,
+                conversation_id=conversation_id,
+                user_message_id=user_message_id,
+                assistant_message_id=assistant_message_id,
+            )
+
+            async with open_message_reply_stream_context as message_reply_stream:
+                asyncio.create_task(run_celery_task())
+                async for stream in message_reply_stream():
+                    yield stream.model_dump_json().encode()
+                    yield b"\x0A"  # EOL
+        except asyncio.CancelledError:
+            logger.error("Request was canceled while streaming", exc_info=True)
+        except AppHTTPException as exc:
+            yield _process_streaming_exceptions(exc, channel).model_dump_json().encode()
+            yield b"\x0A"
+        except Exception as exc:
+            logger.error("Unknown error occured while streaming", exc_info=True)
+            yield _process_streaming_exceptions(exc, channel).model_dump_json().encode()
+            yield b"\x0A"
+
+    yield streamer
 
 
 @asynccontextmanager
-async def open_message_reply_stream(session: Session, ctx: ServiceContext, conversation_id: UUID):
+async def open_message_reply_stream(
+    *,
+    ctx: ServiceContext,
+    conversation_id: UUID,
+    user_message_id: UUID,
+    assistant_message_id: UUID,
+):
     pubsub = ctx.rdb.pubsub()  # type: ignore
     channel = get_conversation_channel_for(conversation_id)
 
@@ -189,100 +342,76 @@ async def open_message_reply_stream(session: Session, ctx: ServiceContext, conve
 
     logger.info(f"Subscribed to {channel} channel!")
 
-    websocket_begin_stream_signal = SignalStream(
+    stream_begin_signal = SignalStream(
         channel=channel,
         message="Data stream begins",
         signal=StreamSignalEnum.begin,
     )
 
-    websocket_end_stream_signal = SignalStream(
+    stream_end_signal = SignalStream(
         channel=channel,
         message="Data stream ends",
         signal=StreamSignalEnum.end,
     )
 
-    async def message_reply_stream():
-        while True:
-            message = cast(PubSubMessage | None, await pubsub.get_message())  # type: ignore
+    initial_data_stream = DataStream[ConversationMessagePartial](
+        channel=channel,
+        message="Streaming data...",
+        data=ConversationMessagePartial(
+            id=assistant_message_id,
+            body="",
+            conversation_id=conversation_id,
+            role=ConversationMessageRoleEnum.robot,
+            response_to_id=user_message_id,
+        ),
+    )
 
-            if message is None:
+    async def message_reply_stream():
+        yield stream_begin_signal
+        yield initial_data_stream
+
+        # This is a blocking code block, so every chance we get, we call await asyncio.sleep(delay)
+        # This ensures that the blocking LOCs can return control to the event loop to handle other
+        # tasks, hence prevents it from blocking till it completes.
+        # Could be soon, could be late—God knows when!
+        while True:
+            pubsub_msg = cast(PubSubMessageDict | None, await pubsub.get_message())  # type: ignore
+
+            # if the published message is not of type "pmessage" or "message"
+            if pubsub_msg is None or not pubsub_msg.get("type").endswith("message"):
                 # Return control to the event loop giving it time to do something else
                 await asyncio.sleep(0)
                 continue
-            elif not message.get("type").endswith("message"):
-                websocket_message = MessageStream(channel=channel, message="Subscribed")
-                yield websocket_message
             else:
-                data = schema.Message.model_validate(json.loads(message.get("data")))
+                data: MessageBuffDict | list[dict[str, Any]] = json.loads(pubsub_msg.get("data"))
 
-                conversation = get_conversation_by_id(
-                    session=session,
-                    ctx=ctx,
-                    id=data.conversation_id,
-                )
+                if isinstance(data, list):
+                    try:
+                        for d in data:
+                            data_stream = DataStream[ConversationMessage](
+                                channel=channel,
+                                message="Streaming resulting data",
+                                data=ConversationMessage(**d),
+                            )
 
-                # Do not track changes, detach from the session
-                session.expunge(conversation)
-
-                prompt = generate_prompt(question=data.body)
-
-                openai_response: Generator[ChatCompletionResponseStream, Any, None]
-
-                try:
-                    # reassign
-                    openai_response = generate_response(prompt=prompt)
-                except openai.OpenAIError:
-                    logger.error("Failed to get completion from OpenAI", exc_info=True)
-
-                    raise ServiceUnavailableException("Failed to establish outbound communication")
-
-                completion = ""
-                chunk_id = uuid4()
-
-                yield websocket_begin_stream_signal
-
-                for chunk in openai_response:
-                    delta = chunk.choices[0].delta
-                    content = delta.content if hasattr(delta, "content") else None
-
-                    if content is None:
-                        continue
-
-                    completion += content
-
-                    response_chunk = ChatMessageModel(
-                        body=completion,
-                        role=ChatMessageRoleEnum.robot,
-                        conversation_id=data.conversation_id,
-                        response_to_id=data.id,
-                        response_from_id=None,
-                        _dangling=True,
-                    )
-
-                    response_chunk.id = chunk_id
-                    response_chunk.conversation = conversation
-
-                    websocket_data = DataStream[schema.Message](
+                            yield data_stream
+                        yield stream_end_signal
+                        break
+                    except:
+                        pass
+                else:
+                    content = data.get("content")
+                    data_stream = DataStream[ConversationMessagePartial](
                         channel=channel,
                         message="Streaming data...",
-                        data=cast(schema.Message, response_chunk),
+                        data=ConversationMessagePartial(
+                            id=assistant_message_id,
+                            body=content,
+                            conversation_id=conversation_id,
+                            role=ConversationMessageRoleEnum.robot,
+                        ),
                     )
-
-                    yield websocket_data
-
-                    await asyncio.sleep(0)
-                yield websocket_end_stream_signal
-
-                _resultant(
-                    session=session,
-                    ctx=ctx,
-                    data=data,
-                    conversation=conversation,
-                    response_chunk_id=chunk_id,
-                    completion=completion,
-                )
-
-            # Return control to the event loop giving it time to do something else
+                    yield data_stream
             await asyncio.sleep(0)
 
     try:
@@ -298,83 +427,3 @@ async def open_message_reply_stream(session: Session, ctx: ServiceContext, conve
         await pubsub.close()
 
         logger.info(f"Unsubscribed from {channel} channel and closed pubsub connection!")
-
-
-def _resultant(
-    *,
-    session: Session,
-    ctx: ServiceContext,
-    data: schema.Message,
-    conversation: ConversationModel,
-    response_chunk_id: UUID,
-    completion: str,
-):
-    message = ChatMessageModel(
-        body=data.body,
-        conversation_id=conversation.id,
-        response_from_id=None,
-        response_to_id=None,
-        role=data.role,
-        _dangling=False,
-    )
-
-    response = ChatMessageModel(
-        body=completion,
-        conversation_id=conversation.id,
-        response_from_id=None,
-        response_to_id=None,
-        role=ChatMessageRoleEnum.robot,
-        _dangling=False,
-    )
-
-    response.id = response_chunk_id
-
-    message.created_at = data.created_at
-    message.updated_at = data.updated_at
-
-    message.response_from_id = response.id
-    response.response_to_id = message.id
-
-    result = _save_message_response_pair(
-        session=session,
-        ctx=ctx,
-        conversation=conversation,
-        message_pair=(message, response),
-    )
-
-    return result
-
-
-def _save_message_response_pair(
-    session: Session,
-    ctx: ServiceContext,
-    conversation: ConversationModel,
-    message_pair: tuple[ChatMessageModel, ChatMessageModel],
-):
-    """Save a pair of message-response
-
-    :param session: the database session to use to create a new account
-
-    :param ctx: the service context necessary for running the service
-
-    :param conversation: the conversation the message pair objects belongs in
-
-    :param message_pair: the message-respose pair to save
-
-    :raise ForbiddenRequestException:
-        when the conversation wasn't started by the current user context
-    """
-
-    message, response = message_pair
-
-    # this shouldn't happen
-    if conversation.started_by_id != ctx.user.id:
-        raise ForbiddenRequestException("Conversation must be started by the current user")
-
-    session.add(message)
-    session.add(response)
-    session.commit()
-    session.refresh(message)
-    session.refresh(response)
-
-    return (message, response)

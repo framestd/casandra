@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { readBinaryData } from '@/core/services/utils';
 import { WebSocketManager, WebSocketManagerOptions, WebSocketManagerState, WSStatus } from '@/core/services/websocket';
 import { isURL } from '@/core/utils';
 
@@ -37,15 +38,6 @@ export class WebSocketError extends Error {
   constructor(public readonly reason: string, public readonly code: WSStatus) {
     super();
   }
-}
-
-function readBinaryData(message: Blob): Promise<string> {
-  const reader = new FileReader();
-  return new Promise<string>((resolve, reject) => {
-    reader.addEventListener('load', () => resolve(reader.result as string));
-    reader.addEventListener('error', () => reject(reader.error));
-    reader.readAsText(message, 'utf-8');
-  });
 }
 
 export function resolveUrlOrOptions<OptionsT extends Omit<WithURL<Record<string, any>>, 'url'>>(

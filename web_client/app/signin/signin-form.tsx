@@ -1,31 +1,26 @@
 'use client';
 
-import { useContext } from 'react';
+import { useEffect } from 'react';
 
-import { Link } from '@/chakra-ui/next-js';
 import { FormControl, Input, InputGroup, VStack } from '@/chakra-ui/react';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { SubmitHandler, useForm } from 'react-hook-form';
 
 import { classValidatorResolver } from '@hookform/resolvers/class-validator';
 
-import { PrimaryButton } from '@/core/components/Button';
-import { Form } from '@/core/components/Form';
+import { AppleButton, GoogleButton, PrimaryButton } from '@/core/components/Button';
 import { InputErrorMessage } from '@/core/components/InputErrorMessage';
 import { InputLabel } from '@/core/components/InputLabel';
-import { PasswordInput } from '@/core/components/PasswordInput';
-import { actions, ConfigContext } from '@/core/components/Providers';
-import { Typography } from '@/core/components/Typography';
-import { SigninCredentials } from '@/core/services';
-import { useAuthenticateAccountService } from '@/core/services/account';
-import { REFRESH_TOKEN_KEY, storeToken } from '@/core/utils';
-import { CONVERSATIONS } from '@/core/utils/routes';
+import { PasswordInput } from '@/core/components/Input';
+import { AuthForm } from '@/core/composition/AuthLayout';
+import { SigninCredentials, useAuthenticateAccountService } from '@/core/services/account';
+import { resetAuthIntent, setAuthIntent } from '@/core/services/next-auth';
+import { Routes } from '@/core/utils/routes';
 
 export const SigninForm = () => {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const { updateConfig } = useContext(ConfigContext);
   const { register, handleSubmit, formState } = useForm<SigninCredentials>({
     resolver: classValidatorResolver(SigninCredentials),
   });
@@ -35,41 +30,38 @@ export const SigninForm = () => {
   const signinHandler = useAuthenticateAccountService();
 
   const signin: SubmitHandler<SigninCredentials> = async (data) => {
-    const response = await signinHandler.mutateAsync(data);
-
-    storeToken(response.data.access_token + '');
-    storeToken(response.data.refresh_token + '', REFRESH_TOKEN_KEY);
-
-    updateConfig(actions.createHasActiveSessionUpdateAction(true));
-
-    const addressToReturnTo = searchParams.get('return');
-
-    if (addressToReturnTo) {
-      return router.replace(addressToReturnTo);
-    }
-
-    // TODO: change 'new' to user's most recent conversation's id
-    router.replace(`${CONVERSATIONS}/new`);
+    const defaultAddressToReturnTo = Routes.CONVERSATIONS_NEW;
+    const addressToReturnTo = searchParams.get('callbackUrl') || defaultAddressToReturnTo;
+    await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      callbackUrl: addressToReturnTo,
+      redirect: true,
+    });
   };
 
-  return (
-    <Form
-      px={{ base: 6, md: 16, xl: 32 }}
-      py={{ base: 16, xl: 32 }}
-      maxWidth="full"
-      borderRadius={{ md: '2xl' }}
-      width={{ base: 'full', md: 480, lg: 675 }}
-      bgColor="whiteAlpha.100"
-      onSubmit={handleSubmit(signin)}
-    >
-      <Typography mb={10} textStyle="h4" textAlign="center">
-        Sign in to your account
-      </Typography>
+  useEffect(() => {
+    setAuthIntent('access');
+    return () => resetAuthIntent();
+  }, []);
 
-      <VStack spacing={8} justifyContent="flex-start" alignItems="flex-start">
+  const borderRadius = { md: '2xl' };
+
+  return (
+    <AuthForm type="signin" title="Sign in to your account" onSubmit={handleSubmit(signin)}>
+      <VStack mb={8} spacing={6} width="full" borderRadius={borderRadius}>
+        <GoogleButton type="button" width="full" onClick={() => signIn('google')}>
+          Sign in with Google
+        </GoogleButton>
+        <AppleButton type="button" width="full" onClick={() => signIn('apple')}>
+          Sign in with Apple
+        </AppleButton>
+      </VStack>
+
+      <VStack spacing={6} width="full" alignItems="flex-start" justifyContent="flex-start">
         <FormControl variant="floating" isInvalid={Boolean(errors.email)}>
-          <InputGroup>
-            <Input placeholder=" " fontSize="sm" {...register('email')} />
+          <InputGroup size="lg">
+            <Input size="lg" placeholder=" " fontSize="sm" {...register('email')} />
           </InputGroup>
 
           <InputLabel>Email address</InputLabel>
@@ -78,7 +70,7 @@ export const SigninForm = () => {
         </FormControl>
 
         <FormControl variant="floating" isInvalid={Boolean(errors.password)}>
-          <PasswordInput placeholder=" " fontSize="sm" {...register('password')} />
+          <PasswordInput size="lg" placeholder=" " fontSize="sm" {...register('password')} />
 
           <InputLabel>Password</InputLabel>
 
@@ -89,12 +81,6 @@ export const SigninForm = () => {
           Sign in
         </PrimaryButton>
       </VStack>
-
-      <VStack mt={4} alignItems="center">
-        <Link color="brand.500" fontSize="sm" href="/signup">
-          Create your account
-        </Link>
-      </VStack>
-    </Form>
+    </AuthForm>
   );
 };

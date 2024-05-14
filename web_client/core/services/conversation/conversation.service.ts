@@ -9,6 +9,12 @@ export interface ReadConversationsVariables extends BasePagedServiceParams {
   subject?: string;
 }
 
+export async function readConversationByIdService(id: string, axiosOptions?: AxiosRequestConfig) {
+  const response = await conversationClient.readConversationByIdConversationsIdGet({ id }, axiosOptions);
+
+  return response;
+}
+
 export async function readConversationsService(
   variables: ReadConversationsVariables,
   axiosOptions?: AxiosRequestConfig,

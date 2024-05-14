@@ -63,12 +63,9 @@ class ErrorAttributes(BaseModel):
     value: Any
 
 
-class ErrorSpec(BaseModel):
-    code: ErrorCode
-    errors: list[ErrorAttributes]
-
-
 class ErrorResponse(StatusResponseBase, Generic[ErrorT]):
-    success: bool = False
+    title: str
     message: str = "Oops, failed to complete request 😔"
-    error: ErrorSpec
+    code: ErrorCode
+    success: bool = False
+    errors: list[ErrorAttributes]

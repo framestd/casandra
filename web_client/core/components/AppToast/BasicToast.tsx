@@ -10,28 +10,28 @@ import { getThemeColor } from '@/core/utils';
 import { Typography } from '../Typography';
 import { AppToastProps } from './AppToast';
 import { useToastIcons } from './hooks';
+import { useThemeConstants } from '@/core/composition/hooks';
+import { backdropFactory } from '@/core/theme';
 
 export interface BasicToastProps extends Pick<AppToastProps, 'type' | 'title' | 'message' | 'icon' | 'closeToast'> {}
 
 export const BasicToast = forwardRef<BasicToastProps, 'div'>(
   ({ icon, message, title, type = 'default', closeToast }, ref) => {
-    const modalBgColor = useColorModeValue('offwhiteAlpha', 'offblackAlpha');
+    const { blended_bg } = useThemeConstants();
     const zerothStackBgColor = useColorModeValue('offwhite', 'offblack');
     const icons = useToastIcons();
 
     return (
       <HStack
-        boxShadow="lg"
-        bgColor={modalBgColor}
-        backdropSaturate="180%"
-        backdropFilter="auto"
-        backdropBlur="xl"
-        borderRadius="2xl"
-        maxWidth={350}
-        spacing={3}
         p={2}
-        _hover={{ bgColor: rgba(getThemeColor(zerothStackBgColor), 0.8) }}
+        spacing={3}
+        boxShadow="lg"
+        maxWidth={350}
+        borderWidth={1}
+        borderRadius="2xl"
         ref={ref}
+        _hover={{ bgColor: rgba(getThemeColor(zerothStackBgColor), 0.8) }}
+        {...backdropFactory({ bgColor: blended_bg, backdropSaturate: '100%' })}
       >
         {icon ? icon : <Icon as={icons[type].icon} color={icons[type].color} fontSize="2xl" />}
 

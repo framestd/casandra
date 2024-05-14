@@ -3,16 +3,17 @@ from typing import Annotated, TypeVar
 from uuid import uuid4
 
 # Third Party
+import redis.asyncio.client as aioredis
 from fastapi import Cookie, Depends, Query, WebSocket, WebSocketException, status
-from redis.asyncio import StrictRedis
+from redis.client import Redis
 from sqlalchemy.orm import Session
 
 # First Party
 from app.core.authentication.oauth2 import oauth2_scheme
 from app.core.exceptions.http import UnauthorizedException
 from app.core.logging.logger import get_app_logger
-from app.core.models.account import Account
-from app.core.redis.client import appredis
+from app.core.models.account import AccountInDB
+from app.core.redis.client import appredis, appredis_sync
 from app.core.schemas.base import BaseModel
 from app.core.services.account import get_account_by_token
 from app.core.settings import settings
@@ -37,11 +38,17 @@ logger = get_app_logger(__name__)
 SchemaT = TypeVar("SchemaT", bound=BaseModel)
 
 
-class ServiceContext:
-    def __init__(self, *, account: Account, rdb: "StrictRedis[str]"):
+class BaseServiceContext:
+    def __init__(self, *, account: AccountInDB):
         self.user = account.user
         self.account = account
-        self.rdb = rdb
+
+
+class ServiceContext(BaseServiceContext):
+    def __init__(self, *, account: AccountInDB):
+        super().__init__(account=account)
+        self.rdb: aioredis.Redis[str]
+        self.srdb: Redis[str]
 
 
 async def get_db():
@@ -60,8 +67,13 @@ async def get_db():
         logger.info(f"Database session  (Session ID: {session_id}) closed!")
 
 
-async def get_redis_db():
+def get_redis_db():
     redis = appredis.get_cleint()
+    return redis
+
+
+def get_redis_sync_db():
+    redis = appredis_sync.get_cleint()
     return redis
 
 
@@ -103,17 +115,25 @@ def get_current_account(
 
 
 def get_service_context(
-    current_account: Annotated[Account, Depends(get_current_account)],
-    rdb: Annotated["StrictRedis[str]", Depends(get_redis_db)],
+    current_account: Annotated[AccountInDB, Depends(get_current_account)],
+    rdb: Annotated["aioredis.Redis[str]", Depends(get_redis_db)],
+    srdb: Annotated["Redis[str]", Depends(get_redis_sync_db)],
 ):
-    return ServiceContext(account=current_account, rdb=rdb)
+    ctx = ServiceContext(account=current_account)
+    ctx.rdb = rdb
+    ctx.srdb = srdb
+    return ctx
 
 
 def get_ws_service_context(
-    current_account: Annotated[Account, Depends(get_ws_current_account)],
-    rdb: Annotated["StrictRedis[str]", Depends(get_redis_db)],
+    current_account: Annotated[AccountInDB, Depends(get_ws_current_account)],
+    rdb: Annotated["aioredis.Redis[str]", Depends(get_redis_db)],
+    srdb: Annotated["Redis[str]", Depends(get_redis_sync_db)],
 ):
-    return ServiceContext(account=current_account, rdb=rdb)
+    ctx = ServiceContext(account=current_account)
+    ctx.rdb = rdb
+    ctx.srdb = srdb
+    return ctx
 
 
 def preprocess_sort_param(schema: type[SchemaT]):
